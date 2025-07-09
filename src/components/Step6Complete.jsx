@@ -54,7 +54,7 @@ export default function Step6Complete({ email ,onBack}) {
     };
 
     return (
-        <div className="max-w-md mx-auto p-8 border border-white bg-black/40 backdrop-blur-md rounded-lg shadow-lg">
+        <div className="max-w-md mx-auto p-8 border border-white bg-black/60 backdrop-blur-md rounded-lg shadow-lg">
            <button
            type = "button"
                     onClick={onBack}
