@@ -9,9 +9,26 @@ export default function Step4Suggestions({ email, onNext,onBack }) {
         const timeout = setTimeout(() => {
             setSuggestions({
                 summary: "A minimal yet versatile wardrobe of elevated basics.",
-                colors: ["Black", "Ivory", "Olive", "Dusty Rose"],
+                fabricAdvice: `Cotton isn’t ideal for swimwear due to its absorbency, limited stretch, and poor performance in chlorinated water. A recycled nylon-spandex blend (like ECONYL® or REPREVE®) is a better option and offers:
+                 • Eco-friendly sourcing
+                 • Excellent stretch and recovery
+                 • Compatibility with vivid tropical prints
+                 • Quick drying and long-lasting wear`,
+                colors: `Inspired by Loleia’s tropical energy and your palm-themed details: 
+                      • #49A078 – Jungle Green 
+                      • #FFA66D – Mango Orange 
+                      • #EF5DA8 – Hibiscus Pink  `,
                 fabrics: ["Organic Cotton", "Linen", "Modal", "Recycled Polyester"],
-                tips: "Focus on clean lines, durable stitching, and fabric sustainability.",
+                saleprices : `$100 remains a solid and competitive target based on: 
+                           •  Loleia’s pricing ($95–$110 per set) 
+                           •  Eco swim fabrics ($8–$15/yd) 
+                           •  Simple silhouette but added charm detail 
+                          → Final Suggested Sales Price: $100 `,
+                costProduction: "$24 estimated production cost per unit ",
+                companionItems:`Build a versatile collection and reduce fabric waste with:
+                    • Triangle Halter Top
+                    • Cheeky Bottom with Side Rings
+                    • Reversible Swim Bandana or Scarf`,
             });
             setLoading(false);
         }, 1000); // Simulate delay
@@ -38,28 +55,53 @@ export default function Step4Suggestions({ email, onNext,onBack }) {
         : suggestions.fabrics?.split(",") || [];
 
     return (
-        <div className="max-w-2xl mx-auto mt-10 p-8 border border-white bg-black/40 backdrop-blur-md rounded-lg shadow-lg font-sans text-white">
+        <div className="max-w-2xl mx-auto mt-10 p-8 border border-white bg-black/60 backdrop-blur-md rounded-lg shadow-lg font-sans text-white">
             <h2 className="text-3xl font-normal mb-4 font-[Garamond]">Smart Suggestions</h2>
             <p className="text-sm text-white/70 mb-8 font-[Garamond]">
-                Based on your input, here’s what we recommend:
+                Based on your clothing item, here’s what we recommend:
             </p>
 
+           <div className="mb-6">
+  <h3 className="text-base font-semibold mb-2">Suggested Material:</h3>
+  <div className=" text-sm text-white space-y-1">
+    {suggestions.fabricAdvice.split('\n').map((line, index) =>
+      line.trim().startsWith('•') ? (
+        <div key={index}>
+          • <span className="font-bold">{line.replace('•', '').trim()}</span>
+        </div>
+      ) : (
+        <p key={index} className="whitespace-pre-line">{line}</p>
+      )
+    )}
+  </div>
+</div>
+
             <div className="mb-6">
-                <h3 className="text-base font-semibold mb-2">Capsule Summary</h3>
-                <p className="border border-white p-3 bg-white/10 rounded">
-                    {suggestions.summary}
+                <h3 className="text-base font-semibold mb-2">Suggested Sales Price:</h3>
+                <p className=" text-sm text-left rounded whitespace-pre-line">
+                    {suggestions.saleprices}
+                </p>
+            </div>
+            <div className="mb-6">
+                <h3 className="text-base font-semibold mb-2">Estimated Cost Production:</h3>
+                <p className=" text-sm text-left rounded whitespace-pre-line">
+                    {suggestions.costProduction}
+                </p>
+            </div>
+            <div className="mb-6">
+                <h3 className="text-base font-semibold mb-2">Suggested Color Palette:</h3>
+                <p className=" text-sm text-left rounded whitespace-pre-line">
+                    {suggestions.colors}
                 </p>
             </div>
 
-            <div className="mb-6">
-                <h3 className="text-base font-semibold mb-2">Suggested Colors</h3>
-                <ul className="list-disc pl-5 text-sm space-y-1">
-                    {colorList.map((color, i) => (
-                        <li key={i}>{color.trim()}</li>
-                    ))}
-                </ul>
+           <div className="mb-6">
+                <h3 className="text-base font-semibold mb-2">Suggested Companion Items:</h3>
+                <p className=" text-sm text-left rounded whitespace-pre-line">
+                    {suggestions.companionItems}
+                </p>
             </div>
-
+           {/*} 
             <div className="mb-6">
                 <h3 className="text-base font-semibold mb-2">Recommended Fabrics</h3>
                 <ul className="list-disc pl-5 text-sm space-y-1">
@@ -73,6 +115,7 @@ export default function Step4Suggestions({ email, onNext,onBack }) {
                 <h3 className="text-base font-semibold mb-2">Construction Tips</h3>
                 <p className="text-sm">{suggestions.tips}</p>
             </div>
+*/}
             <div className="flex items-center justify-between gap-4">
             <button
                     type = "button"
