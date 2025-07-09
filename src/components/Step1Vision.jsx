@@ -4,6 +4,8 @@ export default function Step1Vision({ onNext, email = "demo@example.com" }) {
     const [pieces, setPieces] = useState("");
     const [types, setTypes] = useState([]);
     const [priceRange, setPriceRange] = useState("");
+    const [materialPreference, setMaterialPreference] = useState("");
+    const [idea,setIdea] = useState("");
 
     const toggleType = (type) => {
         setTypes((prev) =>
@@ -19,7 +21,7 @@ export default function Step1Vision({ onNext, email = "demo@example.com" }) {
     };
 
     return (
-        <div className="max-w-md mx-auto p-8 border border-white bg-black/40 backdrop-blur-md rounded-lg shadow-lg">
+        <div className="max-w-md mx-auto p-8 border border-white bg-black/60 backdrop-blur-md rounded-lg shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
                 <div>
                     <h1 className="text-3xl font-normal font-[Garamond]">Welcome</h1>
@@ -29,8 +31,8 @@ export default function Step1Vision({ onNext, email = "demo@example.com" }) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">How many pieces?</label>
-                    <select
+                    <label className="block text-sm font-medium mb-1">Do you have a name for your brand?</label>
+                    {/*<select
                         className="w-full border border-white bg-transparent px-4 py-2 text-white focus:outline-none appearance-none rounded-md"
                         value={pieces}
                         onChange={(e) => setPieces(e.target.value)}
@@ -41,6 +43,14 @@ export default function Step1Vision({ onNext, email = "demo@example.com" }) {
                         <option className="text-black" value="6">6 pieces</option>
                         <option className="text-black" value="8">8 pieces</option>
                     </select>
+                    */}
+                    <input
+                    className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none rounded-md"
+                    placeholder="Preferred brand (optional)"
+                    value={materialPreference}
+                    onChange={(e) => setMaterialPreference(e.target.value)}
+                />
+
                 </div>
 
                 <div>
@@ -64,8 +74,8 @@ export default function Step1Vision({ onNext, email = "demo@example.com" }) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">Price range per item:</label>
-                    <select
+                    <label className="block text-sm font-medium mb-1">Tell us a little about your idea</label>
+                    {/*<select
                         className="w-full border border-white bg-transparent px-4 py-2 text-white focus:outline-none appearance-none rounded-md"
                         value={priceRange}
                         onChange={(e) => setPriceRange(e.target.value)}
@@ -76,6 +86,15 @@ export default function Step1Vision({ onNext, email = "demo@example.com" }) {
                         <option className="text-black" value="$100–250">$100–250</option>
                         <option className="text-black" value="$250+">$250+</option>
                     </select>
+                    */}
+                    <textarea
+                        className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none rounded-md"
+                        rows={3}
+                        placeholder="Your collection idea.."
+                        value={idea}
+                        onChange={(e) => setIdea(e.target.value)}
+                        required
+                    />
                 </div>
 
                 <div>

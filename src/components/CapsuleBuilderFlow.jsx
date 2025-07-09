@@ -31,7 +31,7 @@ export default function CapsuleBuilderFlow() {
                     {step === 2 && <Step2Inspiration email={email} onNext={() => setStep(3)} onBack ={()=>setStep(1)} />}
                     {step === 3 && <Step3ProductFocus email={email} onNext={() => setStep(4)} onBack={()=> setStep(2)} />}
                     {step === 4 && <Step4Suggestions email={email} onNext={() => setStep(6)} onBack={()=>setStep(3)} />}
-                    {step === 6 && <Step6Complete email={email} />}
+                    {step === 6 && <Step6Complete email={email} onBack={()=> setStep(4)} />}
                 </div>
             </div>
         </div>

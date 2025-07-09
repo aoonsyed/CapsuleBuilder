@@ -2,7 +2,7 @@ import React from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export default function Step6Complete({ email }) {
+export default function Step6Complete({ email ,onBack}) {
     const handleDownload = () => {
         const doc = new jsPDF();
 
@@ -55,7 +55,14 @@ export default function Step6Complete({ email }) {
 
     return (
         <div className="max-w-md mx-auto p-8 border border-white bg-black/40 backdrop-blur-md rounded-lg shadow-lg">
-            <p className="text-sm text-white/60 mb-2 font-[Garamond]">
+           <button
+           type = "button"
+                    onClick={onBack}
+                   className=" pb-1 text-xl font-semibold ">
+
+               ←
+           </button>
+            <p className="pt-1 text-sm text-white/60 mb-2 font-[Garamond]">
                 Form Department — <span className="text-white">Capsule Builder</span>
             </p>
 

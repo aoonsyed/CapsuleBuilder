@@ -4,7 +4,14 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext,on
     const [brand, setBrand] = useState("");
     const [likes, setLikes] = useState("");
     const [image, setImage] = useState(null);
-
+    const [brandPreference, setBrandPreference] = useState({
+            fit: false,
+            price: false,
+            aesthetic: false,
+            material:false,
+            brand_ethics:false
+        });
+    const [sharedPrefernce,setSharedPrefernece]=useState("")
     const handleSubmit = (e) => {
         e.preventDefault();
         // ✅ No backend call — just move to the next step
@@ -12,7 +19,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext,on
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-8 border border-white bg-black/40 backdrop-blur-md rounded-lg shadow-lg">
+        <div className="max-w-2xl mx-auto p-8 border border-white bg-black/60 backdrop-blur-md rounded-lg shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
                 <div>
                     
@@ -21,7 +28,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext,on
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">What brand inspires you?</label>
+                    <label className="block text-sm font-medium mb-1">What current brand most closely aligns with what you are trying to create?</label>
                     <input
                         type="text"
                         className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none"
@@ -33,8 +40,8 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext,on
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">What do you like about them?</label>
-                    <textarea
+                    <label className="block text-sm font-medium mb-1">What draws you this reference brand?</label>
+                    {/*<textarea
                         className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none"
                         rows={3}
                         placeholder="Fit, materials, silhouettes, etc."
@@ -42,8 +49,81 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext,on
                         onChange={(e) => setLikes(e.target.value)}
                         required
                     />
+                  */}
+                  <div className="flex  space-x-20">
+                  <div className="flex flex-col space-y-2">
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={brandPreference.fit}
+                                onChange={() =>
+                                    setBrandPreference((prev) => ({ ...prev, fit: !prev.fit }))
+                                }
+                                className="accent-white"
+                            />
+                            <span className="ml-2 text-sm">Fit</span>
+                        </label>
+                        <label className="inline-flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={brandPreference.price}
+                                onChange={() =>
+                                    setBrandPreference((prev) => ({ ...prev, price: !prev.price }))
+                                }
+                                className="accent-white"
+                            />
+                            <span className="ml-2 text-sm">Price</span>
+                        </label>
+                        <label className="inline-flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={brandPreference.material}
+                                onChange={() =>
+                                    setBrandPreference((prev) => ({ ...prev, material: !prev.material}))
+                                }
+                                className="accent-white"
+                            />
+                            <span className="ml-2 text-sm">Material</span>
+                        </label>
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                        <label className="inline-flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={brandPreference.aestheic}
+                                onChange={() =>
+                                    setBrandPreference((prev) => ({ ...prev, aesthetic: !prev.aesthetic }))
+                                }
+                                className="accent-white"
+                            />
+                            <span className="ml-2 text-sm">Aesthetic</span>
+                        </label>
+                        <label className="inline-flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={brandPreference.brand_ethics}
+                                onChange={() =>
+                                    setBrandPreference((prev) => ({ ...prev, brand_ethics: !prev.brand_ethics }))
+                                }
+                                className="accent-white"
+                            />
+                            <span className="ml-2 text-sm">Brand Ethics</span>
+                        </label>
+                    </div>
+                    </div>
                 </div>
-              
+               <div>
+                    <label className="block text-sm font-medium mb-1">Tell us a little more about why this brand resonates with you?</label>
+                    
+                    <input
+                    className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none rounded-md"
+                    placeholder="Preferred brand (optional)"
+                    value={sharedPrefernce}
+                    onChange={(e) => setSharedPrefernece(e.target.value)}
+                />
+
+                </div>
+
                 <div className="flex items-center justify-between gap-4">
                    {/*
                     <label className="block w-full">
