@@ -7,7 +7,7 @@ export default function LandingPage({ onNext}) {
     };
   return (
     <div className="bg-[#F9F5F0] min-h-screen ">
-      
+       <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center lg:items-start justify-between gap-80">
         {/* Left Content */}
         <div className="max-w-7xl mx-auto px-6 py-10">
           <h1 className="text-[#333333] text-[36pt] font-serif leading-tight">
@@ -26,17 +26,17 @@ export default function LandingPage({ onNext}) {
         </div>
 
         {/* Right Illustration */}
-        <div className="flex-1 flex items-center justify-center lg:justify-end ">
+        <div className="flex-[0.4] flex items-center justify-end ">
           <div className="bg-white p-8 rounded-xl shadow-lg border border-[#E4E4E4]">
             <img
               src="/wrap-dress.svg" // Replace with actual path to illustration
               alt="Wrap Dress"
-              className="h-64 w-auto"
+              className="h-64 w-60"
             />
           </div>
         </div>
       </div>
-   
+   </div>
   );
 }
 
