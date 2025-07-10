@@ -54,25 +54,27 @@ export default function Step6Complete({ email ,onBack}) {
     };
 
     return (
-        <div className="max-w-md mx-auto p-8 border border-white bg-black/60 backdrop-blur-md rounded-lg shadow-lg">
+        <div className="max-w-md mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg">
            <button
            type = "button"
                     onClick={onBack}
-                   className=" pb-1 text-xl font-semibold ">
+                   className=" pb-1 text-xl font-semibold text-[#8c7152] ">
 
                ←
            </button>
+           {/*
             <p className="pt-1 text-sm text-white/60 mb-2 font-[Garamond]">
                 Form Department — <span className="text-white">Capsule Builder</span>
             </p>
+           */}
 
-            <h2 className="text-3xl mb-6 font-normal font-[Garamond]">Next Steps:</h2>
-{/*
-            <p className="text-sm text-white/70 mb-4">
-                We’ve prepared the following for your capsule:
+            <h2 className="text-3xl mb-4 font-inter text-black">Want expert eyes on your capsule?</h2>
+
+            <p className="text-sm text-black/70 mb-4">
+                Add professional review or complete tech pack service.
             </p>
 
-            <ul className="text-sm list-disc list-inside space-y-1 mb-6">
+  {/*          <ul className="text-sm list-disc list-inside space-y-1 mb-6">
                 <li>Summary of your ideas</li>
                 <li>Fabric suggestions</li>
                 <li>Color palette</li>
@@ -80,20 +82,20 @@ export default function Step6Complete({ email ,onBack}) {
             </ul>
 */}
             <button
-                onClick={handleDownload}
-                className="w-full bg-white text-black py-3 text-sm font-medium hover:bg-gray-200 transition rounded"
+                
+                className="w-full  text-white py-3 text-sm font-medium bg-[#b89d7b] hover:bg-[#a98a67] active:bg-[#8c7152] transition rounded"
             >
-                Download Summary
+                Add Expert Review
             </button>
 
             <button
-                disabled
-                className="w-full border border-gray-300 text-gray-400 py-3 text-sm mt-4 bg-gray-100 cursor-not-allowed"
+                
+                className="w-full border border-gray-300 text-white py-3 text-sm mt-4 bg-[#b89d7b] hover:bg-[#a98a67] active:bg-[#8c7152]  rounded"
             >
-                Get Expert Feedback
+                Continue Free
             </button>
 
-            <p className="text-xs text-white/50 mt-2 text-center">🔒 Upgrade your plan to unlock this feature</p>
+           { /*<p className="text-xs text-white/50 mt-2 text-center">🔒 Upgrade your plan to unlock this feature</p>
 
             <button
                 onClick={handleUpgrade}
@@ -101,6 +103,7 @@ export default function Step6Complete({ email ,onBack}) {
             >
                 Upgrade Plan
             </button>
+            */}
         </div>
     );
 }

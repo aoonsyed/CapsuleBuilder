@@ -53,6 +53,13 @@ export default function Step4Suggestions({ email, onNext,onBack }) {
 
     return (
         <div className="max-w-2xl mx-auto mt-10 p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-sans text-white">
+             <button
+           type = "button"
+                    onClick={onBack}
+                   className=" pb-1 text-xl font-extrabold text-[#a98a67] ">
+
+               ←
+           </button>
             <h2 className="text-3xl font-normal mb-4 font-inter text-black text-black">AI-Powered Suggestions</h2>
             {/*<p className="text-sm text-white/70 mb-8 font-[Garamond]">
                 Based on your clothing item, here’s what we recommend:

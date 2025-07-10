@@ -9,7 +9,7 @@ export default function LandingPage({ onNext}) {
     <div className="bg-[#F9F5F0] min-h-screen ">
       
         {/* Left Content */}
-        <div className="max-w-xl mx-auto px-6 py-10">
+        <div className="max-w-7xl mx-auto px-6 py-10">
           <h1 className="text-[#333333] text-[36pt] font-serif leading-tight">
             Start Your<br />
             Capsule Collection
