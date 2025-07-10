@@ -19,37 +19,39 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext,on
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-8 border border-white bg-black/60 backdrop-blur-md rounded-lg shadow-lg">
+        <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
                 <div>
                     
-                    <h1 className="text-3xl font-normal font-[Garamond]">Brand Inspiration</h1>
-                    <p className="text-sm text-white/70 mt-1 font-[Garamond]">Tell us who you admire and why.</p>
+                    <h1 className="text-3xl font-inter text-black">Reference Brand</h1>
+                    {/*<p className="text-sm text-white/70 mt-1 font-[Garamond]">Tell us who you admire and why.</p>*/}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">What current brand most closely aligns with what you are trying to create?</label>
+                    <label className="block text-sm font-medium mb-1 text-black">Is there a brand you want to reference for aesthetic?</label>
                     <input
                         type="text"
-                        className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none"
+                        className="w-full border border-black bg-transparent px-4 py-2 text-black placeholder-black/50 focus:outline-none rounded-md"
                         placeholder="e.g. Reformation"
                         value={brand}
                         onChange={(e) => setBrand(e.target.value)}
                         required
                     />
                 </div>
+                
 
-                <div>
-                    <label className="block text-sm font-medium mb-1">What draws you this reference brand?</label>
-                    {/*<textarea
-                        className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none"
+                    <div>
+                    <label className="block text-sm font-medium mb-1 text-black">What draws you this reference brand?</label>
+                    <textarea
+                        className="w-full border border-black bg-transparent px-4 py-2 text-black placeholder-black/50 focus:outline-none rounded-md"
                         rows={3}
                         placeholder="Fit, materials, silhouettes, etc."
                         value={likes}
                         onChange={(e) => setLikes(e.target.value)}
                         required
                     />
-                  */}
+                  </div>
+{/*
                   <div className="flex  space-x-20">
                   <div className="flex flex-col space-y-2">
                         <label className="flex items-center">
@@ -123,6 +125,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext,on
                 />
 
                 </div>
+                */}
 
                 <div className="flex items-center justify-between gap-4">
                    {/*
@@ -139,12 +142,12 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext,on
                     <button
                     type = "button"
                     onClick={onBack}
-                   className="px-6 py-2 text-sm font-medium text-white border border-white bg-transparent hover:bg-white hover:text-black transition duration-200 rounded">
+                   className="px-4 py-2 text-l font-bold text-white bg-[#b89d7b] hover:bg-[#a98a67] active:bg-[#8c7152] rounded shadow transition duration-200 rounded-md">
                       ← Back
                    </button>
                    <button
                         type="submit"
-                        className="px-6 py-2 text-sm font-medium text-white border border-white bg-transparent hover:bg-white hover:text-black transition duration-200 rounded"
+                        className="px-4 py-2 text-l font-bold text-white bg-[#b89d7b] hover:bg-[#a98a67] active:bg-[#8c7152] rounded shadow transition duration-200 rounded-md"
                     >
                         Next →
                     </button>

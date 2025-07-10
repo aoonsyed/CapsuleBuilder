@@ -3,7 +3,7 @@ import { FaSearch, FaUser, FaShoppingBag } from "react-icons/fa";
 
 export default function Navbar() {
     return (
-        <nav className="bg-white text-black font-serif px-6 py-4 shadow-md">
+        <nav className="bg-[#F9F5F0] text-black font-serif px-6 py-4 shadow-md">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 {/* Left: Logo Image */}
                 <div className="flex items-center">

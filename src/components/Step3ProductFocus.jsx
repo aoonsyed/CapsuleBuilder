@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ImageUploader from "../ImageUploader";
 
 export default function Step3ProductFocus({ email, onNext ,onBack}) {
     const [productType, setProductType] = useState("");
@@ -14,6 +15,7 @@ export default function Step3ProductFocus({ email, onNext ,onBack}) {
         yes:false,
         no:false
     });
+    const[category,setCategory] = useState("")
     const [image, setImage] = useState(null);
 
     const handleSubmit = (e) => {
@@ -23,27 +25,56 @@ export default function Step3ProductFocus({ email, onNext ,onBack}) {
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-8 border border-white bg-black/60 backdrop-blur-md rounded-lg shadow-lg">
+        <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
                 <div>
-                    <h2 className="text-3xl font-normal font-[Garamond]">Product Focus</h2>
-                    <p className="text-sm text-white/70 mt-1 font-[Garamond]">
+                    <h2 className="text-3xl font-normal font-inter text-black">Product Focus</h2>
+                    {/*<p className="text-sm text-white/70 mt-1 font-[Garamond]">
                         Let’s get into the details of your first piece.
                     </p>
+                    */}
                 </div>
                 <div>
-                <label className="block text-sm font-medium mb-1">What article of clothing would you like to develop first?</label>
+                <label className="block text-sm font-medium mb-1 text-black">What are you creating first?</label>
                 <input
-                    className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none"
+                    className="w-full border border-black bg-transparent px-4 py-2 text-black placeholder-black/50 focus:outline- rounded-md"
                     placeholder="Type a clothing item to begin "
                     value={productType}
                     onChange={(e) => setProductType(e.target.value)}
                     required
                 />
+                <div className="pt-6">
+                    <label className="block text-sm font-medium mb-1 text-black">Is this a foundational or statement piece?</label>
+                    <div className="flex space-x-32 pt-4">
+  <label className="flex items-center space-x-4">
+    <input
+      type="radio"
+      name="category"
+      value="Foundational"
+      checked={category === "Foundational"}
+      onChange={(e) => setCategory(e.target.value)}
+      className="accent-[#b89d7b]"
+    />
+    <span className="text-sm text-[#333]">Foundational</span>
+  </label>
+
+  <label className="flex items-center space-x-4">
+    <input
+      type="radio"
+      name="category"
+      value="Statement"
+      checked={category === "Statement"}
+      onChange={(e) => setCategory(e.target.value)}
+      className="accent-[#b89d7b]"
+    />
+    <span className="text-sm text-[#333]">Statement</span>
+  </label>
+  </div>
+</div>
 </div>
                 <div>
-                <label className="block text-sm font-medium mb-1">At what price would you like to sell this item?</label>
-                <input
+                <label className="block text-sm font-medium mb-1 text-black">Do you have visual preference?</label>
+                {/*<input
                     className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none"
                     placeholder="Target sale price ($)"
                     type="number"
@@ -51,20 +82,22 @@ export default function Step3ProductFocus({ email, onNext ,onBack}) {
                     onChange={(e) => setTargetPrice(e.target.value)}
                     required
                 />
+                */}
+                <ImageUploader/>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium mb-1">How many of this product are you looking to produce?</label>
-                 <input
-                    className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none"
-                    placeholder="Quantity to produce"
-                    type="number"
+                    <label className="block text-sm font-medium mb-1 text-black">How do you want someone to feel wearing it?</label>
+                 <textarea
+                    className="w-full border border-black bg-transparent px-4 py-2 text-black placeholder-black/50 focus:outline-none rounded-md"
+                    placeholder="e.g., Confident, empowered, elegant..."
+                    type="text"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     required
                 />
                 </div>
-                <div>
-                     <label className="block text-sm font-medium mb-1">Are there any key features of your product?</label>
+                {/*<div>
+                     <label className="block text-sm font-medium mb-1"></label>
                 <textarea
                     className="w-full border border-white bg-transparent px-4 py-2 text-white placeholder-white/50 focus:outline-none"
                     placeholder="Any key features? (color, fit, construction, etc.)"
@@ -159,12 +192,12 @@ export default function Step3ProductFocus({ email, onNext ,onBack}) {
                  <button
                     type = "button"
                     onClick={onBack}
-                   className="px-6 py-2 text-sm font-medium text-white border border-white bg-transparent hover:bg-white hover:text-black transition duration-200 rounded">
+                   className="px-4 py-2 text-l font-bold text-white bg-[#b89d7b] hover:bg-[#a98a67] active:bg-[#8c7152] rounded shadow transition duration-200 rounded-md">
                       ← Back
                    </button>
                    <button
                     type="submit"
-                    className="px-6 py-2 text-sm font-medium text-white border border-white bg-transparent hover:bg-white hover:text-black transition duration-200 rounded"
+                    className="px-4 py-2 text-l font-bold text-white bg-[#b89d7b] hover:bg-[#a98a67] active:bg-[#8c7152] rounded shadow transition duration-200 rounded-md"
                 >
                     Next →
                 </button>
