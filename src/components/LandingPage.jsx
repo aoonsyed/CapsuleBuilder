@@ -26,15 +26,18 @@ export default function LandingPage({ onNext}) {
         </div>
 
         {/* Right Illustration */}
-        <div className="flex-[0.4] flex items-center justify-end ">
-          <div className="bg-white p-8 rounded-xl shadow-lg border border-[#E4E4E4]">
-            <img
-              src="/wrap-dress.svg" // Replace with actual path to illustration
-              alt="Wrap Dress"
-              className="h-64 w-60"
-            />
-          </div>
-        </div>
+       {/* Right Illustration */}
+<div className="flex-[0.4] flex items-center justify-end">
+  <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[280px] h-[280px] overflow-hidden flex items-center justify-center">
+  <img
+    src="/assets/1.png"
+    alt="Capsule Preview"
+    className="w-full h-full object-cover rounded-2xl"
+  />
+</div>
+
+</div>
+
       </div>
    </div>
   );
