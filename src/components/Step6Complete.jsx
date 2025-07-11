@@ -1,8 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export default function Step6Complete({ email ,onBack}) {
+export default function Step6Complete({ email ,onNext,onBack,onContinue}) {
+    const [show,setShow] = useState(false)
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // ✅ No backend call — just move to the next step
+        onNext();
+    };
+    const handleSubmit2 = (e) => {
+        e.preventDefault();
+        // ✅ No backend call — just move to the next step
+        onContinue();
+    };
     const handleDownload = () => {
         const doc = new jsPDF();
 
@@ -52,7 +63,9 @@ export default function Step6Complete({ email ,onBack}) {
     const handleUpgrade = () => {
         alert("Redirect to upgrade logic...");
     };
-
+    const handleClick= ()=> {
+          setShow((prev) => !prev);
+    }
     return (
         <div className="max-w-md mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg">
            <button
@@ -82,19 +95,19 @@ export default function Step6Complete({ email ,onBack}) {
             </ul>
 */}
             <button
-                
+                onClick={onNext}
                 className="w-full  text-white py-3 text-sm font-medium bg-[#b89d7b] hover:bg-[#a98a67] active:bg-[#8c7152] transition rounded"
             >
                 Add Expert Review
             </button>
-
+            <div>
             <button
-                
+                onClick={onContinue}
                 className="w-full border border-gray-300 text-white py-3 text-sm mt-4 bg-[#b89d7b] hover:bg-[#a98a67] active:bg-[#8c7152]  rounded"
             >
                 Continue Free
             </button>
-
+ </div>
            { /*<p className="text-xs text-white/50 mt-2 text-center">🔒 Upgrade your plan to unlock this feature</p>
 
             <button

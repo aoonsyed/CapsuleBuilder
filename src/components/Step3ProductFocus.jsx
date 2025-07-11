@@ -28,6 +28,9 @@ export default function Step3ProductFocus({ email, onNext ,onBack}) {
         <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
                 <div>
+                    <p className=" ml-5 text-sm text-black mb-2">
+                        Step 3 of 4
+                    </p>
                     <h2 className="text-3xl font-normal font-inter text-black">Product Focus</h2>
                     {/*<p className="text-sm text-white/70 mt-1 font-[Garamond]">
                         Let’s get into the details of your first piece.

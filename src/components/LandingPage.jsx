@@ -27,8 +27,8 @@ export default function LandingPage({ onNext}) {
 
         {/* Right Illustration */}
        {/* Right Illustration */}
-<div className="flex-[0.4] flex items-center justify-end">
-  <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[280px] h-[280px] overflow-hidden flex items-center justify-center">
+<div className="flex-[1] flex items-center justify-end">
+  <div className="bg-white/40 rounded-2xl shadow-lg border border-[#E4E4E4] w-[300px] h-[400px] overflow-hidden flex items-center justify-center">
   <img
     src="/assets/1.png"
     alt="Capsule Preview"

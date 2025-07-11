@@ -32,6 +32,9 @@ export default function Step1Vision({ onNext, email = "demo@example.com" }) {
         <div className="max-w-md mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
                 <div>
+                    <p className=" ml-5 text-sm text-black mb-2">
+                        Step 1 of 4
+                    </p>
                     <h1 className="text-3xl font-inter text-black">Line Strategy</h1>
                     {/*<p className="text-sm text-white/70 mt-1 font-[Garamond] ">
                         Let’s begin defining your capsule collection
