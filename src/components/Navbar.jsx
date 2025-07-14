@@ -7,32 +7,33 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 {/* Left: Logo Image */}
                 <div className="flex items-center">
-                    <img
+                   {/*  <img
                         src="/logo.png"
                         alt="Form Logo"
                         className="h-8 w-auto"
                     />
+                    */}
+                     <h1 className="text-[#333333] text-[20pt] font-serif leading-tight">
+                        Form Department
+          </h1>
                 </div>
 
                 {/* Center: Links */}
-                <div className="space-x-6 text-sm font-medium hidden md:flex">
+                <div className="space-x-10 text-lg font-inter md:flex mr-8">
                     <div className="group relative cursor-pointer">
-                        <span>WHAT WE OFFER</span>
-                        <span className="ml-1">▾</span>
+                        <span>All the details</span>
                     </div>
                     <div className="group relative cursor-pointer">
-                        <span>WHO WE SUPPORT</span>
-                        <span className="ml-1">▾</span>
+                        <span>Blogs</span>
                     </div>
                     <div className="group relative cursor-pointer">
-                        <span>SOLUTIONS FOR YOUR BRAND</span>
-                        <span className="ml-1">▾</span>
+                        <span>Updates</span>
+                      {/* <span className="ml-1">▾</span>*/}
                     </div>
-                    <span className="cursor-pointer">START FOR FREE</span>
                 </div>
 
                 {/* Right: Icons */}
-                <div className="flex items-center space-x-6 text-xl">
+               {/*  <div className="flex items-center space-x-6 text-xl">
                     <FaSearch className="cursor-pointer" />
                     <FaUser className="cursor-pointer" />
                     <div className="relative cursor-pointer">
@@ -40,6 +41,7 @@ export default function Navbar() {
 
                     </div>
                 </div>
+                */}
             </div>
         </nav>
     );

@@ -4,10 +4,11 @@ export default function Step4Suggestions({ email, onNext,onBack }) {
     const [suggestions, setSuggestions] = useState(null);
     const [loading, setLoading] = useState(true);
     const colorData = [
-                     { hex: "#49A078", name: "Jungle Green" },
-                       { hex: "#FFA66D", name: "Mango Orange" },
-                     { hex: "#EF5DA8", name: "Hibiscus Pink" },
-                 ];
+  { hex: "#B59B7A", name: "taupe" },
+  { hex: "#7C6848", name: "olivebrown" },
+  { hex: "#5B4032", name: "deepbrown" }
+];
+
     useEffect(() => {
         // Simulate async fetch delay
         const timeout = setTimeout(() => {
@@ -89,10 +90,10 @@ export default function Step4Suggestions({ email, onNext,onBack }) {
     {colorData.map((color, index) => (
       <div key={index} className="flex items-center space-x-2">
         <div
-          className="w-8 h-8 rounded-md border border-gray-300"
+          className="w-10 h-10 rounded-full border border-gray-300"
           style={{ backgroundColor: color.hex }}
         ></div>
-        <span className="text-sm text-black">{color.name}</span>
+        
       </div>
     ))}
   </div>

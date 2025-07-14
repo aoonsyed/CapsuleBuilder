@@ -12,15 +12,15 @@ import Curated_Capsule from "./Curated_Capsule";
 export default function CapsuleBuilderFlow() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState();
-
+  
   return (
  <div
-  className="min-h-screen bg-cover bg-center font-sans text-white relative"
-  style={{ backgroundImage: `url('/assets/1.png')` }}
->
+  className=" bg-[#F9F5F0] min-h-screen bg-cover bg-center font-sans text-white relative"  
+  >
+  {/*style={{ backgroundImage: `url('/assets/1.png')` }}*/} 
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 z-0" />
+      <div className="absolute inset-0 bg-[#F9F5F0] z-0" />
 
       {/* Navbar at the top */}
       <div className="relative z-10">

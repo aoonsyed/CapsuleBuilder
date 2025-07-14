@@ -29,7 +29,7 @@ export default function Step1Vision({ onNext, email = "demo@example.com" }) {
     };
 
     return (
-        <div className="max-w-md mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-xl">
+        <div className="bg-white/40 max-w-md mx-auto p-8 border border-white backdrop-blur-md rounded-lg shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
                 <div>
                     <p className=" ml-5 text-sm text-black mb-2">
