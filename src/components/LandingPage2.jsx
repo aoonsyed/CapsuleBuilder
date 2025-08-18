@@ -150,20 +150,23 @@ export default function LandingPage({ onNext }) {
                                         />
                                     </div>
 
-                                    {/* Product Buttons */}
-                                    <div className="flex flex-col gap-4 flex-1 justify-center">
-                                        <div className="grid grid-cols-2 gap-4 w-full">
-                                            <div className="flex items-center justify-center bg-white text-black rounded-3xl font-[Garamond] font-semibold text-[14pt] h-[60px] transition border">
-                                                Jacket
-                                            </div>
-                                            <div className="flex items-center justify-center bg-white text-black rounded-3xl font-[Garamond] font-semibold text-[14pt] h-[60px] transition border">
-                                                Top
-                                            </div>
-                                            <div className="col-span-2 flex items-center justify-center bg-white text-black rounded-3xl font-[Garamond] font-semibold text-[14pt] h-[60px] transition border">
-                                                Outerwear
-                                            </div>
-                                        </div>
-                                    </div>
+                                   {/* Product Buttons */}
+{/* Product Buttons */}
+<div className="flex flex-col gap-4 flex-1 justify-center">
+    <div className="grid grid-cols-1 gap-4 w-full sm:grid-cols-2">
+        <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[13pt] h-[50px] w-[100px] transition border">
+            Tops
+        </div>
+        <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[13pt] h-[50px] w-[100px] transition border">
+            Pants
+        </div>
+        <div className="col-span-1 sm:col-span-2 flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[13pt] h-[60px] w-[100px] transition border">
+            Outerwear
+        </div>
+    </div>
+</div>
+
+
 
                                 </div>
                             </div>
