@@ -1,59 +1,89 @@
-import React, { useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setIdea,setBrand } from "../formSlice";
+import { setIdea, setBrand } from "../formSlice";
 
-export default function Step1Vision({ onNext, email = "demo@example.com" }) {
+export default function Step1Vision({
+  onNext,
+  // keep prop but don't trip eslint by not using it
+  email: _email = "demo@example.com",
+  embedded = false,
+
+  // NEW: height controls (all optional)
+  height,            // number (px) or string (e.g. "460px" or "28rem")
+  minHeight,         // number or string
+  maxHeight,         // number or string
+}) {
   const dispatch = useDispatch();
-  const idea = useSelector((state) => state.form.idea);
-  const localBrand = useSelector((state)=> state.form.localBrand)
+
+  // Call hooks unconditionally, then derive values
+  const brandFromSlice = useSelector((state) => state.form?.brand);
+  const localBrandFromSlice = useSelector((state) => state.form?.localBrand);
+  const brandValue = brandFromSlice ?? localBrandFromSlice ?? "";
+  const idea = useSelector((state) => state.form?.idea ?? "");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    //setBrand(localBrand);
-    onNext();
+    if (!embedded && onNext) onNext();
   };
 
+  // Build an inline style object so you can set exact heights
+  const toSize = (v) =>
+    typeof v === "number" ? `${v}px` : (typeof v === "string" ? v : undefined);
+
+  const containerStyle = {
+    ...(height ? { height: toSize(height) } : null),
+    ...(minHeight ? { minHeight: toSize(minHeight) } : null),
+    ...(maxHeight ? { maxHeight: toSize(maxHeight) } : null),
+  };
+
+  // Slightly tighter padding when embedded, and make the card a flex column
+  const cardClass = embedded
+    ? "bg-white/60 w-full max-w-[380px] p-6 pb-4 backdrop-blur-md rounded-lg shadow-xl font-[Helvetica] flex flex-col overflow-hidden"
+    : "bg-white/60 max-w-md mx-auto p-8 pb-6 backdrop-blur-md rounded-lg shadow-xl font-[Helvetica] flex flex-col overflow-hidden";
+
   return (
-    <div className="bg-white/60 max-w-md mx-auto p-8 backdrop-blur-md rounded-lg shadow-xl font-[Helvetica]">
-      <form onSubmit={handleSubmit} className="space-y-8 text-black">
-        {/* Step Heading */}
-        <div>
-          <p className="ml-2 text-sm mb-2">Step 1 of 5</p>
+    <div className={cardClass} style={containerStyle}>
+      {/* The form is a flex column and will expand; the fields area scrolls if needed */}
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col text-black" noValidate>
+        {/* Header */}
+        <div className="mb-4">
+          {!embedded && <p className="ml-2 text-sm mb-2">Step 1 of 5</p>}
           <h1 className="text-[26pt] font-[Garamond] font-bold">Line Strategy</h1>
         </div>
 
-        {/* Brand Name Input */}
-        <div>
-          <label className="block text-base mb-1">Do you have a name for your brand?</label>
-          <input
-            type="text"
-            className="w-full border border-black bg-[#F5F5F5] px-4 py-2 text-black placeholder-black/60 focus:outline-none rounded-md"
-            placeholder="e.g. Reformation"
-            value={localBrand}
-            onChange={(e) =>dispatch(setBrand(e.target.value))}
-          />
-        </div>
+        {/* Scrollable fields block (adjust internal spacing here) */}
+        <div className="flex-1 overflow-y-auto pr-1 space-y-5">
+          <div>
+            <label htmlFor="brandName" className="block text-base mb-1">
+              Do you have a name for your brand?
+            </label>
+            <input
+              id="brandName"
+              name="brandName"
+              type="text"
+              autoComplete="off"
+              className="w-full border border-black bg-[#F5F5F5] px-4 py-2 text-black placeholder-black/60 focus:outline-none rounded-md"
+              placeholder="e.g. Reformation"
+              value={brandValue}
+              onChange={(e) => dispatch(setBrand(e.target.value))}
+            />
+          </div>
 
-        {/* Idea Textarea */}
-        <div>
-          <label className="block text-base mb-1">Tell us a little bit about your idea:</label>
-          <textarea
-            className="w-full border border-black bg-[#F5F5F5] px-4 py-2 text-black placeholder-black/60 focus:outline-none rounded-md"
-            placeholder="Share a quick overview of your idea!"
-            value={idea}
-            onChange={(e) => dispatch(setIdea(e.target.value))}
-            required
-          />
-        </div>
-
-        {/* Next Button */}
-        <div>
-          <button
-            type="submit"
-            className="mt-6 px-6 py-2 text-lg font-bold font-[Helvetica] text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
-          >
-            Next →
-          </button>
+          <div>
+            <label htmlFor="idea" className="block text-base mb-1">
+              Tell us a little bit about your idea:
+            </label>
+            <textarea
+              id="idea"
+              name="idea"
+              rows={4}
+              className="w-full border border-black bg-[#F5F5F5] px-4 py-2 text-black placeholder-black/60 focus:outline-none rounded-md"
+              placeholder="Share a quick overview of your idea!"
+              value={idea}
+              onChange={(e) => dispatch(setIdea(e.target.value))}
+              required
+            />
+          </div>
         </div>
       </form>
     </div>

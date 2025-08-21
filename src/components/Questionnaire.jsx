@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { Toaster, toast } from 'sonner';
 
 export default function Questionaire({ onNext, onBack }) {
   const {
@@ -15,23 +14,39 @@ export default function Questionaire({ onNext, onBack }) {
   const [questionsData, setQuestionsData] = useState([]);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadTick, setReloadTick] = useState(0); // simple trigger to retry
+
+  // Single stable key for effect dependency
+  const paramsKey = useMemo(
+    () =>
+      JSON.stringify({
+        productType,
+        keyFeatures,
+        targetPrice,
+        idea,
+        materialPreference,
+      }),
+    [productType, keyFeatures, targetPrice, idea, materialPreference]
+  );
+
+  // Cache to avoid refetching for identical inputs
+  const lastKeyRef = useRef(null);
 
   const handleAnswerChange = (question, value) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [question]: value,
-    }));
+    setAnswers((prev) => ({ ...prev, [question]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     localStorage.setItem("questionnaireAnswers", JSON.stringify(answers));
-    onNext();
+    if (onNext) onNext();
   };
 
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      const prompt = `
+  // Build the exact prompt string
+  const prompt = useMemo(
+    () =>
+      `
 You are generating a product questionnaire for a custom apparel item.
 
 Return a JSON array with exactly 3 fixed categories:
@@ -50,72 +65,141 @@ Use this format only:
       {
         "question": "Write a relevant question?",
         "type": "multiple-choice" or "text",
-        "options": ["Option 1", "Option 2"] // Only if type is multiple-choice
+        "options": ["Option 1", "Option 2"]
       }
     ]
   },
-  {
-    "title": "Fabric & Performance",
-    "questions": [...]
-  },
-  {
-    "title": "Adjustability & Comfort",
-    "questions": [...]
-  }
+  { "title": "Fabric & Performance", "questions": [...] },
+  { "title": "Adjustability & Comfort", "questions": [...] }
 ]
 
 User’s product input:
-- Product Type: ${productType}
-- Key Features: ${keyFeatures}
-- Target Price: ${targetPrice}
-- Idea: ${idea}
-- Material Preference: ${materialPreference}
+- Product Type: ${productType || "-"}
+- Key Features: ${keyFeatures || "-"}
+- Target Price: ${targetPrice || "-"}
+- Idea: ${idea || "-"}
+- Material Preference: ${materialPreference || "-"}
 
 Only return the JSON. No markdown. No explanation.
-`;
+`.trim(),
+    [productType, keyFeatures, targetPrice, idea, materialPreference]
+  );
 
+  const sanitizeAndParseJSON = (raw) => {
+    if (!raw) throw new Error("Empty content");
+    let s = raw.trim();
+    if (s.startsWith("```")) {
+      s = s.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    }
+    const first = Math.min(...[s.indexOf("["), s.indexOf("{")].filter((x) => x >= 0));
+    const last = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
+    if (first >= 0 && last > first) s = s.slice(first, last + 1);
+    const parsed = JSON.parse(s);
+    if (!Array.isArray(parsed)) throw new Error("Parsed JSON is not an array");
+    return parsed;
+  };
 
+  useEffect(() => {
+    // Skip duplicate fetch for identical inputs
+    if (lastKeyRef.current === paramsKey) {
+      setLoading(false);
+      return;
+    }
+    lastKeyRef.current = paramsKey;
+
+    const fetchQuestions = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const apikey = process.env.REACT_APP_API_KEY;
+        if (!apikey) throw new Error("Missing REACT_APP_API_KEY");
+
         const res = await axios.post(
           "https://api.openai.com/v1/chat/completions",
           {
-            model: "gpt-4",
+            model: "gpt-4o",
             messages: [
               { role: "system", content: "You are a helpful fashion designer assistant." },
               { role: "user", content: prompt },
             ],
             max_tokens: 1000,
+            temperature: 0.7,
+            top_p: 1,
           },
           {
             headers: {
               Authorization: `Bearer ${apikey}`,
               "Content-Type": "application/json",
             },
+            timeout: 30000,
           }
         );
 
-        const content = res.data.choices[0].message.content;
-        const parsed = JSON.parse(content);
-        console.log(parsed)
-        setQuestionsData(parsed);
-        setLoading(false);
-        toast.success("Loaded clarifying questions");
+        const content = res?.data?.choices?.[0]?.message?.content ?? "";
+        let parsed;
+        try {
+          parsed = sanitizeAndParseJSON(content);
+        } catch {
+          // sometimes the model returns a quoted JSON string
+          const maybe = JSON.parse(content);
+          parsed = Array.isArray(maybe) ? maybe : sanitizeAndParseJSON(maybe);
+        }
+
+        // Defensive cleanup
+        const cleaned = parsed.map((cat) => ({
+          title: cat?.title || "Untitled",
+          questions: (cat?.questions || []).map((q) => {
+            const isMC = q?.type === "multiple-choice" && Array.isArray(q?.options) && q.options.length;
+            return {
+              question: q?.question || "Your input",
+              type: isMC ? "multiple-choice" : "text",
+              options: isMC ? q.options : undefined,
+            };
+          }),
+        }));
+
+        setQuestionsData(cleaned);
       } catch (err) {
         console.error(err);
-        toast.error("Failed to fetch questions");
+        setQuestionsData([]);
+        setError("Failed to load clarifying questions from AI.");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchQuestions();
-  }, []);
+  }, [paramsKey, prompt, reloadTick]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-black/70 font-sans">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mr-3"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mr-3" />
         <p>Loading questions...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-xl mx-auto p-6 bg-white rounded-lg shadow text-black">
+        <p className="mb-4">{error}</p>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setReloadTick((t) => t + 1)}
+            className="px-5 py-2 bg-black hover:bg-[#3A3A3D] text-white rounded-md"
+          >
+            Try again
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-5 py-2 ml-56 bg-black hover:bg-[#3A3A3D] text-white rounded-md"
+          >
+            ← Back
+          </button>
+        </div>
       </div>
     );
   }
@@ -124,52 +208,45 @@ Only return the JSON. No markdown. No explanation.
     <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg">
       <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
         <div>
-            
-          <p className="ml-5 text-sm font-[Helvetica] text-black mb-2">
-            Step 4 of 5
-          </p>
-          <h2 className="text-[26pt] font-[Garamond] font-bold text-black mb-2">
-            Clarifying Questions
-          </h2>
-         
+          <p className="ml-5 text-sm font-[Helvetica] text-black mb-2">Step 4 of 5</p>
+          <h2 className="text-[26pt] font-[Garamond] font-bold text-black mb-2">Clarifying Questions</h2>
         </div>
 
-        {questionsData.map((category, i) => (
-          <div key={i} className="">
+        {questionsData.map((category, ci) => (
+          <div key={ci}>
             <h3 className="text-[20pt] font-[Garamond] font-bold text-black mb-2">{category.title}</h3>
-            {category.questions.map((q, index) => (
-              <div key={index} className="mb-4">
-                <label className="block text-base font-[Helvetica] mb-1 text-black">
-                  {q.question}
-                </label>
-                {q.type === "multiple-choice" ? (
-            <div className="space-y-2">
-                {q.options.map((opt, i) => (
-                <label key={i} className="flex items-center space-x-2 text-black ">
-                    <input
-                    type="radio"
-                    name={q.question} 
-                    value={opt}
-                    checked={answers[q.question] === opt}
-                    onChange={(e) => handleAnswerChange(q.question, e.target.value)}
-                    className="accent-[#3A3A3D]"
-                    required
-                    />
-                    <span>{opt}</span>
-                </label>
-                ))}
-            </div>
-            ) : (
-            <input
-                type="text"
-                className="w-full border border-black bg-transparent px-4 py-2 text-black focus:outline-none rounded-md"
-                placeholder="Your answer"
-                value={answers[q.question] || ""}
-                onChange={(e) => handleAnswerChange(q.question, e.target.value)}
-                required
-            />
-            )}
 
+            {category.questions.map((q, qi) => (
+              <div key={qi} className="mb-4">
+                <label className="block text-base font-[Helvetica] mb-1 text-black">{q.question}</label>
+
+                {q.type === "multiple-choice" && Array.isArray(q.options) ? (
+                  <div className="space-y-2">
+                    {q.options.map((opt, oi) => (
+                      <label key={oi} className="flex items-center space-x-2 text-black">
+                        <input
+                          type="radio"
+                          name={`q-${ci}-${qi}`} // unique group name
+                          value={opt}
+                          checked={answers[q.question] === opt}
+                          onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                          className="accent-[#3A3A3D]"
+                          required={oi === 0 && !answers[q.question]} // require one per group
+                        />
+                        <span>{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    className="w-full border border-black bg-transparent px-4 py-2 text-black focus:outline-none rounded-md"
+                    placeholder="Your answer"
+                    value={answers[q.question] || ""}
+                    onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                    required
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -186,7 +263,7 @@ Only return the JSON. No markdown. No explanation.
 
           <button
             type="submit"
-            className="px-6 py-2 text-lg font-bold text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+            className="px-6 py-2 text-lg font-bold text-white bg-[#000000] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
           >
             Next →
           </button>
