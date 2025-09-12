@@ -149,37 +149,24 @@ Please provide your response in EXACTLY this format with these exact headings:
 **Companion Items**
 [Only list 2-3 accessory or styling suggestions here]`;
 
-        const apikey = process.env.REACT_APP_API_KEY;
-        if (!apikey) {
-          throw new Error('Missing REACT_APP_API_KEY for OpenAI');
-        }
+       const response = await axios.post('/api/openai', { prompt });
 
-        const response = await axios.post(
-          'https://api.openai.com/v1/chat/completions',
-          {
-            model: 'gpt-4',
-            messages: [
-              { role: 'system', content: 'You are a helpful fashion designer assistant.' },
-              { role: 'user', content: prompt },
-            ],
-            max_tokens: 1000,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${apikey}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+if (response?.data?.error) {
+  throw new Error(`OpenAI API error: ${response.data.error}`);
+}
 
-        const answer = response?.data?.choices?.[0]?.message?.content || '';
-        localStorage.setItem('answer', answer);
-        const parsed = parseAIResponse(answer);
-        setSuggestions(parsed);
+const answer =
+  response?.data?.choices?.[0]?.message?.content ??
+  response?.data?.choices?.[0]?.text ??
+  '';
 
-        toast.success('Suggestions loaded successfully!', {
-          style: { backgroundColor: '#3A3A3D', color: '#fff' },
-        });
+localStorage.setItem('answer', answer);
+const parsed = parseAIResponse(answer);
+setSuggestions(parsed);
+
+toast.success('Suggestions loaded successfully!', {
+  style: { backgroundColor: '#3A3A3D', color: '#fff' },
+  });
       } catch (err) {
         console.error('OpenAI error:', err);
         toast.error('Something went wrong while fetching suggestions.', {
