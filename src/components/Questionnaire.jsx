@@ -108,14 +108,25 @@ Only return the JSON. No markdown. No explanation.
       setError(null);
       try {
         const res = await axios.post("/api/openai", { prompt });
-        const content = res?.data?.choices?.[0]?.message?.content ?? "";
-        let parsed;
-        try {
-          parsed = sanitizeAndParseJSON(content);
-        } catch {
-          const maybe = JSON.parse(content);
-          parsed = Array.isArray(maybe) ? maybe : sanitizeAndParseJSON(maybe);
-        }
+        const content = res?.data?.choices?.[0]?.message?.content;
+
+if (!content || content.trim() === "") {
+  throw new Error("OpenAI returned empty content");
+}
+
+let parsed;
+try {
+  parsed = sanitizeAndParseJSON(content);
+} catch (err) {
+  try {
+    const maybe = JSON.parse(content);
+    parsed = Array.isArray(maybe) ? maybe : sanitizeAndParseJSON(maybe);
+  } catch (innerErr) {
+    console.error("Failed to parse OpenAI response:", content);
+    throw innerErr;
+  }
+}
+
 
         const cleaned = parsed.map((cat) => ({
           title: cat?.title || "Untitled",
