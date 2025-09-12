@@ -104,54 +104,64 @@ Only return the JSON. No markdown. No explanation.
     lastKeyRef.current = paramsKey;
 
     const fetchQuestions = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await axios.post("/api/openai", { prompt });
-        const content = res?.data?.choices?.[0]?.message?.content;
-
-if (!content || content.trim() === "") {
-  throw new Error("OpenAI returned empty content");
-}
-
-let parsed;
-try {
-  parsed = sanitizeAndParseJSON(content);
-} catch (err) {
+  setLoading(true);
+  setError(null);
   try {
-    const maybe = JSON.parse(content);
-    parsed = Array.isArray(maybe) ? maybe : sanitizeAndParseJSON(maybe);
-  } catch (innerErr) {
-    console.error("Failed to parse OpenAI response:", content);
-    throw innerErr;
-  }
-}
+    const res = await axios.post("/api/openai", { prompt });
 
+    // ✅ Check for API error
+    if (res?.data?.error) {
+      throw new Error(`OpenAI API error: ${res.data.error}`);
+    }
 
-        const cleaned = parsed.map((cat) => ({
-          title: cat?.title || "Untitled",
-          questions: (cat?.questions || []).map((q) => {
-            const isMC =
-              q?.type === "multiple-choice" &&
-              Array.isArray(q?.options) &&
-              q.options.length;
-            return {
-              question: q?.question || "Your input",
-              type: isMC ? "multiple-choice" : "text",
-              options: isMC ? q.options : undefined,
-            };
-          }),
-        }));
+    // ✅ Support both chat + text completions (defensive)
+    const content =
+      res?.data?.choices?.[0]?.message?.content ??
+      res?.data?.choices?.[0]?.text ??
+      "";
 
-        setQuestionsData(cleaned);
-      } catch (err) {
-        console.error(err);
-        setQuestionsData([]);
-        setError("Failed to load clarifying questions from AI.");
-      } finally {
-        setLoading(false);
+    if (!content || content.trim() === "") {
+      throw new Error("OpenAI returned empty content");
+    }
+
+    let parsed;
+    try {
+      parsed = sanitizeAndParseJSON(content);
+    } catch (err) {
+      try {
+        const maybe = JSON.parse(content);
+        parsed = Array.isArray(maybe) ? maybe : sanitizeAndParseJSON(maybe);
+      } catch (innerErr) {
+        console.error("Failed to parse OpenAI response:", content);
+        throw innerErr;
       }
-    };
+    }
+
+    const cleaned = parsed.map((cat) => ({
+      title: cat?.title || "Untitled",
+      questions: (cat?.questions || []).map((q) => {
+        const isMC =
+          q?.type === "multiple-choice" &&
+          Array.isArray(q?.options) &&
+          q.options.length;
+        return {
+          question: q?.question || "Your input",
+          type: isMC ? "multiple-choice" : "text",
+          options: isMC ? q.options : undefined,
+        };
+      }),
+    }));
+
+    setQuestionsData(cleaned);
+  } catch (err) {
+    console.error("❌ FetchQuestions error:", err);
+    setQuestionsData([]);
+    setError("Failed to load clarifying questions from AI.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     fetchQuestions();
   }, [paramsKey, prompt, reloadTick]);

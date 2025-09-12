@@ -4,20 +4,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ✅ Handle body parsing for Node serverless function
+    // Parse body safely
     let body = req.body;
-
-    // Sometimes Vercel gives stringified JSON → parse it
     if (typeof body === "string") {
-      try {
-        body = JSON.parse(body);
-      } catch (err) {
-        return res.status(400).json({ error: "Invalid JSON body" });
-      }
+      body = JSON.parse(body);
     }
 
-    const { prompt } = body;
-
+    const { prompt } = body || {};
     if (!prompt) {
       return res.status(400).json({ error: "Missing prompt in request body" });
     }
@@ -42,8 +35,13 @@ export default async function handler(req, res) {
     });
 
     console.log("✅ OpenAI response status:", response.status);
+
     const data = await response.json();
-    console.log("🔍 OpenAI response body:", JSON.stringify(data).slice(0, 500));
+    console.log("🔍 FULL OpenAI response:", JSON.stringify(data, null, 2));
+
+    if (data.error) {
+      return res.status(400).json({ error: data.error.message });
+    }
 
     return res.status(200).json(data);
   } catch (err) {
