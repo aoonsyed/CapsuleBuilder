@@ -4,8 +4,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ✅ Properly parse request body
-    const { prompt } = await req.json();
+    // ✅ Handle body parsing for Node serverless function
+    let body = req.body;
+
+    // Sometimes Vercel gives stringified JSON → parse it
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch (err) {
+        return res.status(400).json({ error: "Invalid JSON body" });
+      }
+    }
+
+    const { prompt } = body;
 
     if (!prompt) {
       return res.status(400).json({ error: "Missing prompt in request body" });
