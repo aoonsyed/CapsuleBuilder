@@ -9,22 +9,25 @@ function ImageGeneration({onBack}) {
   const[construction,setConstruction]=useState(" ");
   //to format text for use as a prompt for image
   const formatForImage = (rawText) => {
-  const getSection = (label) => {
-    const regex = new RegExp(
-    `\\*\\*\\s*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\*\\*\\s*\\n*([\\s\\S]*?)(?=\\n\\s*\\*\\*|$)`,
-    'i'
-  );
-    const match = rawText.match(regex);
-    return match ? match[1].trim() : '';
-  };
-  const trimText = (text, max = 200) =>
+    const getSection = (label) => {
+      const regex = new RegExp(
+        `\\*\\*\\s*${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\*\\*\\s*\\n*([\\s\\S]*?)(?=\\n\\s*\\*\\*|$)`,
+        "i"
+      );
+      const match = rawText.match(regex);
+      return match ? match[1].trim() : "";
+    };
+
+    const trimText = (text, max = 200) =>
       text?.length > max ? text.slice(0, max) + "..." : text;
-  const materials = trimText(getSection("Materials").replace(/\n/g, ', '));
-  const colors = getSection("Color Palette with HEX Codes").replace(/\n/g, ', ');
-  const suggestions = trimText(getSection("Suggested Items").replace(/\n/g,','));
-  const productType = trimText(localStorage.getItem("productType") || "clothing");
-  const construction = trimText(getSection("Construction Notes").replace(/\n/g,' , '))
-  return `Create a high-resolution, realistic image of a ${productType} made from ${materials}, presented in shades such as ${colors}. The ${productType} should be displayed neatly on a hanger or worn by a mannequin, with a clean, neutral background to highlight the product.
+
+    const materials = trimText(getSection("Materials").replace(/\n/g, ", "));
+    const colors = getSection("Color Palette with HEX Codes").replace(/\n/g, ", ");
+    const suggestions = trimText(getSection("Suggested Items").replace(/\n/g, ","));
+    const productType = trimText(localStorage.getItem("productType") || "clothing");
+    const construction = trimText(getSection("Construction Notes").replace(/\n/g, " , "));
+
+    return `Create a high-resolution, realistic image of a ${productType} made from ${materials}, presented in shades such as ${colors}. The ${productType} should be displayed neatly on a hanger or worn by a mannequin, with a clean, neutral background to highlight the product.
 
     Focus exclusively on the ${productType} itself—avoid branding, text, or background distractions.
 
@@ -38,19 +41,17 @@ function ImageGeneration({onBack}) {
 //to get the colors from a prompt
 
 
-const sanitizeColorSection = (rawText) => {
-  const colorFix = rawText.replace(
-    /(in colors such as|the following are shades of.*?):/i,
-    '**Color Palette with HEX Codes**\n'
-  );
-  return colorFix;
-};
+  const sanitizeColorSection = (rawText) => {
+    return rawText.replace(
+      /(in colors such as|the following are shades of.*?):/i,
+      "**Color Palette with HEX Codes**\n"
+    );
+  };
 
-const extractHexColors = (rawText) => {
-  const sectionRegex = /\*\*Color Palette with HEX Codes\*\*\n([\s\S]*?)(?=\n\*\*|$)/;
-  const match = rawText.match(sectionRegex);
-  const section = match ? match[1] : '';
-  console.log("Matched section:", section);
+  const extractHexColors = (rawText) => {
+    const sectionRegex = /\*\*Color Palette with HEX Codes\*\*\n([\s\S]*?)(?=\n\*\*|$)/;
+    const match = rawText.match(sectionRegex);
+    const section = match ? match[1] : "";
 
   const hexColors = [];
   
@@ -77,122 +78,105 @@ const extractHexColors = (rawText) => {
     { regex: pattern4, nameIndex: 2, hexIndex: 1 }
   ];
 
-  let foundColors = false;
-  
-  for (const pattern of patterns) {
-    const { regex, nameIndex, hexIndex } = pattern;
-    let m;
-    const tempColors = [];
-    
-    while ((m = regex.exec(section)) !== null) {
-      const name = m[nameIndex].trim();
-      const hex = '#' + m[hexIndex].toUpperCase();
-      tempColors.push([name, hex]);
-      console.log(`Pattern matched - Color: ${name}, HEX: ${hex}`);
-    }
-    
-    if (tempColors.length > 0) {
-      hexColors.push(...tempColors);
-      foundColors = true;
-      break; // Stop after first successful pattern
-    }
-    
-    // Reset regex lastIndex for next pattern
-    regex.lastIndex = 0;
-  }
-  
-  // Fallback: If no names found, extract just hex codes and generate names
-  if (!foundColors) {
-    let colorIndex = 1;
-    let m;
-    while ((m = pattern5.exec(section)) !== null) {
-      const hex = '#' + m[1].toUpperCase();
-      const name = `Color ${colorIndex}`;
-      hexColors.push([name, hex]);
-      console.log(`Fallback - Generated name: ${name}, HEX: ${hex}`);
-      colorIndex++;
-    }
-  }
-  
-  console.log("Final hexColors:", hexColors);
-  return hexColors;
-};
+    let foundColors = false;
 
-const extractSuggestedItems= (rawText) => {
- 
-  const match = rawText.match(/(?:\*\*)?Suggested Items(?:\*\*)?\s*([\s\S]*?)(?=\n{2,}|^\s*$|\n(?:\*\*|\#)|$)/im);
+    for (const pattern of patterns) {
+      const { regex, nameIndex, hexIndex } = pattern;
+      let m;
+      const tempColors = [];
+
+      while ((m = regex.exec(section)) !== null) {
+        const name = m[nameIndex].trim();
+        const hex = "#" + m[hexIndex].toUpperCase();
+        tempColors.push([name, hex]);
+      }
+
+      if (tempColors.length > 0) {
+        hexColors.push(...tempColors);
+        foundColors = true;
+        break;
+      }
+
+      regex.lastIndex = 0;
+    }
+
+    if (!foundColors) {
+      let colorIndex = 1;
+      let m;
+      while ((m = pattern5.exec(section)) !== null) {
+        const hex = "#" + m[1].toUpperCase();
+        const name = `Color ${colorIndex}`;
+        hexColors.push([name, hex]);
+        colorIndex++;
+      }
+    }
+
+    return hexColors;
+  };
+
+  const extractSuggestedItems = (rawText) => {
+    const match = rawText.match(
+      /(?:\*\*)?Suggested Items(?:\*\*)?\s*([\s\S]*?)(?=\n{2,}|^\s*$|\n(?:\*\*|\#)|$)/im
+    );
     if (!match) return [];
 
-  const section = match[1].trim();
-  const bulletItems = section
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => /^[-*•]\s*/.test(line))
-    .map(line => line.replace(/^[-*•]\s*/, '').trim());
+    const section = match[1].trim();
+    const bulletItems = section
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => /^[-*•]\s*/.test(line))
+      .map((line) => line.replace(/^[-*•]\s*/, "").trim());
 
-  if (bulletItems.length > 0) {
-    return bulletItems;
-  }
-  return section
-    .split(',')
-    .map(item => item.trim())
-    .filter(item => item.length > 0);
-};
-
-
-const getConstructionNotes = (rawText) => {
-  const sectionRegex = /\*\*Construction Notes\*\*\n([\s\S]*?)(?=\n\*\*|$)/;
-  const match = rawText.match(sectionRegex);
-  return match ? match[1].trim() : "";
-};
-useEffect(()=>{
-  const generateImage = async () => {
-    setLoading(true);
-    try {      
-      const rawText = localStorage.getItem("answer");
-      const visualPrompt = formatForImage(rawText);
-      const basePrompt = `A realistic, photographic fashion image. ${visualPrompt} No people, only full clothing. No sketches, only real textures and folds.`;
-      const imagePrompt = basePrompt.length > 1000 ? basePrompt.slice(0, 997) + '...' : basePrompt;
-      const sanitized = sanitizeColorSection(rawText);
-      const extracted = extractHexColors(sanitized);
-      setHexColors(extracted)
-      console.log("Hex colors",extracted)
-      const extractSuggest = extractSuggestedItems(rawText)
-      setSuggestion(extractSuggest)
-      console.log("Suggestions",extractSuggest)
-      console.log("Image Prompt:", imagePrompt); 
-      console.log(extracted)
-      const extractedNotes = getConstructionNotes(rawText)
-      setConstruction(extractedNotes);
-
-      const apikey = process.env.REACT_APP_API_KEY;
-
-      if (!apikey) {
-      throw new Error("API key is missing. Check your .env file.");
+    if (bulletItems.length > 0) {
+      return bulletItems;
     }
-      const response = await fetch("https://api.openai.com/v1/images/generations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apikey}`,
-        },
-        body: JSON.stringify({
-          prompt: imagePrompt,
-          n: 1,
-          size: "512x512",
-        }),
-      });
-
-      const data = await response.json();
-      setImageUrl(data?.data[0]?.url);
-    } catch (err) {
-      console.error("Image generation failed:", err);
-    } finally {
-      setLoading(false);
-    }
+    return section
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
   };
-  generateImage();
-},[]);
+
+  const getConstructionNotes = (rawText) => {
+    const sectionRegex = /\*\*Construction Notes\*\*\n([\s\S]*?)(?=\n\*\*|$)/;
+    const match = rawText.match(sectionRegex);
+    return match ? match[1].trim() : "";
+  };
+
+  // --------- Effect to generate image ---------
+  useEffect(() => {
+    const generateImage = async () => {
+      setLoading(true);
+      try {
+        const rawText = localStorage.getItem("answer") || "";
+        const visualPrompt = formatForImage(rawText);
+        const basePrompt = `A realistic, photographic fashion image. ${visualPrompt} No people, only full clothing. No sketches, only real textures and folds.`;
+        const imagePrompt =
+          basePrompt.length > 1000 ? basePrompt.slice(0, 997) + "..." : basePrompt;
+
+        // extract colors, suggestions, notes
+        const sanitized = sanitizeColorSection(rawText);
+        setHexColors(extractHexColors(sanitized));
+        setSuggestion(extractSuggestedItems(rawText));
+        setConstruction(getConstructionNotes(rawText));
+
+        // call backend API
+        const response = await fetch("/api/generateImage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: imagePrompt }),
+        });
+
+        const data = await response.json();
+        setImageUrl(data?.data?.[0]?.url || "");
+      } catch (err) {
+        console.error("Image generation failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    generateImage();
+  }, []);
 
 if (loading) {
     return <div className="flex flex-col items-center justify-center min-h-screen text-black/70 font-sans">
@@ -208,7 +192,7 @@ if (loading) {
         <button
           type="button"
           onClick={onBack}
-          className="pb-1 text-xl font-extrabold text-[#a98a67]"
+          className="pb-1 text-xl font-extrabold text-[#3A3A3D]"
         >
           ←
         </button>
@@ -233,59 +217,40 @@ if (loading) {
           
           {/* Row 1 */}
           <div className="flex gap-4">
-            {/* Left Image Box */}
-             <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-auto overflow-hidden flex flex-col"> 
-              <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black px-7 py-4">Suggested Image</h1>
-            {imageUrl && (
-              <img
-                src={imageUrl}
-                alt="Capsule Preview"
-                className="w-auto h-[300px] object-contain rounded-t-2xl"
-              />
-            )}
-          </div>
+            {/* Suggested Image */}
+            <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] overflow-hidden flex flex-col">
+              <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black px-7 py-4">
+                Suggested Image
+              </h1>
+              {imageUrl && (
+                <img
+                  src={imageUrl}
+                  alt="Capsule Preview"
+                  className="w-auto h-[300px] object-contain rounded-t-2xl"
+                />
+              )}
+            </div>
 
-
-            {/* Right Box Container */}
+            {/* Right Column */}
             <div className="flex flex-col gap-6">
-            
+              {/* Suggested Product */}
               <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[220px] overflow-hidden p-4">
-                <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black">Suggested Product</h1>
-
-                <div className="flex gap-4">
-                  
-              {/** 
-              <div className="w-[140px] h-[140px]">
-            <button onClick={generateImage} disabled={loading} className="bg-amber-400 px-4 py-2 rounded text-white">
-              {loading ? "Generating..." : "Generate Image"}
-            </button>
-            {imageUrl && (
-              <img
-                src={imageUrl}
-                alt="Capsule Preview"
-                className="w-auto h-[400px] object-fill rounded-t-2xl"
-              />
-            )}
-          </div>
-           */}
-
-                  
-                  <div className="flex flex-wrap gap-4 flex-1">
-                    <div className="flex flex-wrap gap-4 flex-1">
-                    {suggestions.map((item, index) => (
-                      <div
-                        key={index}
-                        className="w-[150px] h-[60px] bg-[#EDEDED] rounded-2xl p-4 shadow text-black flex items-center justify-center text-sm font-[Helvetica]"
-                      >
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                  </div>
+                <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black">
+                  Suggested Product
+                </h1>
+                <div className="flex flex-wrap gap-4">
+                  {suggestions.map((item, index) => (
+                    <div
+                      key={index}
+                      className="w-[150px] h-[60px] bg-[#EDEDED] rounded-2xl p-4 shadow text-black flex items-center justify-center text-sm font-[Helvetica]"
+                    >
+                      {item}
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              
+              {/* Suggested Color Palette */}
               <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[150px] overflow-hidden p-4">
                 <h1 className="text-xl font-[Helvetica] font-semibold mt-2 mb-2 text-black">Suggested Color Palette</h1>
                 <div className="flex gap-4 p-4">
@@ -328,7 +293,6 @@ if (loading) {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

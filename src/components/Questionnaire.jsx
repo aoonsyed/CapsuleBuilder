@@ -15,9 +15,8 @@ export default function Questionaire({ onNext, onBack }) {
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [reloadTick, setReloadTick] = useState(0); // simple trigger to retry
+  const [reloadTick, setReloadTick] = useState(0);
 
-  // Single stable key for effect dependency
   const paramsKey = useMemo(
     () =>
       JSON.stringify({
@@ -30,7 +29,6 @@ export default function Questionaire({ onNext, onBack }) {
     [productType, keyFeatures, targetPrice, idea, materialPreference]
   );
 
-  // Cache to avoid refetching for identical inputs
   const lastKeyRef = useRef(null);
 
   const handleAnswerChange = (question, value) => {
@@ -43,7 +41,6 @@ export default function Questionaire({ onNext, onBack }) {
     if (onNext) onNext();
   };
 
-  // Build the exact prompt string
   const prompt = useMemo(
     () =>
       `
@@ -100,7 +97,6 @@ Only return the JSON. No markdown. No explanation.
   };
 
   useEffect(() => {
-    // Skip duplicate fetch for identical inputs
     if (lastKeyRef.current === paramsKey) {
       setLoading(false);
       return;
@@ -111,45 +107,23 @@ Only return the JSON. No markdown. No explanation.
       setLoading(true);
       setError(null);
       try {
-        const apikey = process.env.REACT_APP_API_KEY;
-        if (!apikey) throw new Error("Missing REACT_APP_API_KEY");
-
-        const res = await axios.post(
-          "https://api.openai.com/v1/chat/completions",
-          {
-            model: "gpt-4o",
-            messages: [
-              { role: "system", content: "You are a helpful fashion designer assistant." },
-              { role: "user", content: prompt },
-            ],
-            max_tokens: 1000,
-            temperature: 0.7,
-            top_p: 1,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${apikey}`,
-              "Content-Type": "application/json",
-            },
-            timeout: 30000,
-          }
-        );
-
+        const res = await axios.post("/api/openai", { prompt });
         const content = res?.data?.choices?.[0]?.message?.content ?? "";
         let parsed;
         try {
           parsed = sanitizeAndParseJSON(content);
         } catch {
-          // sometimes the model returns a quoted JSON string
           const maybe = JSON.parse(content);
           parsed = Array.isArray(maybe) ? maybe : sanitizeAndParseJSON(maybe);
         }
 
-        // Defensive cleanup
         const cleaned = parsed.map((cat) => ({
           title: cat?.title || "Untitled",
           questions: (cat?.questions || []).map((q) => {
-            const isMC = q?.type === "multiple-choice" && Array.isArray(q?.options) && q.options.length;
+            const isMC =
+              q?.type === "multiple-choice" &&
+              Array.isArray(q?.options) &&
+              q.options.length;
             return {
               question: q?.question || "Your input",
               type: isMC ? "multiple-choice" : "text",
@@ -226,12 +200,12 @@ Only return the JSON. No markdown. No explanation.
                       <label key={oi} className="flex items-center space-x-2 text-black">
                         <input
                           type="radio"
-                          name={`q-${ci}-${qi}`} // unique group name
+                          name={`q-${ci}-${qi}`}
                           value={opt}
                           checked={answers[q.question] === opt}
                           onChange={(e) => handleAnswerChange(q.question, e.target.value)}
                           className="accent-[#3A3A3D]"
-                          required={oi === 0 && !answers[q.question]} // require one per group
+                          required={oi === 0 && !answers[q.question]}
                         />
                         <span>{opt}</span>
                       </label>
