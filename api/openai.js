@@ -4,9 +4,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt } = req.body;
+    // ✅ Properly parse request body
+    const { prompt } = await req.json();
 
-    // 🔹 Log incoming request
+    if (!prompt) {
+      return res.status(400).json({ error: "Missing prompt in request body" });
+    }
+
     console.log("📩 Received prompt:", prompt);
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -26,17 +30,13 @@ export default async function handler(req, res) {
       }),
     });
 
-    // 🔹 Log raw response status
     console.log("✅ OpenAI response status:", response.status);
-
     const data = await response.json();
-
-    // 🔹 Log response data (trimmed if huge)
     console.log("🔍 OpenAI response body:", JSON.stringify(data).slice(0, 500));
 
-    res.status(200).json(data);
+    return res.status(200).json(data);
   } catch (err) {
     console.error("❌ Error in /api/openai:", err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 }
