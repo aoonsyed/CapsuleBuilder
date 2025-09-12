@@ -295,91 +295,90 @@ toast.success('Suggestions loaded successfully!', {
           </h2>
 
           {/* Top 3 Boxes */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {[
-              ['Materials', suggestions.materials],
-              ['Sales Price', suggestions.saleprices],
-              ['Cost Production', suggestions.productionCosts],
-            ].map(([label, content], index) => (
-              <div
-                key={index}
-                className="bg-white/60 backdrop-blur-md border border-white rounded-lg shadow-xl p-6"
-              >
-                <h3 className="text-xl font-semibold mb-2 text-black">{label}</h3>
-                <ReactMarkdown
-                  components={{
-                    p: ({ children }) => (
-                      <p className="text-base leading-relaxed mb-3 text-black/70">
-                        {children}
-                      </p>
-                    ),
-                    li: ({ children }) => (
-                      <li className="text-base ml-6 list-disc text-black/70">{children}</li>
-                    ),
-                    strong: ({ children }) => (
-                      <strong className="text-base text-black/70">{children}</strong>
-                    ),
-                  }}
-                >
-                  {content}
-                </ReactMarkdown>
-              </div>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  {[
+    ['Materials', suggestions.materials],
+    ['Sales Price', suggestions.saleprices],
+    ['Cost Production', suggestions.productionCosts],
+  ].map(([label, content], index) => (
+    <div
+      key={index}
+      className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg 
+                 p-6 flex flex-col justify-start
+                 min-h-[220px] max-h-[260px] overflow-y-auto"
+    >
+      <h3 className="text-lg font-semibold mb-3 text-black">{label}</h3>
+      <ReactMarkdown
+        components={{
+          p: ({ children }) => (
+            <p className="text-sm leading-relaxed mb-2 text-black/70">{children}</p>
+          ),
+          li: ({ children }) => (
+            <li className="text-sm ml-5 list-disc text-black/70">{children}</li>
+          ),
+          strong: ({ children }) => (
+            <strong className="text-sm text-black">{children}</strong>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  ))}
+</div>
+
+{/* Bottom 2 Boxes */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+  {[
+    ['Color Palette', suggestions.colors],
+    ['Suggested Companion Pieces', suggestions.companionItems],
+  ].map(([label, content], index) => {
+    const isColorPalette = label === 'Color Palette';
+    const colors = isColorPalette ? extractHexColors(content) : [];
+
+    return (
+      <div
+        key={index}
+        className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg 
+                   p-6 flex flex-col justify-start
+                   min-h-[220px] max-h-[260px] overflow-y-auto"
+      >
+        <h3 className="text-lg font-semibold mb-3 text-black">{label}</h3>
+
+        {isColorPalette ? (
+          <ul>
+            {colors.map(([name, hex], idx) => (
+              <li key={idx} className="flex items-center space-x-3 mb-2">
+                <span
+                  className="w-6 h-6 rounded-full border"
+                  style={{ backgroundColor: hex }}
+                />
+                <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
+              </li>
             ))}
-          </div>
+          </ul>
+        ) : (
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => (
+                <p className="text-sm leading-relaxed mb-2 text-black/70">{children}</p>
+              ),
+              li: ({ children }) => (
+                <li className="text-sm ml-5 list-disc text-black/70">{children}</li>
+              ),
+              strong: ({ children }) => (
+                <strong className="text-sm text-black">{children}</strong>
+              ),
+            }}
+          >
+            {content}
+          </ReactMarkdown>
+        )}
+      </div>
+    );
+  })}
+</div>
 
-          {/* Bottom 2 Boxes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-15">
-            {[
-              ['Color Palette', suggestions.colors],
-              ['Suggested Companion Pieces', suggestions.companionItems],
-            ].map(([label, content], index) => {
-              const isColorPalette = label === 'Color Palette';
-              const colors = isColorPalette ? extractHexColors(content) : [];
-
-              return (
-                <div
-                  key={index}
-                  className="bg-white/60 backdrop-blur-md border border-white rounded-lg shadow-xl p-6"
-                >
-                  <h3 className="text-xl font-semibold mb-2 text-black">{label}</h3>
-
-                  {isColorPalette ? (
-                    <ul>
-                      {colors.map(([name, hex], idx) => (
-                        <li key={idx} className="flex items-center space-x-3 mb-2">
-                          <span
-                            className="w-6 h-6 rounded-full border"
-                            style={{ backgroundColor: hex }}
-                          ></span>
-                          <span className="text-black/70 text-base">{`${name} (${hex})`}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => (
-                          <p className="text-base leading-relaxed mb-3 text-black/70">
-                            {children}
-                          </p>
-                        ),
-                        li: ({ children }) => (
-                          <li className="text-base ml-6 list-disc text-black/70">
-                            {children}
-                          </li>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="text-base text-black/70">{children}</strong>
-                        ),
-                      }}
-                    >
-                      {content}
-                    </ReactMarkdown>
-                  )}
-                </div>
-              );
-            })}
-          </div>
 
           {/* Schedule Call Button */}
           <div className="flex justify-center mt-4 mb-7">
