@@ -248,156 +248,179 @@ if (response?.data?.error) {
   };
 
   // ---------- Render ----------
-  return (
-    <>
-      <Toaster position="top-right" richColors />
-      {loading ? (
-        <div className="fixed inset-0 flex flex-col items-center justify-center h-screen text-black/70 font-sans">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mb-4"></div>
-          In progress...
-        </div>
-      ) : !suggestions ? (
-        <div className="flex flex-col items-center justify-center min-h-screen text-[#3A3A3D] font-[Helvetica] text-lg">
-          <p className="mb-4">No Suggestions For Now</p>
-          <button
-            onClick={onBack}
-            className="px-6 py-2 text-lg font-bold text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow"
-          >
-            ← Back
-          </button>
-        </div>
-      ) : (
-        <div className="w-full px-10 mt-10 font-[Helvetica]">
+ return (
+  <>
+    <Toaster position="top-right" richColors />
+    {loading ? (
+      <div className="fixed inset-0 flex flex-col items-center justify-center h-screen text-black/70 font-sans">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mb-4"></div>
+        In progress...
+      </div>
+    ) : !suggestions ? (
+      <div className="flex flex-col items-center justify-center min-h-screen text-[#3A3A3D] font-[Helvetica] text-lg">
+        <p className="mb-4">No Suggestions For Now</p>
+        <button
+          onClick={onBack}
+          className="px-6 py-2 text-lg font-bold text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow"
+        >
+          ← Back
+        </button>
+      </div>
+    ) : (
+      <div className="w-full px-10 mt-10 font-[Helvetica]">
+        {/* Header Section */}
+        <div className="flex items-center justify-between w-full">
           <button
             type="button"
             onClick={onBack}
-            className="pb-1 text-xl font-extrabold text-[#3A3A3D]"
+            className="text-xl font-extrabold text-[#3A3A3D]"
           >
             ←
           </button>
+          <p className="text-sm text-black">Step 5 of 5</p>
+        </div>
 
-          <p className="ml-5 text-sm text-black mb-2">Step 5 of 5</p>
+        {/* Title */}
+        <h2 className="text-[26pt] font-[Garamond] font-bold text-center text-black mt-6 mb-10">
+          {title}
+        </h2>
 
-          <h2 className="text-[26pt] font-[Garamond] font-bold text-center text-black mb-8">
-            {title}
-          </h2>
+        {/* Main Two-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* LEFT SIDE → Image */}
+          <div className="flex items-center justify-center bg-gray-100 rounded-xl shadow-md p-4">
+            {storedImageUrl ? (
+              <img
+                src={storedImageUrl}
+                alt={title}
+                className="w-full h-auto rounded-lg object-contain"
+              />
+            ) : (
+              <div className="text-gray-500">No image generated yet</div>
+            )}
+          </div>
 
-          {/* Main Two-Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            {/* LEFT SIDE → Image */}
-<div className="flex items-center justify-center bg-gray-100 rounded-xl shadow-md p-4">
-  {storedImageUrl ? (
-    <img
-      src={storedImageUrl}
-      alt={title}
-      className="w-full h-auto rounded-lg object-contain"
-    />
-  ) : (
-    <div className="text-gray-500">No image generated yet</div>
-  )}
-</div>
-            {/* RIGHT SIDE → Card Grid */}
-            <div className="flex flex-col space-y-6">
-              {/* Top Row (3 cards) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  ['Materials', suggestions.materials],
-                  ['Sales Price', suggestions.saleprices],
-                  ['Cost Production', suggestions.productionCosts],
-                ].map(([label, content], index) => (
+          {/* RIGHT SIDE → Card Grid */}
+          <div className="flex flex-col space-y-6">
+            {/* Top Row: 3 cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                ['Materials', suggestions.materials],
+                ['Sales Price', suggestions.saleprices],
+                ['Cost Production', suggestions.productionCosts],
+              ].map(([label, content], index) => (
+                <div
+                  key={index}
+                  className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
+                >
+                  <h3 className="text-lg font-semibold mb-3 text-black">
+                    {label}
+                  </h3>
+                  <div className="flex-1">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => (
+                          <p className="text-sm leading-relaxed mb-2 text-black/70">
+                            {children}
+                          </p>
+                        ),
+                        li: ({ children }) => (
+                          <li className="text-sm ml-5 list-disc text-black/70">
+                            {children}
+                          </li>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="text-sm text-black">
+                            {children}
+                          </strong>
+                        ),
+                      }}
+                    >
+                      {content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom Row: 2 cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                ['Color Palette', suggestions.colors],
+                ['Suggested Companion Pieces', suggestions.companionItems],
+              ].map(([label, content], index) => {
+                const isColorPalette = label === 'Color Palette';
+                const colors = isColorPalette ? extractHexColors(content) : [];
+
+                return (
                   <div
                     key={index}
-                    className="bg-white/90 border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
+                    className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
                   >
-                    <h3 className="text-lg font-semibold mb-3 text-black">{label}</h3>
-                    <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-3 text-black">
+                      {label}
+                    </h3>
+                    {isColorPalette ? (
+                      <ul>
+                        {colors.map(([name, hex], idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-center space-x-3 mb-2"
+                          >
+                            <span
+                              className="w-6 h-6 rounded-full border"
+                              style={{ backgroundColor: hex }}
+                            />
+                            <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
                       <ReactMarkdown
                         components={{
                           p: ({ children }) => (
-                            <p className="text-sm leading-relaxed mb-2 text-black/70">{children}</p>
+                            <p className="text-sm leading-relaxed mb-2 text-black/70">
+                              {children}
+                            </p>
                           ),
                           li: ({ children }) => (
-                            <li className="text-sm ml-5 list-disc text-black/70">{children}</li>
+                            <li className="text-sm ml-5 list-disc text-black/70">
+                              {children}
+                            </li>
                           ),
                           strong: ({ children }) => (
-                            <strong className="text-sm text-black">{children}</strong>
+                            <strong className="text-sm text-black">
+                              {children}
+                            </strong>
                           ),
                         }}
                       >
                         {content}
                       </ReactMarkdown>
-                    </div>
+                    )}
                   </div>
-                ))}
-              </div>
-
-              {/* Bottom Row (2 cards) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[
-                  ['Color Palette', suggestions.colors],
-                  ['Suggested Companion Pieces', suggestions.companionItems],
-                ].map(([label, content], index) => {
-                  const isColorPalette = label === 'Color Palette';
-                  const colors = isColorPalette ? extractHexColors(content) : [];
-
-                  return (
-                    <div
-                      key={index}
-                      className="bg-white/90 border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
-                    >
-                      <h3 className="text-lg font-semibold mb-3 text-black">{label}</h3>
-                      {isColorPalette ? (
-                        <ul>
-                          {colors.map(([name, hex], idx) => (
-                            <li key={idx} className="flex items-center space-x-3 mb-2">
-                              <span
-                                className="w-6 h-6 rounded-full border"
-                                style={{ backgroundColor: hex }}
-                              />
-                              <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <ReactMarkdown
-                          components={{
-                            p: ({ children }) => (
-                              <p className="text-sm leading-relaxed mb-2 text-black/70">{children}</p>
-                            ),
-                            li: ({ children }) => (
-                              <li className="text-sm ml-5 list-disc text-black/70">{children}</li>
-                            ),
-                            strong: ({ children }) => (
-                              <strong className="text-sm text-black">{children}</strong>
-                            ),
-                          }}
-                        >
-                          {content}
-                        </ReactMarkdown>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
           </div>
-
-          {/* Schedule Call Button */}
-          <div className="flex justify-center mt-10 mb-7">
-            <button
-              onClick={handleScheduleClick}
-              disabled={sendingEmail}
-              className={`px-6 py-2 text-lg font-bold text-white rounded-md shadow transition duration-200 ${
-                sendingEmail
-                  ? 'bg-black/50 cursor-not-allowed'
-                  : 'bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C]'
-              }`}
-            >
-              {sendingEmail ? 'Sending details…' : 'Schedule Call'}
-            </button>
-          </div>
         </div>
-      )}
-    </>
-  );
+
+        {/* Schedule Call Button */}
+        <div className="flex justify-center mt-12 mb-7">
+          <button
+            onClick={handleScheduleClick}
+            disabled={sendingEmail}
+            className={`px-6 py-2 text-lg font-bold text-white rounded-md shadow transition duration-200 ${
+              sendingEmail
+                ? 'bg-black/50 cursor-not-allowed'
+                : 'bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C]'
+            }`}
+          >
+            {sendingEmail ? 'Sending details…' : 'Schedule Call'}
+          </button>
+        </div>
+      </div>
+    )}
+  </>
+);
 }
