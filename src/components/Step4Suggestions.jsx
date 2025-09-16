@@ -155,18 +155,18 @@ if (response?.data?.error) {
   throw new Error(`OpenAI API error: ${response.data.error}`);
 }
 
-const answer =
-  response?.data?.choices?.[0]?.message?.content ??
-  response?.data?.choices?.[0]?.text ??
-  '';
+        const answer =
+          response?.data?.choices?.[0]?.message?.content ??
+          response?.data?.choices?.[0]?.text ??
+          '';
 
-localStorage.setItem('answer', answer);
-const parsed = parseAIResponse(answer);
-setSuggestions(parsed);
+        localStorage.setItem('answer', answer);
+        const parsed = parseAIResponse(answer);
+        setSuggestions(parsed);
 
-toast.success('Suggestions loaded successfully!', {
-  style: { backgroundColor: '#3A3A3D', color: '#fff' },
-  });
+        toast.success('Suggestions loaded successfully!', {
+          style: { backgroundColor: '#3A3A3D', color: '#fff' },
+        });
       } catch (err) {
         console.error('OpenAI error:', err);
         toast.error('Something went wrong while fetching suggestions.', {
@@ -180,15 +180,11 @@ toast.success('Suggestions loaded successfully!', {
     callOpenAI();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ---------- Build the email payload ----------
   const buildEmailParams = () => {
     const rawAnswer = localStorage.getItem('answer') || '';
     const recipient = process.env.REACT_APP_TEAM_RECEIVER_EMAIL; // Where the email should go
     const customerEmail =
-      savedAnswers?.email ||
-      savedAnswers?.contactEmail ||
-      savedAnswers?.userEmail ||
-      '';
+      savedAnswers?.email || savedAnswers?.contactEmail || savedAnswers?.userEmail || '';
 
     return {
       to_email: recipient,
@@ -224,29 +220,20 @@ toast.success('Suggestions loaded successfully!', {
     };
   };
 
-  // ---------- Send email via EmailJS ----------
   const sendScheduleEmail = async () => {
     const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
     const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
     const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
-
-    if (!serviceId || !templateId || !publicKey) {
-      throw new Error('Missing EmailJS env vars');
-    }
-
+    if (!serviceId || !templateId || !publicKey) throw new Error('Missing EmailJS env vars');
     const templateParams = buildEmailParams();
     return emailjs.send(serviceId, templateId, templateParams, { publicKey });
   };
 
-  // ---------- Button handler ----------
   const handleScheduleClick = async () => {
-    // Open the scheduler synchronously to avoid popup blockers
     const schedulingUrl =
       process.env.REACT_APP_SCHEDULING_URL ||
       'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137';
     window.open(schedulingUrl, '_blank', 'noopener,noreferrer');
-
-    // Send the email in the background
     try {
       setSendingEmail(true);
       await sendScheduleEmail();
@@ -279,11 +266,11 @@ toast.success('Suggestions loaded successfully!', {
           </button>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto mt-10 font-[Helvetica] px-4">
+        <div className="max-w-7xl mx-auto mt-10 px-6 font-[Helvetica]">
           <button
             type="button"
             onClick={onBack}
-            className="pb-1 text-xl font-extrabold text-[#3A3A3D] border-white"
+            className="pb-1 text-xl font-extrabold text-[#3A3A3D]"
           >
             ←
           </button>
@@ -294,98 +281,109 @@ toast.success('Suggestions loaded successfully!', {
             {title}
           </h2>
 
-          {/* Top 3 Boxes */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-  {[
-    ['Materials', suggestions.materials],
-    ['Sales Price', suggestions.saleprices],
-    ['Cost Production', suggestions.productionCosts],
-  ].map(([label, content], index) => (
-    <div
-      key={index}
-      className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg 
-                 p-6 flex flex-col justify-start
-                 min-h-[220px] max-h-[260px] overflow-y-auto"
-    >
-      <h3 className="text-lg font-semibold mb-3 text-black">{label}</h3>
-      <ReactMarkdown
-        components={{
-          p: ({ children }) => (
-            <p className="text-sm leading-relaxed mb-2 text-black/70">{children}</p>
-          ),
-          li: ({ children }) => (
-            <li className="text-sm ml-5 list-disc text-black/70">{children}</li>
-          ),
-          strong: ({ children }) => (
-            <strong className="text-sm text-black">{children}</strong>
-          ),
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
-  ))}
-</div>
+          {/* Main Two-Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            {/* LEFT SIDE → Image */}
+            <div className="flex items-center justify-center bg-gray-100 rounded-xl shadow-md p-4">
+              <img
+                src="/sample-product.png" // replace with your product image
+                alt={title}
+                className="w-full h-auto rounded-lg object-contain"
+              />
+            </div>
 
-{/* Bottom 2 Boxes */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-  {[
-    ['Color Palette', suggestions.colors],
-    ['Suggested Companion Pieces', suggestions.companionItems],
-  ].map(([label, content], index) => {
-    const isColorPalette = label === 'Color Palette';
-    const colors = isColorPalette ? extractHexColors(content) : [];
+            {/* RIGHT SIDE → Card Grid */}
+            <div className="flex flex-col space-y-6">
+              {/* Top Row (3 cards) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  ['Materials', suggestions.materials],
+                  ['Sales Price', suggestions.saleprices],
+                  ['Cost Production', suggestions.productionCosts],
+                ].map(([label, content], index) => (
+                  <div
+                    key={index}
+                    className="bg-white/90 border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
+                  >
+                    <h3 className="text-lg font-semibold mb-3 text-black">{label}</h3>
+                    <div className="flex-1">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <p className="text-sm leading-relaxed mb-2 text-black/70">{children}</p>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-sm ml-5 list-disc text-black/70">{children}</li>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="text-sm text-black">{children}</strong>
+                          ),
+                        }}
+                      >
+                        {content}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-    return (
-      <div
-        key={index}
-        className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg 
-                   p-6 flex flex-col justify-start
-                   min-h-[220px] max-h-[260px] overflow-y-auto"
-      >
-        <h3 className="text-lg font-semibold mb-3 text-black">{label}</h3>
+              {/* Bottom Row (2 cards) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  ['Color Palette', suggestions.colors],
+                  ['Suggested Companion Pieces', suggestions.companionItems],
+                ].map(([label, content], index) => {
+                  const isColorPalette = label === 'Color Palette';
+                  const colors = isColorPalette ? extractHexColors(content) : [];
 
-        {isColorPalette ? (
-          <ul>
-            {colors.map(([name, hex], idx) => (
-              <li key={idx} className="flex items-center space-x-3 mb-2">
-                <span
-                  className="w-6 h-6 rounded-full border"
-                  style={{ backgroundColor: hex }}
-                />
-                <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <ReactMarkdown
-            components={{
-              p: ({ children }) => (
-                <p className="text-sm leading-relaxed mb-2 text-black/70">{children}</p>
-              ),
-              li: ({ children }) => (
-                <li className="text-sm ml-5 list-disc text-black/70">{children}</li>
-              ),
-              strong: ({ children }) => (
-                <strong className="text-sm text-black">{children}</strong>
-              ),
-            }}
-          >
-            {content}
-          </ReactMarkdown>
-        )}
-      </div>
-    );
-  })}
-</div>
-
+                  return (
+                    <div
+                      key={index}
+                      className="bg-white/90 border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
+                    >
+                      <h3 className="text-lg font-semibold mb-3 text-black">{label}</h3>
+                      {isColorPalette ? (
+                        <ul>
+                          {colors.map(([name, hex], idx) => (
+                            <li key={idx} className="flex items-center space-x-3 mb-2">
+                              <span
+                                className="w-6 h-6 rounded-full border"
+                                style={{ backgroundColor: hex }}
+                              />
+                              <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => (
+                              <p className="text-sm leading-relaxed mb-2 text-black/70">{children}</p>
+                            ),
+                            li: ({ children }) => (
+                              <li className="text-sm ml-5 list-disc text-black/70">{children}</li>
+                            ),
+                            strong: ({ children }) => (
+                              <strong className="text-sm text-black">{children}</strong>
+                            ),
+                          }}
+                        >
+                          {content}
+                        </ReactMarkdown>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
 
           {/* Schedule Call Button */}
-          <div className="flex justify-center mt-4 mb-7">
+          <div className="flex justify-center mt-10 mb-7">
             <button
               onClick={handleScheduleClick}
               disabled={sendingEmail}
-              className={`mt-4 px-6 py-2 text-lg font-bold text-white rounded-md shadow transition duration-200 ${
+              className={`px-6 py-2 text-lg font-bold text-white rounded-md shadow transition duration-200 ${
                 sendingEmail
                   ? 'bg-black/50 cursor-not-allowed'
                   : 'bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C]'
