@@ -219,6 +219,7 @@ if (response?.data?.error) {
         'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137',
     };
   };
+  const [imageLoading, setImageLoading] = useState(false);
   const [storedImageUrl, setStoredImageUrl] = useState(
   localStorage.getItem("generatedImageUrl") || ""
 );
@@ -249,12 +250,13 @@ const formatForImage = (rawText) => {
 
 
 const generateImage = async () => {
+  setImageLoading(true);
   try {
     const rawText = localStorage.getItem("answer") || "";
     if (!rawText) return;
 
     const visualPrompt = formatForImage(rawText);
-    const basePrompt = `A realistic, photographic fashion image. ${visualPrompt} No people, only the clothing.`;
+    const basePrompt = `A realistic, photographic fashion image. ${visualPrompt}`;
     const imagePrompt =
       basePrompt.length > 1000 ? basePrompt.slice(0, 997) + "..." : basePrompt;
 
@@ -272,6 +274,8 @@ const generateImage = async () => {
     }
   } catch (err) {
     console.error("Image generation failed:", err);
+  } finally {
+    setImageLoading(false);
   }
 };
 
@@ -331,16 +335,17 @@ return (
       <div className="bg-[#EDEDED] min-h-screen">
         <div className="max-w-7xl mx-auto px-6 mb-8">
           {/* Header Section */}
-          <div className="flex items-center justify-between w-full mb-8 bg-white px-5 py-3 rounded-xl shadow-sm border border-[#E4E4E4]">
-            <button
-              type="button"
-              onClick={onBack}
-              className="text-xl font-extrabold text-[#3A3A3D]"
-            >
-              ←
-            </button>
-            <p className="text-sm text-black">Step 5 of 5</p>
-          </div>
+         <div className="flex items-center justify-between w-full mb-8 px-2">
+  <button
+    type="button"
+    onClick={onBack}
+    className="text-xl font-extrabold text-[#3A3A3D]"
+  >
+    ←
+  </button>
+  <p className="text-sm text-black">Step 5 of 5</p>
+</div>
+
 
           {/* Title */}
           <h2 className="text-[#333333] text-[32pt] font-serif leading-tight mb-6 mt-2 text-center">
@@ -352,11 +357,16 @@ return (
             {/* Row 1 */}
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Suggested Image */}
-             <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[350px] overflow-hidden flex flex-col items-center justify-center">
-  <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black px-7 py-4">
+      <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[380px] flex flex-col items-center justify-center p-5">
+  <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
     Suggested Image
   </h1>
-  {storedImageUrl ? (
+  {imageLoading ? (
+    <div className="flex flex-col items-center justify-center text-black/70">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black mb-4"></div>
+      Generating image...
+    </div>
+  ) : storedImageUrl ? (
     <img
       src={storedImageUrl}
       alt={title}
@@ -368,29 +378,31 @@ return (
 </div>
 
 
+
               {/* Right Column */}
               <div className="flex flex-col gap-6">
                 {/* Materials */}
-                <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[200px] overflow-hidden p-4">
-                  <h1 className="text-xl font-[Helvetica] font-semibold mb-3 text-black">
-                    Materials
-                  </h1>
-                  <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => <p className="mb-2">{children}</p>,
-                        li: ({ children }) => (
-                          <li className="ml-5 list-disc">{children}</li>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="text-black">{children}</strong>
-                        ),
-                      }}
-                    >
-                      {suggestions.materials}
-                    </ReactMarkdown>
-                  </div>
-                </div>
+               <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] min-h-[220px] p-5">
+  <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
+    Materials
+  </h1>
+  <div className="text-base leading-relaxed text-black">
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-2">{children}</p>,
+        li: ({ children }) => (
+          <li className="ml-5 list-disc">{children}</li>
+        ),
+        strong: ({ children }) => (
+          <strong className="text-black">{children}</strong>
+        ),
+      }}
+    >
+      {suggestions.materials}
+    </ReactMarkdown>
+  </div>
+</div>
+
 
                 {/* Sales Price */}
                 <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[150px] overflow-hidden p-4">
