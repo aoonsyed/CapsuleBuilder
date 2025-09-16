@@ -288,20 +288,20 @@ return (
         {/* Main Layout */}
         <div className="grid grid-cols-1 gap-10">
           {/* Image Row */}
-          <div className="flex items-center justify-center bg-gray-100 rounded-xl shadow-md p-4">
+          <div className="flex items-center justify-center bg-gray-100 rounded-xl shadow-md p-4 aspect-[4/3]">
             {storedImageUrl ? (
               <img
                 src={storedImageUrl}
                 alt={title}
-                className="w-full h-auto rounded-lg object-contain"
+                className="w-full h-full rounded-lg object-contain"
               />
             ) : (
               <div className="text-gray-500">No image generated yet</div>
             )}
           </div>
 
-          {/* Top Row: 3 cards across full width */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Top Row: 3 cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
             {[
               ['Materials', suggestions.materials],
               ['Sales Price', suggestions.saleprices],
@@ -309,28 +309,22 @@ return (
             ].map(([label, content], index) => (
               <div
                 key={index}
-                className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
+                className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col aspect-[4/5]"
               >
                 <h3 className="text-lg font-semibold mb-3 text-black">
                   {label}
                 </h3>
-                <div className="flex-1">
+                <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
                   <ReactMarkdown
                     components={{
                       p: ({ children }) => (
-                        <p className="text-sm leading-relaxed mb-2 text-black/70">
-                          {children}
-                        </p>
+                        <p className="mb-2">{children}</p>
                       ),
                       li: ({ children }) => (
-                        <li className="text-sm ml-5 list-disc text-black/70">
-                          {children}
-                        </li>
+                        <li className="ml-5 list-disc">{children}</li>
                       ),
                       strong: ({ children }) => (
-                        <strong className="text-sm text-black">
-                          {children}
-                        </strong>
+                        <strong className="text-black">{children}</strong>
                       ),
                     }}
                   >
@@ -342,7 +336,7 @@ return (
           </div>
 
           {/* Bottom Row: 2 cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-fr">
             {[
               ['Color Palette', suggestions.colors],
               ['Suggested Companion Pieces', suggestions.companionItems],
@@ -353,7 +347,7 @@ return (
               return (
                 <div
                   key={index}
-                  className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
+                  className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col aspect-[4/5]"
                 >
                   <h3 className="text-lg font-semibold mb-3 text-black">
                     {label}
@@ -369,32 +363,30 @@ return (
                             className="w-6 h-6 rounded-full border"
                             style={{ backgroundColor: hex }}
                           />
-                          <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
+                          <span className="text-black/70 text-sm">
+                            {`${name} (${hex})`}
+                          </span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => (
-                          <p className="text-sm leading-relaxed mb-2 text-black/70">
-                            {children}
-                          </p>
-                        ),
-                        li: ({ children }) => (
-                          <li className="text-sm ml-5 list-disc text-black/70">
-                            {children}
-                          </li>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="text-sm text-black">
-                            {children}
-                          </strong>
-                        ),
-                      }}
-                    >
-                      {content}
-                    </ReactMarkdown>
+                    <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <p className="mb-2">{children}</p>
+                          ),
+                          li: ({ children }) => (
+                            <li className="ml-5 list-disc">{children}</li>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="text-black">{children}</strong>
+                          ),
+                        }}
+                      >
+                        {content}
+                      </ReactMarkdown>
+                    </div>
                   )}
                 </div>
               );
@@ -420,5 +412,6 @@ return (
     )}
   </>
 );
+
 
 }
