@@ -326,7 +326,7 @@ return (
         <p className="mb-4">No Suggestions For Now</p>
         <button
           onClick={onBack}
-          className="px-6 py-2 text-lg font-bold text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow"
+          className="px-6 py-2 text-lg font-bold text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md "
         >
           ← Back
         </button>
@@ -357,7 +357,7 @@ return (
             {/* Row 1 */}
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Suggested Image */}
-      <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[380px] flex flex-col items-center justify-center p-5">
+      <div className="bg-white rounded-2xl -lg border border-[#E4E4E4] w-[450px] h-[380px] flex flex-col items-center justify-center p-5">
   <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
     Suggested Image
   </h1>
@@ -382,7 +382,7 @@ return (
               {/* Right Column */}
               <div className="flex flex-col gap-6">
                 {/* Materials */}
-               <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] min-h-[220px] p-5">
+               <div className="bg-white rounded-2xl -lg border border-[#E4E4E4] w-[450px] min-h-[220px] p-5">
   <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
     Materials
   </h1>
@@ -405,7 +405,7 @@ return (
 
 
                 {/* Sales Price */}
-              <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] min-h-[180px] p-5">
+              <div className="bg-white rounded-2xl -lg border border-[#E4E4E4] w-[450px] min-h-[180px] p-5">
   <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
     Sales Price
   </h1>
@@ -432,7 +432,7 @@ return (
             {/* Row 2 */}
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Color Palette */}
-              <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[180px] overflow-hidden p-4">
+              <div className="bg-white rounded-2xl -lg border border-[#E4E4E4] w-[450px] h-[180px] overflow-hidden p-4">
                 <h1 className="text-xl font-[Helvetica] font-semibold mb-2 text-black">
                   Color Palette
                 </h1>
@@ -452,7 +452,7 @@ return (
               </div>
 
               {/* Cost Production */}
-           <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] min-h-[220px] p-5">
+           <div className="bg-white rounded-2xl -lg border border-[#E4E4E4] w-[450px] min-h-[220px] p-5">
   <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
     Cost Production
   </h1>
@@ -476,7 +476,8 @@ return (
             </div>
 
             {/* Row 3: Companion Items */}
-           <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[920px] min-h-[220px] p-6">
+  <div className="bg-white rounded-2xl -md border border-[#E4E4E4] 
+     w-full lg:w-[920px] min-h-[220px] p-6">
   <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
     Suggested Companion Pieces
   </h1>
@@ -484,9 +485,7 @@ return (
     <ReactMarkdown
       components={{
         p: ({ children }) => <p className="mb-2">{children}</p>,
-        li: ({ children }) => (
-          <li className="ml-5 list-disc">{children}</li>
-        ),
+        li: ({ children }) => <li className="ml-5 list-disc">{children}</li>,
         strong: ({ children }) => (
           <strong className="text-black">{children}</strong>
         ),
@@ -497,6 +496,7 @@ return (
   </div>
 </div>
 
+
           </div>
 
           {/* Schedule Call Button */}
@@ -504,7 +504,7 @@ return (
             <button
               onClick={handleScheduleClick}
               disabled={sendingEmail}
-              className={`px-6 py-2 text-lg font-bold text-white rounded-md shadow transition duration-200 ${
+              className={`px-6 py-2 text-lg font-bold text-white rounded-md  transition duration-200 ${
                 sendingEmail
                   ? 'bg-black/50 cursor-not-allowed'
                   : 'bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C]'
