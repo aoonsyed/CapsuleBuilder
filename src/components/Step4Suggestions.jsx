@@ -238,10 +238,13 @@ const formatForImage = (rawText) => {
 
   const materials = trimText(getSection("Materials").replace(/\n/g, ", "));
   const colors = getSection("Color Palette with HEX Codes").replace(/\n/g, ", ");
-  const productType = trimText(productType || "clothing");
+
+  // ✅ rename here
+  const productTypeValue = trimText(productType || "clothing");
+
   const construction = trimText(getSection("Construction Notes").replace(/\n/g, " , "));
 
-  return `Create a high-resolution, realistic image of a ${productType} made from ${materials}, in shades such as ${colors}. Display it neatly on a hanger or mannequin, clean neutral background. Construction details: ${construction}. No text or logos.`;
+  return `Create a high-resolution, realistic image of a ${productTypeValue} made from ${materials}, in shades such as ${colors}. Display it neatly on a hanger or mannequin, clean neutral background. Construction details: ${construction}. No text or logos.`;
 };
 
 
