@@ -405,26 +405,27 @@ return (
 
 
                 {/* Sales Price */}
-                <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[150px] overflow-hidden p-4">
-                  <h1 className="text-xl font-[Helvetica] font-semibold mb-3 text-black">
-                    Sales Price
-                  </h1>
-                  <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => <p className="mb-2">{children}</p>,
-                        li: ({ children }) => (
-                          <li className="ml-5 list-disc">{children}</li>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="text-black">{children}</strong>
-                        ),
-                      }}
-                    >
-                      {suggestions.saleprices}
-                    </ReactMarkdown>
-                  </div>
-                </div>
+              <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] min-h-[180px] p-5">
+  <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
+    Sales Price
+  </h1>
+  <div className="text-base leading-relaxed text-black">
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-2">{children}</p>,
+        li: ({ children }) => (
+          <li className="ml-5 list-disc">{children}</li>
+        ),
+        strong: ({ children }) => (
+          <strong className="text-black">{children}</strong>
+        ),
+      }}
+    >
+      {suggestions.saleprices}
+    </ReactMarkdown>
+  </div>
+</div>
+
               </div>
             </div>
 
@@ -451,49 +452,51 @@ return (
               </div>
 
               {/* Cost Production */}
-              <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[200px] overflow-hidden p-4">
-                <h1 className="text-xl font-[Helvetica] font-semibold mb-3 text-black">
-                  Cost Production
-                </h1>
-                <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <p className="mb-2">{children}</p>,
-                      li: ({ children }) => (
-                        <li className="ml-5 list-disc">{children}</li>
-                      ),
-                      strong: ({ children }) => (
-                        <strong className="text-black">{children}</strong>
-                      ),
-                    }}
-                  >
-                    {suggestions.productionCosts}
-                  </ReactMarkdown>
-                </div>
-              </div>
+           <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] min-h-[220px] p-5">
+  <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
+    Cost Production
+  </h1>
+  <div className="text-base leading-relaxed text-black">
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-2">{children}</p>,
+        li: ({ children }) => (
+          <li className="ml-5 list-disc">{children}</li>
+        ),
+        strong: ({ children }) => (
+          <strong className="text-black">{children}</strong>
+        ),
+      }}
+    >
+      {suggestions.productionCosts}
+    </ReactMarkdown>
+  </div>
+</div>
+
             </div>
 
             {/* Row 3: Companion Items */}
-            <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[920px] h-auto overflow-hidden p-6">
-              <h1 className="text-xl font-[Helvetica] font-semibold mb-3 text-black">
-                Suggested Companion Pieces
-              </h1>
-              <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
-                <ReactMarkdown
-                  components={{
-                    p: ({ children }) => <p className="mb-2">{children}</p>,
-                    li: ({ children }) => (
-                      <li className="ml-5 list-disc">{children}</li>
-                    ),
-                    strong: ({ children }) => (
-                      <strong className="text-black">{children}</strong>
-                    ),
-                  }}
-                >
-                  {suggestions.companionItems}
-                </ReactMarkdown>
-              </div>
-            </div>
+           <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[920px] min-h-[220px] p-6">
+  <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
+    Suggested Companion Pieces
+  </h1>
+  <div className="text-base leading-relaxed text-black">
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-2">{children}</p>,
+        li: ({ children }) => (
+          <li className="ml-5 list-disc">{children}</li>
+        ),
+        strong: ({ children }) => (
+          <strong className="text-black">{children}</strong>
+        ),
+      }}
+    >
+      {suggestions.companionItems}
+    </ReactMarkdown>
+  </div>
+</div>
+
           </div>
 
           {/* Schedule Call Button */}
