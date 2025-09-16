@@ -332,7 +332,7 @@ return (
         </button>
       </div>
     ) : (
-      <div className="bg-[#EDEDED] min-h-screen">
+      <div className=" min-h-screen">
         <div className="max-w-7xl mx-auto px-6 mb-8">
           {/* Header Section */}
          <div className="flex items-center justify-between w-full mb-8 px-2">
