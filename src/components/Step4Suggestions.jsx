@@ -219,7 +219,65 @@ if (response?.data?.error) {
         'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137',
     };
   };
-  const storedImageUrl = localStorage.getItem("generatedImageUrl");
+  const [storedImageUrl, setStoredImageUrl] = useState(
+  localStorage.getItem("generatedImageUrl") || ""
+);
+
+const formatForImage = (rawText) => {
+  const getSection = (label) => {
+    const regex = new RegExp(
+      `\\*\\*${label}\\*\\*\\s*\\n*([\\s\\S]*?)(?=\\n\\*\\*|$)`,
+      "i"
+    );
+    const match = rawText.match(regex);
+    return match ? match[1].trim() : "";
+  };
+
+  const trimText = (text, max = 200) =>
+    text?.length > max ? text.slice(0, max) + "..." : text;
+
+  const materials = trimText(getSection("Materials").replace(/\n/g, ", "));
+  const colors = getSection("Color Palette with HEX Codes").replace(/\n/g, ", ");
+  const productType = trimText(productType || "clothing");
+  const construction = trimText(getSection("Construction Notes").replace(/\n/g, " , "));
+
+  return `Create a high-resolution, realistic image of a ${productType} made from ${materials}, in shades such as ${colors}. Display it neatly on a hanger or mannequin, clean neutral background. Construction details: ${construction}. No text or logos.`;
+};
+
+
+const generateImage = async () => {
+  try {
+    const rawText = localStorage.getItem("answer") || "";
+    if (!rawText) return;
+
+    const visualPrompt = formatForImage(rawText);
+    const basePrompt = `A realistic, photographic fashion image. ${visualPrompt} No people, only the clothing.`;
+    const imagePrompt =
+      basePrompt.length > 1000 ? basePrompt.slice(0, 997) + "..." : basePrompt;
+
+    const response = await fetch("/api/generateImage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: imagePrompt }),
+    });
+
+    const data = await response.json();
+    const url = data?.data?.[0]?.url || "";
+    if (url) {
+      localStorage.setItem("generatedImageUrl", url);
+      setStoredImageUrl(url);
+    }
+  } catch (err) {
+    console.error("Image generation failed:", err);
+  }
+};
+
+useEffect(() => {
+  if (suggestions) {
+    generateImage();
+  }
+}, [suggestions]);
+
   // ---------- Send email via EmailJS ----------
   const sendScheduleEmail = async () => {
     const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
@@ -269,12 +327,12 @@ return (
     ) : (
       <div className="bg-[#EDEDED] min-h-screen">
         <div className="max-w-7xl mx-auto px-6 mb-8">
-          {/* Back button + Step */}
-          <div className="flex items-center justify-between w-full mb-4">
+          {/* Header Section */}
+          <div className="flex items-center justify-between w-full mb-8 bg-white px-5 py-3 rounded-xl shadow-sm border border-[#E4E4E4]">
             <button
               type="button"
               onClick={onBack}
-              className="pb-1 text-xl font-extrabold text-[#3A3A3D]"
+              className="text-xl font-extrabold text-[#3A3A3D]"
             >
               ←
             </button>
@@ -282,7 +340,7 @@ return (
           </div>
 
           {/* Title */}
-          <h2 className="text-[#333333] text-[32pt] font-serif leading-tight mb-6 mt-4 text-center">
+          <h2 className="text-[#333333] text-[32pt] font-serif leading-tight mb-6 mt-2 text-center">
             {title}
           </h2>
 
@@ -291,20 +349,21 @@ return (
             {/* Row 1 */}
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Suggested Image */}
-              <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[350px] overflow-hidden flex flex-col items-center justify-center">
-                <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black px-7 py-4">
-                  Suggested Image
-                </h1>
-                {storedImageUrl ? (
-                  <img
-                    src={storedImageUrl}
-                    alt={title}
-                    className="w-auto h-[250px] object-contain rounded"
-                  />
-                ) : (
-                  <div className="text-gray-500">No image generated yet</div>
-                )}
-              </div>
+             <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[350px] overflow-hidden flex flex-col items-center justify-center">
+  <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black px-7 py-4">
+    Suggested Image
+  </h1>
+  {storedImageUrl ? (
+    <img
+      src={storedImageUrl}
+      alt={title}
+      className="w-auto h-[250px] object-contain rounded"
+    />
+  ) : (
+    <div className="text-gray-500">No image generated yet</div>
+  )}
+</div>
+
 
               {/* Right Column */}
               <div className="flex flex-col gap-6">
@@ -313,8 +372,20 @@ return (
                   <h1 className="text-xl font-[Helvetica] font-semibold mb-3 text-black">
                     Materials
                   </h1>
-                  <div className="text-black/70 text-sm font-[Helvetica] overflow-auto">
-                    <ReactMarkdown>{suggestions.materials}</ReactMarkdown>
+                  <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p className="mb-2">{children}</p>,
+                        li: ({ children }) => (
+                          <li className="ml-5 list-disc">{children}</li>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="text-black">{children}</strong>
+                        ),
+                      }}
+                    >
+                      {suggestions.materials}
+                    </ReactMarkdown>
                   </div>
                 </div>
 
@@ -323,8 +394,20 @@ return (
                   <h1 className="text-xl font-[Helvetica] font-semibold mb-3 text-black">
                     Sales Price
                   </h1>
-                  <div className="text-black/70 text-sm font-[Helvetica] overflow-auto">
-                    <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown>
+                  <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p className="mb-2">{children}</p>,
+                        li: ({ children }) => (
+                          <li className="ml-5 list-disc">{children}</li>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="text-black">{children}</strong>
+                        ),
+                      }}
+                    >
+                      {suggestions.saleprices}
+                    </ReactMarkdown>
                   </div>
                 </div>
               </div>
@@ -333,20 +416,23 @@ return (
             {/* Row 2 */}
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Color Palette */}
-              <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[150px] overflow-hidden p-4">
+              <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[180px] overflow-hidden p-4">
                 <h1 className="text-xl font-[Helvetica] font-semibold mb-2 text-black">
                   Color Palette
                 </h1>
-                <div className="flex gap-4 p-2">
+                <ul>
                   {extractHexColors(suggestions.colors).map(([name, hex], idx) => (
-                    <div
-                      key={idx}
-                      className="w-10 h-10 rounded-full border"
-                      title={name}
-                      style={{ backgroundColor: hex }}
-                    />
+                    <li key={idx} className="flex items-center space-x-3 mb-2">
+                      <span
+                        className="w-6 h-6 rounded-full border"
+                        style={{ backgroundColor: hex }}
+                      />
+                      <span className="text-black/70 text-sm">
+                        {`${name} (${hex})`}
+                      </span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
 
               {/* Cost Production */}
@@ -354,8 +440,20 @@ return (
                 <h1 className="text-xl font-[Helvetica] font-semibold mb-3 text-black">
                   Cost Production
                 </h1>
-                <div className="text-black/70 text-sm font-[Helvetica] overflow-auto">
-                  <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown>
+                <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p className="mb-2">{children}</p>,
+                      li: ({ children }) => (
+                        <li className="ml-5 list-disc">{children}</li>
+                      ),
+                      strong: ({ children }) => (
+                        <strong className="text-black">{children}</strong>
+                      ),
+                    }}
+                  >
+                    {suggestions.productionCosts}
+                  </ReactMarkdown>
                 </div>
               </div>
             </div>
@@ -365,8 +463,20 @@ return (
               <h1 className="text-xl font-[Helvetica] font-semibold mb-3 text-black">
                 Suggested Companion Pieces
               </h1>
-              <div className="text-black/70 text-sm font-[Helvetica]">
-                <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown>
+              <div className="flex-1 overflow-auto text-sm leading-relaxed text-black/70">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className="mb-2">{children}</p>,
+                    li: ({ children }) => (
+                      <li className="ml-5 list-disc">{children}</li>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="text-black">{children}</strong>
+                    ),
+                  }}
+                >
+                  {suggestions.companionItems}
+                </ReactMarkdown>
               </div>
             </div>
           </div>
