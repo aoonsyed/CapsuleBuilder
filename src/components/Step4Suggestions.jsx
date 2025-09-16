@@ -332,7 +332,7 @@ return (
         </button>
       </div>
     ) : (
-      <div className=" min-h-screen">
+      <div className="bg-[#EDEDED] min-h-screen">
         <div className="max-w-7xl mx-auto px-6 mb-8">
           {/* Header Section */}
          <div className="flex items-center justify-between w-full mb-8 px-2">
@@ -475,8 +475,9 @@ return (
 
             </div>
 
-<div className="bg-white flex-1 rounded-2xl shadow-md border border-[#E4E4E4] 
-     w-full min-h-[220px] p-6">
+            {/* Row 3: Companion Items */}
+  <div className="bg-white rounded-2xl -md border border-[#E4E4E4] 
+     w-full lg:w-[920px] min-h-[220px] p-6">
   <h1 className="text-2xl font-[Garamond] font-semibold mb-4 text-black">
     Suggested Companion Pieces
   </h1>
@@ -494,7 +495,6 @@ return (
     </ReactMarkdown>
   </div>
 </div>
-
 
 
           </div>
