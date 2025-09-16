@@ -248,7 +248,7 @@ if (response?.data?.error) {
   };
 
   // ---------- Render ----------
- return (
+return (
   <>
     <Toaster position="top-right" richColors />
     {loading ? (
@@ -267,7 +267,7 @@ if (response?.data?.error) {
         </button>
       </div>
     ) : (
-      <div className="w-full px-10 mt-10 font-[Helvetica]">
+      <div className="w-full px-6 sm:px-10 mt-10 font-[Helvetica]">
         {/* Header Section */}
         <div className="flex items-center justify-between w-full">
           <button
@@ -285,9 +285,9 @@ if (response?.data?.error) {
           {title}
         </h2>
 
-        {/* Main Two-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* LEFT SIDE → Image */}
+        {/* Main Layout */}
+        <div className="grid grid-cols-1 gap-10">
+          {/* Image Row */}
           <div className="flex items-center justify-center bg-gray-100 rounded-xl shadow-md p-4">
             {storedImageUrl ? (
               <img
@@ -300,15 +300,57 @@ if (response?.data?.error) {
             )}
           </div>
 
-          {/* RIGHT SIDE → Card Grid */}
-          <div className="flex flex-col space-y-6">
-            {/* Top Row: 3 cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                ['Materials', suggestions.materials],
-                ['Sales Price', suggestions.saleprices],
-                ['Cost Production', suggestions.productionCosts],
-              ].map(([label, content], index) => (
+          {/* Top Row: 3 cards across full width */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              ['Materials', suggestions.materials],
+              ['Sales Price', suggestions.saleprices],
+              ['Cost Production', suggestions.productionCosts],
+            ].map(([label, content], index) => (
+              <div
+                key={index}
+                className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
+              >
+                <h3 className="text-lg font-semibold mb-3 text-black">
+                  {label}
+                </h3>
+                <div className="flex-1">
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => (
+                        <p className="text-sm leading-relaxed mb-2 text-black/70">
+                          {children}
+                        </p>
+                      ),
+                      li: ({ children }) => (
+                        <li className="text-sm ml-5 list-disc text-black/70">
+                          {children}
+                        </li>
+                      ),
+                      strong: ({ children }) => (
+                        <strong className="text-sm text-black">
+                          {children}
+                        </strong>
+                      ),
+                    }}
+                  >
+                    {content}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Row: 2 cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              ['Color Palette', suggestions.colors],
+              ['Suggested Companion Pieces', suggestions.companionItems],
+            ].map(([label, content], index) => {
+              const isColorPalette = label === 'Color Palette';
+              const colors = isColorPalette ? extractHexColors(content) : [];
+
+              return (
                 <div
                   key={index}
                   className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
@@ -316,7 +358,22 @@ if (response?.data?.error) {
                   <h3 className="text-lg font-semibold mb-3 text-black">
                     {label}
                   </h3>
-                  <div className="flex-1">
+                  {isColorPalette ? (
+                    <ul>
+                      {colors.map(([name, hex], idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-center space-x-3 mb-2"
+                        >
+                          <span
+                            className="w-6 h-6 rounded-full border"
+                            style={{ backgroundColor: hex }}
+                          />
+                          <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
                     <ReactMarkdown
                       components={{
                         p: ({ children }) => (
@@ -338,70 +395,10 @@ if (response?.data?.error) {
                     >
                       {content}
                     </ReactMarkdown>
-                  </div>
+                  )}
                 </div>
-              ))}
-            </div>
-
-            {/* Bottom Row: 2 cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                ['Color Palette', suggestions.colors],
-                ['Suggested Companion Pieces', suggestions.companionItems],
-              ].map(([label, content], index) => {
-                const isColorPalette = label === 'Color Palette';
-                const colors = isColorPalette ? extractHexColors(content) : [];
-
-                return (
-                  <div
-                    key={index}
-                    className="bg-white border border-gray-200 rounded-xl shadow-lg p-6 flex flex-col"
-                  >
-                    <h3 className="text-lg font-semibold mb-3 text-black">
-                      {label}
-                    </h3>
-                    {isColorPalette ? (
-                      <ul>
-                        {colors.map(([name, hex], idx) => (
-                          <li
-                            key={idx}
-                            className="flex items-center space-x-3 mb-2"
-                          >
-                            <span
-                              className="w-6 h-6 rounded-full border"
-                              style={{ backgroundColor: hex }}
-                            />
-                            <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <ReactMarkdown
-                        components={{
-                          p: ({ children }) => (
-                            <p className="text-sm leading-relaxed mb-2 text-black/70">
-                              {children}
-                            </p>
-                          ),
-                          li: ({ children }) => (
-                            <li className="text-sm ml-5 list-disc text-black/70">
-                              {children}
-                            </li>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="text-sm text-black">
-                              {children}
-                            </strong>
-                          ),
-                        }}
-                      >
-                        {content}
-                      </ReactMarkdown>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+              );
+            })}
           </div>
         </div>
 
@@ -423,4 +420,5 @@ if (response?.data?.error) {
     )}
   </>
 );
+
 }
