@@ -168,6 +168,10 @@ function ImageGeneration({onBack}) {
 
         const data = await response.json();
         setImageUrl(data?.data?.[0]?.url || "");
+        if (data?.data?.[0]?.url) {
+  localStorage.setItem("generatedImageUrl", data.data[0].url);
+}
+
       } catch (err) {
         console.error("Image generation failed:", err);
       } finally {

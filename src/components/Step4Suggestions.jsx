@@ -219,7 +219,8 @@ if (response?.data?.error) {
         'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137',
     };
   };
-
+  const storedImageUrl = localStorage.getItem("generatedImageUrl");
+  // ---------- Send email via EmailJS ----------
   const sendScheduleEmail = async () => {
     const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
     const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
@@ -266,7 +267,7 @@ if (response?.data?.error) {
           </button>
         </div>
       ) : (
-        <div className="max-w-7xl mx-auto mt-10 px-6 font-[Helvetica]">
+        <div className="w-full px-10 mt-10 font-[Helvetica]">
           <button
             type="button"
             onClick={onBack}
@@ -284,14 +285,17 @@ if (response?.data?.error) {
           {/* Main Two-Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* LEFT SIDE → Image */}
-            <div className="flex items-center justify-center bg-gray-100 rounded-xl shadow-md p-4">
-              <img
-                src="/sample-product.png" // replace with your product image
-                alt={title}
-                className="w-full h-auto rounded-lg object-contain"
-              />
-            </div>
-
+<div className="flex items-center justify-center bg-gray-100 rounded-xl shadow-md p-4">
+  {storedImageUrl ? (
+    <img
+      src={storedImageUrl}
+      alt={title}
+      className="w-full h-auto rounded-lg object-contain"
+    />
+  ) : (
+    <div className="text-gray-500">No image generated yet</div>
+  )}
+</div>
             {/* RIGHT SIDE → Card Grid */}
             <div className="flex flex-col space-y-6">
               {/* Top Row (3 cards) */}
