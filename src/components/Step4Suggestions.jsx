@@ -220,121 +220,155 @@ const handleScheduleClick = async () => {
 };
 
 
-  // ---------- Render ----------
-  return (
-    <>
-      <Toaster position="top-right" richColors />
-      {loading ? (
-        <div className="fixed inset-0 flex flex-col items-center justify-center h-screen text-black/70 font-[Garamond]">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mb-4"></div>
-          In progress...
-        </div>
-      ) : !suggestions ? (
-        <div className="flex flex-col items-center justify-center min-h-screen text-[#3A3A3D] font-[Garamond] text-lg">
-          <p className="mb-4">No Suggestions For Now</p>
-          <button
-            onClick={onBack}
-            className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-gray-600 rounded-md transition"
-          >
-            ← Back
-          </button>
-        </div>
-      ) : (
-        <div className="min-h-screen">
-          <div className="max-w-7xl mx-auto px-6 mb-8">
-            {/* Header */}
-            <div className="flex items-center justify-between w-full mb-8 px-2">
-              <button
-                type="button"
-                onClick={onBack}
-                className="px-4 py-2 text-white bg-black hover:bg-gray-600 rounded-md transition"
-              >
-                ← Back
-              </button>
-              <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p>
-            </div>
+return (
+  <>
+    <Toaster position="top-right" richColors />
+    {loading ? (
+      <div className="fixed inset-0 flex flex-col items-center justify-center h-screen text-black/70 font-[Garamond]">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mb-4"></div>
+        In progress...
+      </div>
+    ) : !suggestions ? (
+      <div className="flex flex-col items-center justify-center min-h-screen text-[#3A3A3D] font-[Garamond] text-lg">
+        <p className="mb-4">No Suggestions For Now</p>
+        <button
+          onClick={onBack}
+          className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-gray-600 rounded-md transition"
+        >
+          ← Back
+        </button>
+      </div>
+    ) : (
+      <div className="min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 mb-8">
+          {/* Header */}
+          <div className="flex items-center justify-between w-full mb-8 px-2">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2 text-white bg-black hover:bg-gray-600 rounded-md transition"
+            >
+              ← Back
+            </button>
+            <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p>
+          </div>
 
-            {/* Title */}
-            <h2 className="text-[#333333] text-[32pt] font-[Albereto] leading-tight mb-6 mt-2 text-center">
-              {title}
-            </h2>
+          {/* Title */}
+          <h2 className="text-[#333333] text-[32pt] font-[Albereto] leading-tight mb-6 mt-2 text-center">
+            {title}
+          </h2>
 
-            {/* Sections */}
-            <div className="flex flex-col items-center justify-center gap-6 p-6">
-              {/* Row 1 */}
-              <div className="flex flex-col lg:flex-row gap-6">
-                {/* Materials */}
-                <div className="bg-white rounded-2xl border border-[#E4E4E4] w-[450px] min-h-[220px] p-5">
-                  <h1 className="text-2xl font-[Albereto] mb-4 text-black">Materials</h1>
-                  <div className="text-base leading-relaxed text-black font-[Garamond]">
-                    <ReactMarkdown>{suggestions.materials}</ReactMarkdown>
-                  </div>
-                </div>
-
-                {/* Sales Price */}
-                <div className="bg-white rounded-2xl border border-[#E4E4E4] w-[450px] min-h-[180px] p-5">
-                  <h1 className="text-2xl font-[Albereto] mb-4 text-black">Sales Price</h1>
-                  <div className="text-base leading-relaxed text-black font-[Garamond]">
-                    <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown>
-                  </div>
-                </div>
-              </div>
-
-              {/* Row 2 */}
-              <div className="flex flex-col lg:flex-row gap-6">
-                {/* Color Palette */}
-                <div className="bg-white rounded-2xl border border-[#E4E4E4] w-[450px] h-[180px] overflow-hidden p-4">
-                  <h1 className="text-xl font-[Albereto] mb-2 text-black">Color Palette</h1>
-                  <ul>
-                    {extractHexColors(suggestions.colors).map(([name, hex], idx) => (
-                      <li key={idx} className="flex items-center space-x-3 mb-2 font-[Garamond]">
-                        <span
-                          className="w-6 h-6 rounded-full border"
-                          style={{ backgroundColor: hex }}
-                        />
-                        <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Cost Production */}
-                <div className="bg-white rounded-2xl border border-[#E4E4E4] w-[450px] min-h-[220px] p-5">
-                  <h1 className="text-2xl font-[Albereto] mb-4 text-black">Cost Production</h1>
-                  <div className="text-base leading-relaxed text-black font-[Garamond]">
-                    <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown>
-                  </div>
-                </div>
-              </div>
-
-              {/* Companion Items */}
-              <div className="bg-white rounded-2xl border border-[#E4E4E4] w-full lg:w-[920px] min-h-[220px] p-6">
-                <h1 className="text-2xl font-[Albereto] mb-4 text-black">
-                  Suggested Companion Pieces
-                </h1>
-                <div className="text-base leading-relaxed text-black font-[Garamond]">
-                  <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown>
-                </div>
+          {/* Sections */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+            {/* Row 1 */}
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Materials</h1>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
+                <ReactMarkdown>{suggestions.materials}</ReactMarkdown>
               </div>
             </div>
 
-            {/* Schedule Call Button */}
-            <div className="flex justify-center mt-12 mb-7">
-              <button
-                onClick={handleScheduleClick}
-                disabled={sendingEmail}
-                className={`px-6 py-2 text-lg font-bold text-white rounded-md transition duration-200 ${
-                  sendingEmail
-                    ? 'bg-black/50 cursor-not-allowed'
-                    : 'bg-black hover:bg-gray-600'
-                }`}
-              >
-                {sendingEmail ? 'Sending details…' : 'Schedule Call'}
-              </button>
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Sales Price</h1>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
+                <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown>
+              </div>
             </div>
           </div>
+
+          {/* Row 2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+            {/* Color Palette */}
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-4">
+              <h1 className="text-xl font-[Albereto] mb-2 text-black">Color Palette</h1>
+              <ul>
+                {extractHexColors(suggestions.colors).map(([name, hex], idx) => (
+                  <li key={idx} className="flex items-center space-x-3 mb-2 font-[Garamond]">
+                    <span
+                      className="w-6 h-6 rounded-full border"
+                      style={{ backgroundColor: hex }}
+                    />
+                    <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Cost Production */}
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Cost Production</h1>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
+                <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown>
+              </div>
+            </div>
+          </div>
+
+          {/* Companion Items */}
+          <div className="bg-white rounded-2xl border border-[#E4E4E4] w-full lg:w-[920px] min-h-[220px] p-6">
+            <h1 className="text-2xl font-[Albereto] mb-4 text-black">
+              Suggested Companion Pieces
+            </h1>
+            <div className="text-base leading-relaxed text-black font-[Garamond]">
+              <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown>
+            </div>
+          </div>
+
+          {/* Additional Sections: Yield, Lead Time, Market, and Financial Tools */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+            {/* Yield & Consumption Estimates */}
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Yield & Consumption Estimates</h1>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
+                <ReactMarkdown>{suggestions.yieldConsumption}</ReactMarkdown>
+              </div>
+            </div>
+
+            {/* Production Lead Time Estimate */}
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Production Lead Time Estimate</h1>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
+                <ReactMarkdown>{suggestions.leadTime}</ReactMarkdown>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+            {/* Market & Brand Positioning */}
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Market & Brand Positioning</h1>
+              <h3 className="text-xl font-[Garamond] text-black">Comparable Market Examples</h3>
+              <ReactMarkdown>{suggestions.marketExamples}</ReactMarkdown>
+              <h3 className="text-xl font-[Garamond] text-black">Target Consumer Insight</h3>
+              <ReactMarkdown>{suggestions.targetInsight}</ReactMarkdown>
+            </div>
+
+            {/* Business & Financial Tools */}
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Business & Financial Tools</h1>
+              <h3 className="text-xl font-[Garamond] text-black">Margin Analysis</h3>
+              <ReactMarkdown>{suggestions.marginAnalysis}</ReactMarkdown>
+              <h3 className="text-xl font-[Garamond] text-black">Wholesale vs DTC Pricing</h3>
+              <ReactMarkdown>{suggestions.pricing}</ReactMarkdown>
+            </div>
+          </div>
+
         </div>
-      )}
-    </>
-  );
+
+        {/* Schedule Call Button */}
+        <div className="flex justify-center mt-12 mb-7">
+          <button
+            onClick={handleScheduleClick}
+            disabled={sendingEmail}
+            className={`px-6 py-2 text-lg font-bold text-white rounded-md transition duration-200 ${
+              sendingEmail ? 'bg-black/50 cursor-not-allowed' : 'bg-black hover:bg-gray-600'
+            }`}
+          >
+            {sendingEmail ? 'Sending details…' : 'Schedule Call'}
+          </button>
+        </div>
+      </div>
+    )}
+  </>
+);
+
 }
