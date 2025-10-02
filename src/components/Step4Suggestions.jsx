@@ -48,96 +48,105 @@ export default function Step4Suggestions({ onNext, onBack }) {
     return hexColors;
   };
 
-  // Parse sections
   const parseAIResponse = (text) => {
-    const getSection = (label) => {
-      const regex = new RegExp(
-        `\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|$)`,
-        'i'
-      );
-      const match = text.match(regex);
-      return match && match[1].trim() ? match[1].trim() : '';
-    };
-
-    return {
-      materials: getSection('Materials'),
-      colors: getSection('Color Palette with HEX Codes') || getSection('Color Palette'),
-      saleprices: getSection('Target Price'),
-      productionCosts: getSection('Estimated Production Cost'),
-      companionItems: getSection('Companion Items'),
-    };
+  const getSection = (label) => {
+    const regex = new RegExp(
+      `\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|$)`,
+      'i'
+    );
+    const match = text.match(regex);
+    return match && match[1].trim() ? match[1].trim() : '';
   };
 
-  // **Prompt function here** (Place it outside useEffect but inside the component)
-  const generatePrompt = () => {
-    return `
-      Act as a fashion design assistant. Based on the following details:
-      - Idea: ${idea}
-      - Brand: ${brand2}
-      - Shared Preferences: ${sharedPrefernce}
-      - Product Type: ${productType}
-      - Target Price: ${targetPrice}
-      - Quantity: ${quantity}
-      - Category: ${category}
-      - Key Features: ${keyFeatures}
-      - Material Preferences: ${JSON.stringify(materialPreferenceOptions)}
-      - Manufacturing Preference: ${manufacturingPreference}
-      - Questionnaire Answers: ${JSON.stringify(savedAnswers, null, 2)}
-
-      Please provide your response in EXACTLY this format with these exact headings:
-
-      **Materials**
-      [Only list suitable materials and their properties here]
-
-      **Color Palette with HEX Codes**
-      [Always list three colors with their HEX codes here]
-
-      **Target Price**
-      [Only state the recommended sale price and some comments for the target price here]
-
-      **Estimated Production Cost**
-      [Only provide production cost estimate here. Also provide some information]
-
-      **Companion Items**
-      [Only list 2-3 accessory or styling suggestions here]`.trim();
+  return {
+    materials: getSection('Materials'),
+    colors: getSection('Color Palette with HEX Codes') || getSection('Color Palette'),
+    saleprices: getSection('Target Price'),
+    productionCosts: getSection('Estimated Production Cost'),
+    companionItems: getSection('Companion Items'),
+    yieldConsumption: getSection('Yield & Consumption Estimates'),
+    leadTime: getSection('Production Lead Time Estimate'),
+    marketExamples: getSection('Comparable Market Examples'),
+    targetInsight: getSection('Target Consumer Insight'),
+    marginAnalysis: getSection('Margin Analysis'),
+    pricing: getSection('Wholesale vs DTC Pricing'),
   };
+};
+
+
+const generatePrompt = () => {
+  return `
+    Act as a fashion design assistant. Based on the following details:
+    - Idea: ${idea}
+    - Brand: ${brand2}
+    - Shared Preferences: ${sharedPrefernce}
+    - Product Type: ${productType}
+    - Target Price: ${targetPrice}
+    - Quantity: ${quantity}
+    - Category: ${category}
+    - Key Features: ${keyFeatures}
+    - Material Preferences: ${JSON.stringify(materialPreferenceOptions)}
+    - Manufacturing Preference: ${manufacturingPreference}
+    - Questionnaire Answers: ${JSON.stringify(savedAnswers, null, 2)}
+
+    Please provide your response in EXACTLY this format with these exact headings:
+
+    **Yield & Consumption Estimates**
+    - Provide an estimate of fabric yardage required per unit, based on standard industry calculations for the type of product (EX: 2 yards for a Tee shirt, 3 yards for a sweatshirt, 3 yards for a pair of pants).
+    - Scale the estimate automatically to the unit quantity input by the user.
+    - Present the results clearly with both per-unit and total yardage/weight.
+
+    **Production Lead Time Estimate**
+    - Give a general turnaround time for production. Frame the response as a 4-week range (e.g., 8–12 weeks), while noting that exact times depend on supplier and order complexity.
+    - Give shorter lead times for domestic vs. overseas, the overseas production should be longer.
+    - Provide shorter turn around times for simple projects such as Tee shirts and sweatpants and longer lead times for more complex items like jeans or dresses.
+    - All ranges should be at least 8 weeks and no more than 24 weeks.
+
+    **Market & Brand Positioning**
+    - Comparable Market Examples: List 2–3 comparable market references. Select brands at similar quality and price points to the user’s concept.
+    - Target Consumer Insight: Suggest target consumer demographics and psychographics. Include age range, lifestyle, values, and buying motivations that align with the product direction described.
+
+    **Business & Financial Tools**
+    - Margin Analysis: Calculate suggested retail price vs. production cost to show the gross margin percentage. Display calculations clearly.
+    - Wholesale vs. DTC Pricing: Automatically generate a suggested wholesale price and direct-to-consumer (DTC) price range. Base calculations on standard fashion industry markups, and present both ranges clearly.
+  `.trim();
+};
+
 
   // Fetch AI suggestions
   useEffect(() => {
-    const callOpenAI = async () => {
-      try {
-        // Call generatePrompt here
-        const prompt = generatePrompt();
+   const callOpenAI = async () => {
+  try {
+    const prompt = generatePrompt();
+    const response = await axios.post('/api/openai', { prompt });
 
-        const response = await axios.post('/api/openai', { prompt });
+    console.log("OpenAI Response:", response.data); // Log the full response
 
-        if (response?.data?.error) {
-          throw new Error(`OpenAI API error: ${response.data.error}`);
-        }
+    if (response?.data?.error) {
+      throw new Error(`OpenAI API error: ${response.data.error}`);
+    }
 
-        const answer =
-          response?.data?.choices?.[0]?.message?.content ?? 
-          response?.data?.choices?.[0]?.text ?? 
-          '';
+    const answer = response?.data?.choices?.[0]?.message?.content ?? response?.data?.choices?.[0]?.text ?? '';
+    
+    console.log("Parsed Answer:", answer); // Log parsed answer
 
-        localStorage.setItem('answer', answer);
-        const parsed = parseAIResponse(answer);
-        setSuggestions(parsed);
-        console.log('OpenAI response:', response);
-        console.log('Parsed data:', parsed);
+    localStorage.setItem('answer', answer);
+    const parsed = parseAIResponse(answer);
+    setSuggestions(parsed);
 
-        toast.success('Suggestions loaded successfully!', {
-          style: { backgroundColor: '#3A3A3D', color: '#fff' },
-        });
-      } catch (err) {
-        console.error('OpenAI error:', err);
-        toast.error('Something went wrong while fetching suggestions.', {
-          style: { backgroundColor: '#3A3A3D', color: 'white' },
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    toast.success('Suggestions loaded successfully!', {
+      style: { backgroundColor: '#3A3A3D', color: '#fff' },
+    });
+  } catch (err) {
+    console.error('OpenAI error:', err);
+    toast.error('Something went wrong while fetching suggestions.', {
+      style: { backgroundColor: '#3A3A3D', color: 'white' },
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     callOpenAI();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
