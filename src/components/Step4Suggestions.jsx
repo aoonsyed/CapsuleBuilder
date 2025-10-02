@@ -123,6 +123,8 @@ export default function Step4Suggestions({ onNext, onBack }) {
         localStorage.setItem('answer', answer);
         const parsed = parseAIResponse(answer);
         setSuggestions(parsed);
+        console.log('OpenAI response:', response);
+        console.log('Parsed data:', parsed);
 
         toast.success('Suggestions loaded successfully!', {
           style: { backgroundColor: '#3A3A3D', color: '#fff' },
