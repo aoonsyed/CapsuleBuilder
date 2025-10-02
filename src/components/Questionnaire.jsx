@@ -251,14 +251,14 @@ Only return the JSON. No markdown. No explanation.
           <button
             type="button"
             onClick={onBack}
-            className="px-6 py-2 text-lg font-bold text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+            className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
           >
             ← Back
           </button>
 
           <button
             type="submit"
-            className="px-6 py-2 text-lg font-bold text-white bg-[#000000] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+            className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
           >
             Next →
           </button>

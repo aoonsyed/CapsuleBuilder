@@ -92,23 +92,30 @@ const generatePrompt = () => {
     Please provide your response in EXACTLY this format with these exact headings:
 
     **Yield & Consumption Estimates**
-    - Provide an estimate of fabric yardage required per unit, based on standard industry calculations for the type of product (EX: 2 yards for a Tee shirt, 3 yards for a sweatshirt, 3 yards for a pair of pants).
-    - Scale the estimate automatically to the unit quantity input by the user.
-    - Present the results clearly with both per-unit and total yardage/weight.
+    Provide an estimate of fabric yardage required per unit, based on standard industry calculations for the type of product (EX: 2 yards for a Tee shirt, 3 yards for a sweatshirt, 3 yards for a pair of pants. Scale the estimate automatically to the unit quantity input by the user. Present the results clearly with both per-unit and total yardage/weight.
 
     **Production Lead Time Estimate**
-    - Give a general turnaround time for production. Frame the response as a 4-week range (e.g., 8–12 weeks), while noting that exact times depend on supplier and order complexity.
-    - Give shorter lead times for domestic vs. overseas, the overseas production should be longer.
-    - Provide shorter turn around times for simple projects such as Tee shirts and sweatpants and longer lead times for more complex items like jeans or dresses.
-    - All ranges should be at least 8 weeks and no more than 24 weeks.
+    Give a general turnaround time for production. Frame the response as a 4 week range (e.g., 8–12 weeks), while noting that exact times depend on supplier and order complexity. Give shorter lead times for domestic than overseas, give a comparison of production time domestic vs overseas, the overseas production should be longer. Give shorter turn around times for simple projects such as Tee shirts and sweatpants and longer lead times for more complex items like jeans or dresses. All ranges should be at least 8 weeks and no more than 24 weeks.
+
+    ⸻
 
     **Market & Brand Positioning**
-    - Comparable Market Examples: List 2–3 comparable market references. Select brands at similar quality and price points to the user’s concept.
-    - Target Consumer Insight: Suggest target consumer demographics and psychographics. Include age range, lifestyle, values, and buying motivations that align with the product direction described.
+
+    **Comparable Market Examples**
+    List 2–3 comparable market references. Select brands at similar quality and price points to the user's concept.
+
+    **Target Consumer Insight**
+    Suggest target consumer demographics and psychographics. Include age range, lifestyle, values, and buying motivations that align with the product direction described.
+
+    ⸻
 
     **Business & Financial Tools**
-    - Margin Analysis: Calculate suggested retail price vs. production cost to show the gross margin percentage. Display calculations clearly.
-    - Wholesale vs. DTC Pricing: Automatically generate a suggested wholesale price and direct-to-consumer (DTC) price range. Base calculations on standard fashion industry markups, and present both ranges clearly.
+
+    **Margin Analysis**
+    Calculate suggested retail price vs. production cost to show the gross margin percentage. Display calculations clearly.
+
+    **Wholesale vs. DTC Pricing**
+    Automatically generate a suggested wholesale price and direct-to-consumer (DTC) price range. Base calculations on standard fashion industry markups, and present both ranges clearly.
   `.trim();
 };
 
@@ -254,7 +261,7 @@ return (
           </div>
 
           {/* Title */}
-          <h2 className="text-[#333333] text-[32pt] font-[Albereto] leading-tight mb-6 mt-2 text-center">
+          <h2 className="text-[#333333] text-[32pt] font-[Albereto Regular] leading-tight mb-6 mt-2 text-center">
             {title}
           </h2>
 
@@ -262,14 +269,14 @@ return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
             {/* Row 1 */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Materials</h1>
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Materials</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
                 <ReactMarkdown>{suggestions.materials}</ReactMarkdown>
               </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Sales Price</h1>
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Sales Price</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
                 <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown>
               </div>
@@ -280,7 +287,7 @@ return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
             {/* Color Palette */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-4">
-              <h1 className="text-xl font-[Albereto] mb-2 text-black">Color Palette</h1>
+              <h1 className="text-xl font-[Albereto Regular] mb-2 text-black">Color Palette</h1>
               <ul>
                 {extractHexColors(suggestions.colors).map(([name, hex], idx) => (
                   <li key={idx} className="flex items-center space-x-3 mb-2 font-[Garamond]">
@@ -296,7 +303,7 @@ return (
 
             {/* Cost Production */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Cost Production</h1>
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Cost Production</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
                 <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown>
               </div>
@@ -305,7 +312,7 @@ return (
 
           {/* Companion Items */}
           <div className="bg-white rounded-2xl border border-[#E4E4E4] w-full lg:w-[920px] min-h-[220px] p-6">
-            <h1 className="text-2xl font-[Albereto] mb-4 text-black">
+            <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">
               Suggested Companion Pieces
             </h1>
             <div className="text-base leading-relaxed text-black font-[Garamond]">
@@ -317,7 +324,7 @@ return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
             {/* Yield & Consumption Estimates */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Yield & Consumption Estimates</h1>
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Yield & Consumption Estimates</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
                 <ReactMarkdown>{suggestions.yieldConsumption}</ReactMarkdown>
               </div>
@@ -325,7 +332,7 @@ return (
 
             {/* Production Lead Time Estimate */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Production Lead Time Estimate</h1>
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Production Lead Time Estimate</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
                 <ReactMarkdown>{suggestions.leadTime}</ReactMarkdown>
               </div>
@@ -335,7 +342,7 @@ return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
             {/* Market & Brand Positioning */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Market & Brand Positioning</h1>
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Market & Brand Positioning</h1>
               <h3 className="text-xl font-[Garamond] text-black">Comparable Market Examples</h3>
               <ReactMarkdown>{suggestions.marketExamples}</ReactMarkdown>
               <h3 className="text-xl font-[Garamond] text-black">Target Consumer Insight</h3>
@@ -344,7 +351,7 @@ return (
 
             {/* Business & Financial Tools */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto] mb-4 text-black">Business & Financial Tools</h1>
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Business & Financial Tools</h1>
               <h3 className="text-xl font-[Garamond] text-black">Margin Analysis</h3>
               <ReactMarkdown>{suggestions.marginAnalysis}</ReactMarkdown>
               <h3 className="text-xl font-[Garamond] text-black">Wholesale vs DTC Pricing</h3>

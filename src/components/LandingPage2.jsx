@@ -93,7 +93,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
             {/* HERO */}
             <div className="w-full grid grid-cols-1 lg:grid-cols-2 px-4 pt-0 pb-16 sm:px-6 lg:px-12 xl:px-20 2xl:px-32 items-center">
                 <div>
-                    <h2 className="font-[Aboreto] font-extralight text-[30px] sm:text-[42px] md:text-[56px] text-black leading-tight text-center lg:text-left">
+                    <h2 className="font-[Albereto Regular] font-extralight text-[30px] sm:text-[42px] md:text-[56px] text-black leading-tight text-center lg:text-left">
                         START YOUR
                         <br />
                         <span className="whitespace-normal">CAPSULE COLLECTION</span>
@@ -142,11 +142,11 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                 <div className="mx-auto max-w-7xl">
                     <div className="mb-2">
                         <h1 className="text-black text-xl font-[Garamond]">
-                            Step <span className="font-[Aboreto]">{currentStep}</span> Of <span className="font-[Aboreto]">4</span>
+                            Step <span className="font-[Albereto Regular]">{currentStep}</span> Of <span className="font-[Albereto Regular]">4</span>
                         </h1>
                     </div>
 
-                    <h1 className="text-black text-[22pt] sm:text-[26pt] md:text-[28pt] font-[Aboreto] mb-6">
+                    <h1 className="text-black text-[22pt] sm:text-[26pt] md:text-[28pt] font-[Albereto Regular] mb-6">
                         WHAT CATEGORY ARE YOU DESIGNING?
                     </h1>
 
@@ -249,7 +249,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
 
             {/* WHAT YOU'LL RECEIVE */}
             <div className="w-full bg-[#333333] text-white py-12 px-4 text-center">
-                <h1 className="font-[Aboreto] text-[24pt] sm:text-[28pt] md:text-[30pt] mb-8">WHAT YOU'LL RECEIVE</h1>
+                <h1 className="font-[Albereto Regular] text-[24pt] sm:text-[28pt] md:text-[30pt] mb-8">WHAT YOU'LL RECEIVE</h1>
                 <div className="text-[12pt] font-[Garamond] space-y-5 max-w-4xl mx-auto">
                     <div>
                         <h2 className="font-semibold">Curated Materials</h2>
@@ -272,7 +272,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
 
             {/* WHO IT’S FOR */}
             <div className="w-full background-color:rgb(var(--color-background)) py-14 px-4 text-center">
-                <h1 className="font-[Aboreto] text-[24pt] sm:text-[28pt] md:text-[30pt] text-black mb-6">WHO IT’S FOR</h1>
+                <h1 className="font-[Albereto Regular] text-[24pt] sm:text-[28pt] md:text-[30pt] text-black mb-6">WHO IT’S FOR</h1>
                 <p className="text-[#000000] text-[10px] md:text-[15px]  font-[ebgaramond] leading-snug max-w-4xl mx-auto">
                     Capsule Builder is designed for founders, creators, and brands ready to refine an idea without needing technical expertise.
                     <br />

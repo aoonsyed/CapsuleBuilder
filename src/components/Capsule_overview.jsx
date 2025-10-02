@@ -4,7 +4,7 @@ export default function CapsuleOverview() {
   return (
     <div className="w-screen relative left-1/2 -ml-[50vw] bg-[#333333] font-[Helvetica] overflow-x-hidden">
       <div className="max-w-4xl mx-auto text-center py-10 md:py-12 px-4">
-        <h1 className="text-white font-extralight text-[24pt] sm:text-[28pt] md:text-[30pt] font-[Aboreto] mb-8 md:mb-12">
+        <h1 className="text-white font-extralight text-[24pt] sm:text-[28pt] md:text-[30pt] font-[Albereto Regular] mb-8 md:mb-12">
           WHAT YOU'LL RECEIVE
         </h1>
 
@@ -31,7 +31,7 @@ export default function CapsuleOverview() {
 
       <div className="w-screen bg-[#EDEDED] pt-8 md:pt-10 pb-10 md:pb-12 overflow-x-hidden">
         <div className="text-center px-4">
-          <h1 className="font-[Aboreto] text-[24pt] sm:text-[28pt] md:text-[30pt] text-black mb-4 md:mb-5">WHO IT’S FOR</h1>
+          <h1 className="font-[Albereto Regular] text-[24pt] sm:text-[28pt] md:text-[30pt] text-black mb-4 md:mb-5">WHO IT’S FOR</h1>
           <p className="text-[#000000] text-[16px] md:text-[17px] font-[ebgaramond] leading-snug px-0 md:px-4 mb-1">
             Capsule Builder Is Designed For Founders, Creators, And Brands Ready To Refine An Idea Without Needing Technical Expertise.
             <br />

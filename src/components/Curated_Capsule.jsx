@@ -24,27 +24,28 @@ const name = ['Jacket','Tops','Pants','Outerwear'];
   };
   const [currentStep,setCurrentStep] = useState(1)
 const handleCategorySelect = (category) => {
-  setSelectedCategory(category);
- setCurrentStep((currentStep % 4) + 1)
+  // Buttons are now static - no longer clickable
+  // setSelectedCategory(category);
+  // setCurrentStep((currentStep % 4) + 1)
 };
   return (
     <div className="w-screen relative left-1/2 -ml-[50vw] bg-white overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-12 transform md:-translate-x-5 overflow-x-hidden">
        <div className="w-full mb-4 md:transform md:translate-x-5">
   <h1 className="text-black text-xl font-[Garamond]">
-    Step <span className="font-[Aboreto]">{currentStep}</span> Of <span className="font-[Aboreto]">4</span>
+    Step <span className="font-[Albereto Regular]">{currentStep}</span> Of <span className="font-[Albereto Regular]">4</span>
   </h1>
 </div>
 
-        <h1 className="text-black text-[20pt] sm:text-[24pt] md:text-[26pt] font-[Aboreto] mb-3 md:transform md:translate-x-5">
+        <h1 className="text-black text-[20pt] sm:text-[24pt] md:text-[26pt] font-[Albereto Regular] mb-3 md:transform md:translate-x-5">
           WHAT CATEGORY ARE YOU DESIGNING?
         </h1>
          <div className="flex justify-start gap-3 sm:gap-4 flex-wrap mb-10 md:mb-16 md:transform md:translate-x-5">
         {categories.map((category) => (
           <button
   key={category}
-  onClick={() => handleCategorySelect(category)}
-  className={`px-5 sm:px-6 py-2 rounded-full font-[Garamond] font-[500] text-[13pt] sm:text-[14pt] transition-all border flex items-center gap-3
+  onClick={() => {}} // Disabled click handler
+  className={`px-5 sm:px-6 py-2 rounded-full font-[Garamond] font-[500] text-[13pt] sm:text-[14pt] transition-all border flex items-center gap-3 cursor-not-allowed opacity-50
     ${
       selectedCategory === category
         ? 'bg-black text-white'
@@ -55,7 +56,7 @@ const handleCategorySelect = (category) => {
   <input
     type="checkbox"
     checked={selectedCategory === category}
-    onChange={() => setSelectedCategory(category)}
+    onChange={() => {}} // Disabled change handler
     className={`w-4 h-4 rounded-full border-2 appearance-none relative transition-all
       ${selectedCategory === category 
         ? 'border-white bg-white checked:after:content-["✔"] checked:after:absolute checked:after:top-1/2 checked:after:left-1/2 checked:after:transform checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 checked:after:text-black checked:after:text-[10px] checked:after:font-bold' 
@@ -69,10 +70,10 @@ const handleCategorySelect = (category) => {
       </div>
         {/* Heading */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-5">
-  <h1 className="text-black text-[18pt] sm:text-[20pt] font-[Aboreto] md:transform md:translate-x-5 mb-1 sm:mb-2">
+  <h1 className="text-black text-[18pt] sm:text-[20pt] font-[Albereto Regular] md:transform md:translate-x-5 mb-1 sm:mb-2">
     YOUR CURATED CAPSULE
   </h1>
-  <h1 className="text-black text-[12pt] sm:text-[14pt] font-[Aboreto] font-normal md:transform md:-translate-x-[30px]">
+  <h1 className="text-black text-[12pt] sm:text-[14pt] font-[Albereto Regular] font-normal md:transform md:-translate-x-[30px]">
   SESTEDD SUGT
 </h1>
 </div>
