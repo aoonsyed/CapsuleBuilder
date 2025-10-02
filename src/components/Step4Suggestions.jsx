@@ -301,9 +301,10 @@ return (
           </h2>
         </div>
 
-        {/* Sections - Full Width Column Layout */}
-        <div className="w-full px-6 pb-6 space-y-6">
-            {/* Materials */}
+        {/* Sections - 2 Column Layout */}
+        <div className="w-full px-6 pb-6">
+          {/* Row 1: Materials & Sales Price */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Materials</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
@@ -311,15 +312,16 @@ return (
               </div>
             </div>
 
-            {/* Sales Price */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Sales Price</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.saleprices ? <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown> : <p className="text-gray-500">No pricing data available</p>}
               </div>
             </div>
+          </div>
 
-            {/* Color Palette */}
+          {/* Row 2: Color Palette & Cost Production */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Color Palette</h1>
               {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
@@ -341,15 +343,16 @@ return (
               )}
             </div>
 
-            {/* Cost Production */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Cost Production</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.productionCosts ? <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown> : <p className="text-gray-500">No cost data available</p>}
               </div>
             </div>
+          </div>
 
-            {/* Companion Items */}
+          {/* Row 3: Companion Items - Full Width */}
+          <div className="mb-6">
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">
                 Suggested Companion Pieces
@@ -358,8 +361,10 @@ return (
                 {suggestions.companionItems ? <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown> : <p className="text-gray-500">No companion items available</p>}
               </div>
             </div>
+          </div>
 
-            {/* Yield & Consumption Estimates */}
+          {/* Row 4: Yield & Lead Time */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Yield & Consumption Estimates</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
@@ -367,15 +372,16 @@ return (
               </div>
             </div>
 
-            {/* Production Lead Time Estimate */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Production Lead Time Estimate</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.leadTime ? <ReactMarkdown>{suggestions.leadTime}</ReactMarkdown> : <p className="text-gray-500">No lead time data available</p>}
               </div>
             </div>
+          </div>
 
-            {/* Market & Brand Positioning */}
+          {/* Row 5: Market & Financial Tools */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Market & Brand Positioning</h1>
               <div className="space-y-6">
@@ -394,7 +400,6 @@ return (
               </div>
             </div>
 
-            {/* Business & Financial Tools */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Business & Financial Tools</h1>
               <div className="space-y-6">
@@ -412,6 +417,7 @@ return (
                 </div>
               </div>
             </div>
+          </div>
         </div>
 
         {/* Schedule Call Button */}
