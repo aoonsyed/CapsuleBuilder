@@ -153,7 +153,13 @@ const generatePrompt = () => {
     Provide a suggested retail price for the product based on the target price input and market positioning.
 
     **Color Palette**
-    Suggest a color palette with specific color names and descriptions that align with the brand vision.
+    Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format (one per line):
+    - Electric Blue (#0066FF)
+    - Sunset Orange (#FF6347)
+    - Forest Green (#228B22)
+    - Charcoal Gray (#36454F)
+    
+    DO NOT include any descriptions or additional text, ONLY the format above.
 
     **Cost Production**
     Estimate the production cost per unit, including materials, labor, and overhead considerations.
@@ -320,18 +326,15 @@ return (
     ) : (
       <div className="bg-[#E8E8E8] min-h-screen">
         {/* Header with Back Button */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={onBack}
-                className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
-              >
-                ← Back
-              </button>
-              {/* <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p> */}
-            </div>
+        <div className="bg-[#E8E8E8]">
+          <div className="container mx-auto px-4 py-6">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
+            >
+              ← Back
+            </button>
           </div>
         </div>
 
@@ -349,24 +352,24 @@ return (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {/* Materials Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Materials</h3>
-              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Materials</h3>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.materials ? <ReactMarkdown>{suggestions.materials}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
 
             {/* Sales Price Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Sales Price</h3>
-              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Sales Price</h3>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.saleprices ? <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
 
             {/* Cost Production Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Cost Production</h3>
-              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Cost Production</h3>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.productionCosts ? <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
@@ -376,7 +379,7 @@ return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Color Palette Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Color Palette</h3>
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Color Palette</h3>
               {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
                 <div className="flex flex-wrap gap-6 mt-4 justify-center">
                   {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
@@ -397,8 +400,8 @@ return (
 
             {/* Companion Items Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Companion Pieces</h3>
-              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Companion Pieces</h3>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.companionItems ? <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
@@ -408,16 +411,16 @@ return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Yield Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Yield & Consumption</h3>
-              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Yield & Consumption</h3>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.yieldConsumption ? <ReactMarkdown>{suggestions.yieldConsumption}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
 
             {/* Lead Time Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Production Lead Time</h3>
-              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Production Lead Time</h3>
+              <div className="text-base leading-relaxed text-black font-[Garamond]">
                 {suggestions.leadTime ? <ReactMarkdown>{suggestions.leadTime}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
@@ -427,17 +430,17 @@ return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Market Positioning Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Market & Brand Positioning</h3>
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Market & Brand Positioning</h3>
               <div className="space-y-4">
                 <div>
                   <h4 className="text-base font-[Garamond] font-semibold text-black mb-2">Market Examples</h4>
-                  <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                  <div className="text-base leading-relaxed text-black font-[Garamond]">
                     {suggestions.marketExamples ? <ReactMarkdown>{suggestions.marketExamples}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
                   </div>
                 </div>
                 <div>
                   <h4 className="text-base font-[Garamond] font-semibold text-black mb-2">Target Consumer</h4>
-                  <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                  <div className="text-base leading-relaxed text-black font-[Garamond]">
                     {suggestions.targetInsight ? <ReactMarkdown>{suggestions.targetInsight}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
                   </div>
                 </div>
@@ -446,17 +449,17 @@ return (
 
             {/* Financial Tools Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Business & Financial Tools</h3>
+              <h3 className="text-xl font-[Albereto Regular] mb-4 text-black">Business & Financial Tools</h3>
               <div className="space-y-4">
                 <div>
                   <h4 className="text-base font-[Garamond] font-semibold text-black mb-2">Margin Analysis</h4>
-                  <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                  <div className="text-base leading-relaxed text-black font-[Garamond]">
                     {suggestions.marginAnalysis ? <ReactMarkdown>{suggestions.marginAnalysis}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
                   </div>
                 </div>
                 <div>
                   <h4 className="text-base font-[Garamond] font-semibold text-black mb-2">Wholesale vs DTC</h4>
-                  <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                  <div className="text-base leading-relaxed text-black font-[Garamond]">
                     {suggestions.pricing ? <ReactMarkdown>{suggestions.pricing}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
                   </div>
                 </div>
