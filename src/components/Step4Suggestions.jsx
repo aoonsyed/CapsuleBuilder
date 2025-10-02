@@ -301,10 +301,10 @@ return (
           </h2>
         </div>
 
-        {/* Sections - 2 Column Layout */}
+        {/* Sections - Multi Column Layout */}
         <div className="w-full px-6 pb-6">
-          {/* Row 1: Materials & Sales Price */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Row 1: Materials, Sales Price, Cost Production */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Materials</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
@@ -318,30 +318,6 @@ return (
                 {suggestions.saleprices ? <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown> : <p className="text-gray-500">No pricing data available</p>}
               </div>
             </div>
-          </div>
-
-          {/* Row 2: Color Palette & Cost Production */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Color Palette</h1>
-              {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
-                <ul className="space-y-2">
-                  {extractHexColors(suggestions.colors).map(([name, hex], idx) => (
-                    <li key={idx} className="flex items-center space-x-3 font-[Garamond]">
-                      <span
-                        className="w-6 h-6 rounded-full border border-gray-300"
-                        style={{ backgroundColor: hex }}
-                      />
-                      <span className="text-black text-sm">{`${name} (${hex})`}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-base leading-relaxed text-black font-[Garamond]">
-                  {suggestions.colors ? <ReactMarkdown>{suggestions.colors}</ReactMarkdown> : <p className="text-gray-500">No color data available</p>}
-                </div>
-              )}
-            </div>
 
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Cost Production</h1>
@@ -351,8 +327,35 @@ return (
             </div>
           </div>
 
-          {/* Row 3: Companion Items - Full Width */}
-          <div className="mb-6">
+          {/* Row 2: Color Palette & Companion Items */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Color Palette</h1>
+              {suggestions.colors ? (
+                <div>
+                  {extractHexColors(suggestions.colors).length > 0 ? (
+                    <div className="flex flex-wrap gap-4">
+                      {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
+                        <div key={idx} className="flex flex-col items-center">
+                          <div
+                            className="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md mb-2"
+                            style={{ backgroundColor: hex }}
+                          />
+                          <span className="text-black text-xs font-[Garamond] font-semibold">{hex}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-base leading-relaxed text-black font-[Garamond]">
+                      <ReactMarkdown>{suggestions.colors}</ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 font-[Garamond]">No color data available</p>
+              )}
+            </div>
+
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">
                 Suggested Companion Pieces
@@ -363,8 +366,8 @@ return (
             </div>
           </div>
 
-          {/* Row 4: Yield & Lead Time */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Row 3: Yield & Lead Time */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Yield & Consumption Estimates</h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
@@ -380,8 +383,8 @@ return (
             </div>
           </div>
 
-          {/* Row 5: Market & Financial Tools */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Row 4: Market & Financial Tools */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Market & Brand Positioning</h1>
               <div className="space-y-6">

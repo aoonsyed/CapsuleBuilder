@@ -37,6 +37,8 @@ export default function CapsuleBuilderFlow() {
             className={
               step === 1
                 ? "mx-auto flex flex-col md:flex-row items-start"
+                : step === 6
+                ? "w-full"
                 : "w-full max-w-xl mx-auto p-10"
             }
           >
