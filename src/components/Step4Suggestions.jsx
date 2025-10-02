@@ -265,97 +265,118 @@ return (
             {title}
           </h2>
 
-          {/* Sections */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-            {/* Row 1 */}
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Materials</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                <ReactMarkdown>{suggestions.materials}</ReactMarkdown>
+          {/* Sections - Responsive Grid */}
+          <div className="px-6 pb-6">
+            {/* First Row - Materials and Sales Price */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+                <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Materials</h1>
+                <div className="text-base leading-relaxed text-black font-[Garamond]">
+                  {suggestions.materials ? <ReactMarkdown>{suggestions.materials}</ReactMarkdown> : <p className="text-gray-500">No materials data available</p>}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+                <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Sales Price</h1>
+                <div className="text-base leading-relaxed text-black font-[Garamond]">
+                  {suggestions.saleprices ? <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown> : <p className="text-gray-500">No pricing data available</p>}
+                </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Sales Price</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown>
+            {/* Second Row - Color Palette and Cost Production */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+                <h1 className="text-xl font-[Albereto Regular] mb-4 text-black">Color Palette</h1>
+                {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
+                  <ul>
+                    {extractHexColors(suggestions.colors).map(([name, hex], idx) => (
+                      <li key={idx} className="flex items-center space-x-3 mb-2 font-[Garamond]">
+                        <span
+                          className="w-6 h-6 rounded-full border border-gray-300"
+                          style={{ backgroundColor: hex }}
+                        />
+                        <span className="text-black text-sm">{`${name} (${hex})`}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 font-[Garamond]">No color data available</p>
+                )}
               </div>
-            </div>
-          </div>
 
-          {/* Row 2 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-            {/* Color Palette */}
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-4">
-              <h1 className="text-xl font-[Albereto Regular] mb-2 text-black">Color Palette</h1>
-              <ul>
-                {extractHexColors(suggestions.colors).map(([name, hex], idx) => (
-                  <li key={idx} className="flex items-center space-x-3 mb-2 font-[Garamond]">
-                    <span
-                      className="w-6 h-6 rounded-full border"
-                      style={{ backgroundColor: hex }}
-                    />
-                    <span className="text-black/70 text-sm">{`${name} (${hex})`}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Cost Production */}
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Cost Production</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown>
-              </div>
-            </div>
-          </div>
-
-          {/* Companion Items */}
-          <div className="bg-white rounded-2xl border border-[#E4E4E4] w-full lg:w-[920px] min-h-[220px] p-6">
-            <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">
-              Suggested Companion Pieces
-            </h1>
-            <div className="text-base leading-relaxed text-black font-[Garamond]">
-              <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown>
-            </div>
-          </div>
-
-          {/* Additional Sections: Yield, Lead Time, Market, and Financial Tools */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-            {/* Yield & Consumption Estimates */}
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Yield & Consumption Estimates</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                <ReactMarkdown>{suggestions.yieldConsumption}</ReactMarkdown>
+              <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+                <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Cost Production</h1>
+                <div className="text-base leading-relaxed text-black font-[Garamond]">
+                  {suggestions.productionCosts ? <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown> : <p className="text-gray-500">No cost data available</p>}
+                </div>
               </div>
             </div>
 
-            {/* Production Lead Time Estimate */}
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Production Lead Time Estimate</h1>
+            {/* Companion Items - Full Width */}
+            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6 mb-6">
+              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">
+                Suggested Companion Pieces
+              </h1>
               <div className="text-base leading-relaxed text-black font-[Garamond]">
-                <ReactMarkdown>{suggestions.leadTime}</ReactMarkdown>
+                {suggestions.companionItems ? <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown> : <p className="text-gray-500">No companion items available</p>}
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-            {/* Market & Brand Positioning */}
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Market & Brand Positioning</h1>
-              <h3 className="text-xl font-[Garamond] text-black">Comparable Market Examples</h3>
-              <ReactMarkdown>{suggestions.marketExamples}</ReactMarkdown>
-              <h3 className="text-xl font-[Garamond] text-black">Target Consumer Insight</h3>
-              <ReactMarkdown>{suggestions.targetInsight}</ReactMarkdown>
+            {/* Third Row - Yield and Lead Time */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+                <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Yield & Consumption Estimates</h1>
+                <div className="text-base leading-relaxed text-black font-[Garamond]">
+                  {suggestions.yieldConsumption ? <ReactMarkdown>{suggestions.yieldConsumption}</ReactMarkdown> : <p className="text-gray-500">No yield data available</p>}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+                <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Production Lead Time Estimate</h1>
+                <div className="text-base leading-relaxed text-black font-[Garamond]">
+                  {suggestions.leadTime ? <ReactMarkdown>{suggestions.leadTime}</ReactMarkdown> : <p className="text-gray-500">No lead time data available</p>}
+                </div>
+              </div>
             </div>
 
-            {/* Business & Financial Tools */}
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Business & Financial Tools</h1>
-              <h3 className="text-xl font-[Garamond] text-black">Margin Analysis</h3>
-              <ReactMarkdown>{suggestions.marginAnalysis}</ReactMarkdown>
-              <h3 className="text-xl font-[Garamond] text-black">Wholesale vs DTC Pricing</h3>
-              <ReactMarkdown>{suggestions.pricing}</ReactMarkdown>
+            {/* Fourth Row - Market and Financial Tools */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+                <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Market & Brand Positioning</h1>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xl font-[Garamond] text-black mb-2">Comparable Market Examples</h3>
+                    <div className="text-base leading-relaxed text-black font-[Garamond]">
+                      {suggestions.marketExamples ? <ReactMarkdown>{suggestions.marketExamples}</ReactMarkdown> : <p className="text-gray-500">No market examples available</p>}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-[Garamond] text-black mb-2">Target Consumer Insight</h3>
+                    <div className="text-base leading-relaxed text-black font-[Garamond]">
+                      {suggestions.targetInsight ? <ReactMarkdown>{suggestions.targetInsight}</ReactMarkdown> : <p className="text-gray-500">No consumer insight available</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E4E4E4] p-5">
+                <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Business & Financial Tools</h1>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xl font-[Garamond] text-black mb-2">Margin Analysis</h3>
+                    <div className="text-base leading-relaxed text-black font-[Garamond]">
+                      {suggestions.marginAnalysis ? <ReactMarkdown>{suggestions.marginAnalysis}</ReactMarkdown> : <p className="text-gray-500">No margin analysis available</p>}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-[Garamond] text-black mb-2">Wholesale vs DTC Pricing</h3>
+                    <div className="text-base leading-relaxed text-black font-[Garamond]">
+                      {suggestions.pricing ? <ReactMarkdown>{suggestions.pricing}</ReactMarkdown> : <p className="text-gray-500">No pricing analysis available</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
