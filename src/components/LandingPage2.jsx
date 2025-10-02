@@ -209,24 +209,25 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                                     </div>
 
                                     <div
-                                        className="
-                      w-[132px] sm:w-auto
-                      flex flex-col items-center space-y-2.5
-                      sm:flex-1 sm:space-y-0
-                      sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-6 sm:justify-items-center
-                    "
-                                    >
-                                        <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border">
-                                            Jacket
-                                        </div>
-                                        <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border">
-                                            Top
-                                        </div>
-                                        <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border">
-                                            Outerwear
-                                        </div>
-                                        <div className="hidden sm:block" />
-                                    </div>
+  className="
+    w-[132px] sm:w-auto
+    flex flex-col items-center space-y-2.5
+    sm:flex-1 sm:space-y-0
+    sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-6 sm:justify-items-center
+  "
+>
+  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
+    Jacket
+  </div>
+  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
+    Top
+  </div>
+  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-not-allowed opacity-50">
+    Outerwear
+  </div>
+  <div className="hidden sm:block" />
+</div>
+
                                 </div>
                             </div>
 
