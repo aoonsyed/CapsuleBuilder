@@ -283,13 +283,16 @@ return (
         {/* Header with Back Button */}
         <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="container mx-auto px-4 py-4">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
-            >
-              ← Back
-            </button>
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
+              >
+                ← Back
+              </button>
+              <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p>
+            </div>
           </div>
         </div>
 
@@ -336,14 +339,15 @@ return (
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Color Palette</h3>
               {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
-                <div className="flex flex-wrap gap-6 mt-6 justify-start items-start">
+                <div className="flex flex-wrap gap-6 mt-4 justify-center">
                   {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
-                    <div key={idx} className="flex flex-col items-center space-y-3">
+                    <div key={idx} className="flex flex-col items-center gap-2">
                       <div
-                        className="w-20 h-20 rounded-full border-2 border-gray-300 shadow-lg"
+                        className="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md"
                         style={{ backgroundColor: hex }}
+                        title={name}
                       />
-                      <p className="text-black text-sm font-[Garamond] font-semibold tracking-wide">{hex}</p>
+                      <span className="text-black text-xs font-[Garamond] font-bold">{hex}</span>
                     </div>
                   ))}
                 </div>
