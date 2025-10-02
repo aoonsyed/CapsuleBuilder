@@ -11,6 +11,7 @@ export default function Step4Suggestions({ onNext, onBack }) {
   const [loading, setLoading] = useState(true);
   const [sendingEmail, setSendingEmail] = useState(false);
 
+  const formData = useSelector((state) => state.form);
   const {
     idea,
     localBrand,
@@ -23,7 +24,10 @@ export default function Step4Suggestions({ onNext, onBack }) {
     keyFeatures,
     materialPreferenceOptions,
     manufacturingPreference,
-  } = useSelector((state) => state.form);
+  } = formData;
+
+  // Debug logging for form data
+  console.log('Form data from Redux:', formData);
 
   const title = localBrand?.trim()
     ? `${localBrand.trim()} ${productType?.trim()}`
@@ -50,15 +54,23 @@ export default function Step4Suggestions({ onNext, onBack }) {
 
   const parseAIResponse = (text) => {
   const getSection = (label) => {
-    const regex = new RegExp(
-      `\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|$)`,
-      'i'
-    );
-    const match = text.match(regex);
-    return match && match[1].trim() ? match[1].trim() : '';
+    // Try multiple patterns to catch different formatting
+    const patterns = [
+      new RegExp(`\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i'),
+      new RegExp(`\\*\\*${label}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i'),
+      new RegExp(`${label}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i'),
+    ];
+    
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match && match[1] && match[1].trim()) {
+        return match[1].trim();
+      }
+    }
+    return '';
   };
 
-  return {
+  const result = {
     materials: getSection('Materials'),
     colors: getSection('Color Palette'),
     saleprices: getSection('Sales Price'),
@@ -69,8 +81,12 @@ export default function Step4Suggestions({ onNext, onBack }) {
     marketExamples: getSection('Comparable Market Examples'),
     targetInsight: getSection('Target Consumer Insight'),
     marginAnalysis: getSection('Margin Analysis'),
-    pricing: getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing'),
+    pricing: getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing') || getSection('Wholesale vs DTC'),
   };
+
+  // Debug logging for each section
+  console.log('Section parsing results:', result);
+  return result;
 };
 
 
@@ -153,7 +169,9 @@ const generatePrompt = () => {
     console.log("Parsed Answer:", answer); // Log parsed answer
 
     localStorage.setItem('answer', answer);
+    console.log('Raw AI Response:', answer);
     const parsed = parseAIResponse(answer);
+    console.log('Parsed Suggestions:', parsed);
     setSuggestions(parsed);
 
     toast.success('Suggestions loaded successfully!', {
@@ -261,10 +279,10 @@ return (
         </button>
       </div>
     ) : (
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto px-6 mb-8">
-          {/* Header */}
-          <div className="flex items-center justify-between w-full mb-8 px-2">
+      <div className="min-h-screen w-full">
+        {/* Header */}
+        <div className="w-full px-6 py-4">
+          <div className="flex items-center justify-between w-full">
             <button
               type="button"
               onClick={onBack}
@@ -274,14 +292,17 @@ return (
             </button>
             <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p>
           </div>
+        </div>
 
-          {/* Title */}
-          <h2 className="text-[#333333] text-[32pt] font-[Albereto Regular] leading-tight mb-6 mt-2 text-center">
+        {/* Title */}
+        <div className="w-full px-6 mb-6">
+          <h2 className="text-[#333333] text-[32pt] font-[Albereto Regular] leading-tight text-center">
             {title}
           </h2>
+        </div>
 
-          {/* Sections - Full Width Column Layout */}
-          <div className="px-6 pb-6 space-y-6">
+        {/* Sections - Full Width Column Layout */}
+        <div className="w-full px-6 pb-6 space-y-6">
             {/* Materials */}
             <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
               <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Materials</h1>
@@ -391,12 +412,11 @@ return (
                 </div>
               </div>
             </div>
-          </div>
-
         </div>
 
         {/* Schedule Call Button */}
-        <div className="flex justify-center mt-12 mb-7">
+        <div className="w-full px-6">
+          <div className="flex justify-center mt-12 mb-7">
           <button
             onClick={handleScheduleClick}
             disabled={sendingEmail}
@@ -406,6 +426,7 @@ return (
           >
             {sendingEmail ? 'Sending details…' : 'Schedule Call'}
           </button>
+          </div>
         </div>
       </div>
     )}
