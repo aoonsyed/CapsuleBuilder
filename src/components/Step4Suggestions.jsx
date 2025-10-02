@@ -279,162 +279,163 @@ return (
         </button>
       </div>
     ) : (
-      <div className="min-h-screen w-full">
-        {/* Header */}
-        <div className="w-full px-6 py-4">
-          <div className="flex items-center justify-between w-full">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2 text-white bg-black hover:bg-gray-600 rounded-md transition"
-            >
-              ← Back
-            </button>
-            <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p>
+      <div className="bg-[#E8E8E8] min-h-screen">
+        {/* Header with Back Button */}
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
+              >
+                ← Back
+              </button>
+              <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p>
+            </div>
           </div>
         </div>
 
-        {/* Title */}
-        <div className="w-full px-6 mb-6">
-          <h2 className="text-[#333333] text-[32pt] font-[Albereto Regular] leading-tight text-center">
+        {/* Title Section */}
+        <div className="container mx-auto px-4 py-8">
+          <h2 className="text-[#333333] text-4xl md:text-5xl font-[Albereto Regular] text-center mb-8">
             {title}
           </h2>
         </div>
 
-        {/* Sections - Multi Column Layout */}
-        <div className="w-full px-6 pb-6">
-          {/* Row 1: Materials, Sales Price, Cost Production */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Materials</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                {suggestions.materials ? <ReactMarkdown>{suggestions.materials}</ReactMarkdown> : <p className="text-gray-500">No materials data available</p>}
+        {/* Main Content Grid */}
+        <div className="container mx-auto px-4 pb-12">
+          
+          {/* Grid Row 1: 3 Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {/* Materials Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Materials</h3>
+              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                {suggestions.materials ? <ReactMarkdown>{suggestions.materials}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Sales Price</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                {suggestions.saleprices ? <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown> : <p className="text-gray-500">No pricing data available</p>}
+            {/* Sales Price Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Sales Price</h3>
+              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                {suggestions.saleprices ? <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Cost Production</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                {suggestions.productionCosts ? <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown> : <p className="text-gray-500">No cost data available</p>}
+            {/* Cost Production Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Cost Production</h3>
+              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                {suggestions.productionCosts ? <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
           </div>
 
-          {/* Row 2: Color Palette & Companion Items */}
+          {/* Grid Row 2: 2 Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Color Palette</h1>
-              {suggestions.colors ? (
-                <div>
-                  {extractHexColors(suggestions.colors).length > 0 ? (
-                    <div className="flex flex-wrap gap-4">
-                      {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
-                        <div key={idx} className="flex flex-col items-center">
-                          <div
-                            className="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md mb-2"
-                            style={{ backgroundColor: hex }}
-                          />
-                          <span className="text-black text-xs font-[Garamond] font-semibold">{hex}</span>
-                        </div>
-                      ))}
+            {/* Color Palette Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Color Palette</h3>
+              {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
+                <div className="flex flex-wrap gap-6 mt-4 justify-center">
+                  {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
+                    <div key={idx} className="flex flex-col items-center gap-2">
+                      <div
+                        className="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md"
+                        style={{ backgroundColor: hex }}
+                        title={name}
+                      />
+                      <span className="text-black text-xs font-[Garamond] font-bold">{hex}</span>
                     </div>
-                  ) : (
-                    <div className="text-base leading-relaxed text-black font-[Garamond]">
-                      <ReactMarkdown>{suggestions.colors}</ReactMarkdown>
-                    </div>
-                  )}
+                  ))}
                 </div>
               ) : (
-                <p className="text-gray-500 font-[Garamond]">No color data available</p>
+                <p className="text-gray-400 font-[Garamond] text-center mt-4">No color data available</p>
               )}
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">
-                Suggested Companion Pieces
-              </h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                {suggestions.companionItems ? <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown> : <p className="text-gray-500">No companion items available</p>}
+            {/* Companion Items Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Companion Pieces</h3>
+              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                {suggestions.companionItems ? <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
           </div>
 
-          {/* Row 3: Yield & Lead Time */}
+          {/* Grid Row 3: 2 Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Yield & Consumption Estimates</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                {suggestions.yieldConsumption ? <ReactMarkdown>{suggestions.yieldConsumption}</ReactMarkdown> : <p className="text-gray-500">No yield data available</p>}
+            {/* Yield Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Yield & Consumption</h3>
+              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                {suggestions.yieldConsumption ? <ReactMarkdown>{suggestions.yieldConsumption}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Production Lead Time Estimate</h1>
-              <div className="text-base leading-relaxed text-black font-[Garamond]">
-                {suggestions.leadTime ? <ReactMarkdown>{suggestions.leadTime}</ReactMarkdown> : <p className="text-gray-500">No lead time data available</p>}
+            {/* Lead Time Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Production Lead Time</h3>
+              <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                {suggestions.leadTime ? <ReactMarkdown>{suggestions.leadTime}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Grid Row 4: 2 Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Market Positioning Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Market & Brand Positioning</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-base font-[Garamond] font-semibold text-black mb-2">Market Examples</h4>
+                  <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                    {suggestions.marketExamples ? <ReactMarkdown>{suggestions.marketExamples}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-base font-[Garamond] font-semibold text-black mb-2">Target Consumer</h4>
+                  <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                    {suggestions.targetInsight ? <ReactMarkdown>{suggestions.targetInsight}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Tools Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-[Albereto Regular] mb-3 text-black border-b pb-2">Business & Financial Tools</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-base font-[Garamond] font-semibold text-black mb-2">Margin Analysis</h4>
+                  <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                    {suggestions.marginAnalysis ? <ReactMarkdown>{suggestions.marginAnalysis}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-base font-[Garamond] font-semibold text-black mb-2">Wholesale vs DTC</h4>
+                  <div className="text-sm leading-relaxed text-black font-[Garamond]">
+                    {suggestions.pricing ? <ReactMarkdown>{suggestions.pricing}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Row 4: Market & Financial Tools */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Market & Brand Positioning</h1>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-[Garamond] text-black mb-3">Comparable Market Examples</h3>
-                  <div className="text-base leading-relaxed text-black font-[Garamond]">
-                    {suggestions.marketExamples ? <ReactMarkdown>{suggestions.marketExamples}</ReactMarkdown> : <p className="text-gray-500">No market examples available</p>}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-[Garamond] text-black mb-3">Target Consumer Insight</h3>
-                  <div className="text-base leading-relaxed text-black font-[Garamond]">
-                    {suggestions.targetInsight ? <ReactMarkdown>{suggestions.targetInsight}</ReactMarkdown> : <p className="text-gray-500">No consumer insight available</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-[#E4E4E4] p-6">
-              <h1 className="text-2xl font-[Albereto Regular] mb-4 text-black">Business & Financial Tools</h1>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-[Garamond] text-black mb-3">Margin Analysis</h3>
-                  <div className="text-base leading-relaxed text-black font-[Garamond]">
-                    {suggestions.marginAnalysis ? <ReactMarkdown>{suggestions.marginAnalysis}</ReactMarkdown> : <p className="text-gray-500">No margin analysis available</p>}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-[Garamond] text-black mb-3">Wholesale vs DTC Pricing</h3>
-                  <div className="text-base leading-relaxed text-black font-[Garamond]">
-                    {suggestions.pricing ? <ReactMarkdown>{suggestions.pricing}</ReactMarkdown> : <p className="text-gray-500">No pricing analysis available</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Schedule Call Button */}
-        <div className="w-full px-6">
-          <div className="flex justify-center mt-12 mb-7">
-          <button
-            onClick={handleScheduleClick}
-            disabled={sendingEmail}
-            className={`px-6 py-2 text-lg font-bold text-white rounded-md transition duration-200 ${
-              sendingEmail ? 'bg-black/50 cursor-not-allowed' : 'bg-black hover:bg-gray-600'
-            }`}
-          >
-            {sendingEmail ? 'Sending details…' : 'Schedule Call'}
-          </button>
+          {/* Schedule Call Button */}
+          <div className="text-center mt-12">
+            <button
+              onClick={handleScheduleClick}
+              disabled={sendingEmail}
+              className={`px-8 py-3 text-lg font-bold text-white rounded-lg shadow-lg transition-all ${
+                sendingEmail ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-[#3A3A3D] hover:shadow-xl'
+              }`}
+            >
+              {sendingEmail ? 'Sending details…' : 'Schedule Call →'}
+            </button>
           </div>
         </div>
       </div>
