@@ -33,22 +33,61 @@ export default function Step4Suggestions({ onNext, onBack }) {
     ? `${localBrand.trim()} ${productType?.trim()}`
     : `Your ${productType?.trim()}`;
 
-  // Extract hex colors from response
+ // Extract colors from the "Color Palette" markdown/text the AI returns
   const extractHexColors = (rawText) => {
     const sectionRegex = /\*\*Color Palette with HEX Codes\*\*\n([\s\S]*?)(?=\n\*\*|$)/;
     const match = rawText?.match(sectionRegex);
     const section = match ? match[1] : (rawText || '');
 
     const hexColors = [];
-    const pattern = /#?([0-9A-Fa-f]{6})/gi;
-    let m;
-    let colorIndex = 1;
-    while ((m = pattern.exec(section)) !== null) {
-      const hex = '#' + m[1].toUpperCase();
-      const name = `Color ${colorIndex}`;
-      hexColors.push([name, hex]);
-      colorIndex++;
+
+    const pattern1 = /([a-zA-Z\s]+)\s*\(#?([0-9A-Fa-f]{6})\)/gi;
+    const pattern2 =
+      /(?:[-*•]\s*|\d+\.\s*)([a-zA-Z\s]+)\s*[-:]\s*(?:HEX Code\s*)?#?([0-9A-Fa-f]{6})/gi;
+    const pattern3 = /([a-zA-Z\s]+)[\s:]\s*#?([0-9A-Fa-f]{6})/gi;
+    const pattern4 = /#?([0-9A-Fa-f]{6})[\s:]+([a-zA-Z\s]+)/gi;
+    const pattern5 = /#?([0-9A-Fa-f]{6})/gi;
+
+    const patterns = [
+      { regex: pattern1, nameIndex: 1, hexIndex: 2 },
+      { regex: pattern2, nameIndex: 1, hexIndex: 2 },
+      { regex: pattern3, nameIndex: 1, hexIndex: 2 },
+      { regex: pattern4, nameIndex: 2, hexIndex: 1 },
+    ];
+
+    let foundColors = false;
+
+    for (const pattern of patterns) {
+      const { regex, nameIndex, hexIndex } = pattern;
+      let m;
+      const tempColors = [];
+
+      while ((m = regex.exec(section)) !== null) {
+        const name = m[nameIndex].trim();
+        const hex = '#' + m[hexIndex].toUpperCase();
+        tempColors.push([name, hex]);
+      }
+
+      if (tempColors.length > 0) {
+        hexColors.push(...tempColors);
+        foundColors = true;
+        break;
+      }
+
+      regex.lastIndex = 0;
     }
+
+    if (!foundColors) {
+      let colorIndex = 1;
+      let m;
+      while ((m = pattern5.exec(section)) !== null) {
+        const hex = '#' + m[1].toUpperCase();
+        const name = `Color ${colorIndex}`;
+        hexColors.push([name, hex]);
+        colorIndex++;
+      }
+    }
+
     return hexColors;
   };
 
@@ -291,7 +330,7 @@ return (
               >
                 ← Back
               </button>
-              <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p>
+              {/* <p className="text-sm text-black font-[Garamond]">Step 5 of 5</p> */}
             </div>
           </div>
         </div>
