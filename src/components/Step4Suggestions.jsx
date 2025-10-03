@@ -147,10 +147,14 @@ const generatePrompt = () => {
     Please provide your response in EXACTLY this format with these exact headings:
 
     **Materials**
-    Suggest appropriate materials for the product based on the design requirements and target price point. Include fabric types, weights, and any special considerations.
+    Suggest appropriate materials for the product based on the design requirements and target price point. Include fabric types, weights (GSM), texture, special properties (stretch, breathability, etc.), and any special considerations for sustainability or performance.
 
     **Sales Price**
-    Provide a suggested retail price for the product based on the target price input and market positioning.
+    Provide a detailed suggested retail price analysis:
+    - Recommended retail price range (provide a specific range, e.g., $80-$100)
+    - Justify the pricing based on materials, market positioning, and target audience
+    - Mention competitive pricing context if relevant
+    - Include any seasonal or promotional pricing considerations
 
     **Color Palette**
     Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format (one per line):
@@ -162,16 +166,33 @@ const generatePrompt = () => {
     DO NOT include any descriptions or additional text, ONLY the format above.
 
     **Cost Production**
-    Estimate the production cost per unit, including materials, labor, and overhead considerations.
+    Provide a detailed production cost breakdown:
+    - Cost per unit (specific number)
+    - Brief breakdown of major cost components (materials %, labor %, overhead %)
+    - Mention any economies of scale considerations
+    - Note factors that could affect cost (complexity, special finishes, etc.)
+    - Include comparison between domestic vs overseas production costs if relevant
 
     **Companion Items**
-    Suggest complementary pieces that would work well with this product in a capsule collection.
+    Suggest 4-6 complementary pieces that would work well with this product in a capsule collection. Be specific with item names and briefly explain why each piece complements the main product.
 
     **Yield & Consumption Estimates**
-    Provide an estimate of fabric yardage required per unit, based on standard industry calculations for the type of product (EX: 2 yards for a Tee shirt, 3 yards for a sweatshirt, 3 yards for a pair of pants. Scale the estimate automatically to the unit quantity input by the user. Present the results clearly with both per-unit and total yardage/weight.
+    Provide a comprehensive fabric consumption analysis:
+    - Fabric yardage per unit with justification (e.g., "2.5 yards per hoodie to account for body, sleeves, hood, and ribbing")
+    - Total yardage for the full production run
+    - Mention fabric width assumptions (typically 58-60 inches)
+    - Include waste factor percentage (typically 10-15%)
+    - Note any special cutting or pattern considerations
+    - Provide weight estimates if relevant (e.g., "Approximately 0.8 lbs per unit")
 
     **Production Lead Time Estimate**
-    Give a general turnaround time for production. Frame the response as a 4 week range (e.g., 8–12 weeks), while noting that exact times depend on supplier and order complexity. Give shorter lead times for domestic than overseas, give a comparison of production time domestic vs overseas, the overseas production should be longer. Give shorter turn around times for simple projects such as Tee shirts and sweatpants and longer lead times for more complex items like jeans or dresses. All ranges should be at least 8 weeks and no more than 24 weeks.
+    Provide detailed production timeline estimates:
+    - Domestic production: specific week range (e.g., 10-14 weeks) with breakdown of phases if possible (sampling, production, finishing, shipping)
+    - Overseas production: specific week range (e.g., 14-18 weeks) with breakdown of phases
+    - Explain key factors affecting timeline (complexity, MOQ, quality checks, customs, etc.)
+    - Note rush production options if available
+    - Mention seasonal considerations (Chinese New Year, holiday rushes, etc.)
+    - All ranges should be realistic: minimum 8 weeks, maximum 24 weeks
 
     ⸻
 
