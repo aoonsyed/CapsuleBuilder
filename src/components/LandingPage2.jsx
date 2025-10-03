@@ -222,7 +222,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
   <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
     Top
   </div>
-  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-not-allowed opacity-50">
+  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
     Outerwear
   </div>
   <div className="hidden sm:block" />
@@ -272,7 +272,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
 
             {/* WHO IT’S FOR */}
             <div className="w-full background-color:rgb(var(--color-background)) py-14 px-4 text-center">
-                <h1 className="font-[Albereto Regular] text-[24pt] sm:text-[28pt] md:text-[30pt] text-black mb-6">WHO IT’S FOR</h1>
+                <h1 className="font-[Aboreto] text-[24pt] sm:text-[28pt] md:text-[30pt] text-black mb-6">WHO IT'S FOR</h1>
                 <p className="text-[#000000] text-[10px] md:text-[15px]  font-[ebgaramond] leading-snug max-w-4xl mx-auto">
                     Capsule Builder is designed for founders, creators, and brands ready to refine an idea without needing technical expertise.
                     <br />
