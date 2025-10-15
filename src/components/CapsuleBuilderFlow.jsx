@@ -6,6 +6,7 @@ import Step1Vision from "./Step1Vision";
 import Step2Inspiration from "./Step2Inspiration";
 import Step3ProductFocus from "./Step3ProductFocus";
 import Step4Suggestions from "./Step4Suggestions";
+import Step4bMarketFinancials from "./Step4bMarketFinancials";
 import Questionaire from "./Questionnaire";
 
 export default function CapsuleBuilderFlow() {
@@ -100,13 +101,23 @@ export default function CapsuleBuilderFlow() {
               />
             )}
 
-            {/* Step 6 — Suggestions */}
+            {/* Step 6 — Product Suggestions */}
             {step === 6 && (
               <Step4Suggestions
                 email={email}
                 brand={brand}
-                onNext={() => setStep(6)}
+                onNext={() => setStep(7)}
                 onBack={() => setStep(5)}
+              />
+            )}
+
+            {/* Step 7 — Market & Financial Analysis */}
+            {step === 7 && (
+              <Step4bMarketFinancials
+                email={email}
+                brand={brand}
+                onNext={() => setStep(7)}
+                onBack={() => setStep(6)}
               />
             )}
           </motion.div>

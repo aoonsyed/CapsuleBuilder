@@ -3,15 +3,13 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
-import emailjs from '@emailjs/browser';
 
 export default function Step4Suggestions({ onNext, onBack }) {
-  const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers'));
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sendingEmail, setSendingEmail] = useState(false);
 
   const formData = useSelector((state) => state.form);
+  const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers'));
   const {
     idea,
     localBrand,
@@ -240,6 +238,9 @@ const generatePrompt = () => {
     console.log('Parsed Suggestions:', parsed);
     setSuggestions(parsed);
 
+    // Store parsed suggestions for the next screen
+    localStorage.setItem('parsedSuggestions', JSON.stringify(parsed));
+
     toast.success('Suggestions loaded successfully!', {
       style: { backgroundColor: '#3A3A3D', color: '#fff' },
     });
@@ -257,76 +258,7 @@ const generatePrompt = () => {
     callOpenAI();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Build email params
-  const buildEmailParams = () => {
-    const rawAnswer = localStorage.getItem('answer') || '';
-    const recipient = process.env.REACT_APP_TEAM_RECEIVER_EMAIL; // Where the email should go
-    const customerEmail =
-      savedAnswers?.email || savedAnswers?.contactEmail || savedAnswers?.userEmail || '';
-
-    return {
-      to_email: recipient,
-      customer_email: customerEmail,
-
-      // High-level identifiers
-      title,
-      brand: brand2 || localBrand || '',
-      idea: idea || '',
-      product_type: productType || '',
-      target_price: targetPrice || '',
-      quantity: quantity || '',
-      category: category || '',
-      key_features: keyFeatures || '',
-      material_preferences: JSON.stringify(materialPreferenceOptions || []),
-      manufacturing_preference: manufacturingPreference || '',
-      shared_preferences: sharedPrefernce || '',
-      materials: suggestions?.materials || '',
-      colors: suggestions?.colors || '',
-      saleprices: suggestions?.saleprices || '',
-      production_costs: suggestions?.productionCosts || '',
-      companion_items: suggestions?.companionItems || '',
-
-      // Raw answer for full context
-      raw_answer: rawAnswer,
-
-      // Optional: include the scheduling URL that will be opened
-      scheduling_url:
-        process.env.REACT_APP_SCHEDULING_URL ||
-        'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137',
-    };
-  };
-
-  // Send email
-  const sendScheduleEmail = async () => {
-    const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
-    const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
-    const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
-    if (!serviceId || !templateId || !publicKey) throw new Error('Missing EmailJS env vars');
-    const templateParams = buildEmailParams();
-    return emailjs.send(serviceId, templateId, templateParams, { publicKey });
-  };
-
-const handleScheduleClick = async () => {
-  const schedulingUrl =
-    process.env.REACT_APP_SCHEDULING_URL ||
-    'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137';
-  
-  window.open(schedulingUrl, '_blank', 'noopener,noreferrer');
-  
-  try {
-    setSendingEmail(true);
-    await sendScheduleEmail();
-    toast.success('Your details were emailed to our team.');
-  } catch (err) {
-    console.error('Email send failed:', err);
-    toast.error('We couldn’t send the email. We’ll still see your booking.');
-  } finally {
-    setSendingEmail(false);
-  }
-};
-
-
-return (
+  return (
   <>
     <Toaster position="top-right" richColors />
     {loading ? (
@@ -447,58 +379,24 @@ return (
             </div>
           </div>
 
-          {/* Grid Row 4: 2 Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {/* Market Positioning Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Market & Brand Positioning</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-lg font-[Garamond] font-semibold text-black mb-2">Market Examples</h4>
-                  <div className="text-lg leading-relaxed text-black font-[Garamond]">
-                    {suggestions.marketExamples ? <ReactMarkdown>{suggestions.marketExamples}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-lg font-[Garamond] font-semibold text-black mb-2">Target Consumer</h4>
-                  <div className="text-lg leading-relaxed text-black font-[Garamond]">
-                    {suggestions.targetInsight ? <ReactMarkdown>{suggestions.targetInsight}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Financial Tools Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Business & Financial Tools</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-lg font-[Garamond] font-semibold text-black mb-2">Margin Analysis</h4>
-                  <div className="text-lg leading-relaxed text-black font-[Garamond]">
-                    {suggestions.marginAnalysis ? <ReactMarkdown>{suggestions.marginAnalysis}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-lg font-[Garamond] font-semibold text-black mb-2">Wholesale vs DTC</h4>
-                  <div className="text-lg leading-relaxed text-black font-[Garamond]">
-                    {suggestions.pricing ? <ReactMarkdown>{suggestions.pricing}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Schedule Call Button */}
+          {/* Navigation - Continue to Market Analysis */}
           <div className="text-center mt-12">
-            <button
-              onClick={handleScheduleClick}
-              disabled={sendingEmail}
-              className={`px-8 py-3 text-lg font-bold text-white rounded-lg shadow-lg transition-all ${
-                sendingEmail ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-[#3A3A3D] hover:shadow-xl'
-              }`}
-            >
-              {sendingEmail ? 'Sending details…' : 'Schedule Call →'}
-            </button>
+            <div className="bg-white/50 rounded-lg p-6 mb-6 border-l-4 border-black inline-block">
+              <p className="text-[#333333] font-[Garamond] text-lg mb-4">
+                ✓ Product specifications and details complete
+              </p>
+              <p className="text-[#666666] font-[Garamond] text-base">
+                Continue to view market positioning and financial analysis
+              </p>
+            </div>
+            <div>
+              <button
+                onClick={onNext}
+                className="px-8 py-3 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg shadow-lg transition-all hover:shadow-xl"
+              >
+                Continue to Market Analysis →
+              </button>
+            </div>
           </div>
         </div>
       </div>
