@@ -113,20 +113,20 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
         </div>
 
         {/* Title Section */}
-        <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="w-full px-6 py-8">
           <h2 className="text-[#333333] text-4xl md:text-5xl font-[Albereto Regular] text-center mb-12">
             Production & Market Analysis
           </h2>
         </div>
 
         {/* Main Content - Full Width Layout */}
-        <div className="container mx-auto px-6 pb-12 max-w-7xl">
+        <div className="w-full px-6 pb-12">
           
           {/* Production Timeline Section */}
           <div className="mb-10">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               {/* Yield Card - Takes 2 columns on large screens */}
-              <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+              <div className="xl:col-span-2 bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
                     <span className="text-white font-bold">1</span>
@@ -139,7 +139,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
               </div>
 
               {/* Lead Time Card - Takes 1 column */}
-              <div className="lg:col-span-1 bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+              <div className="xl:col-span-1 bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-4">
                   <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
                     <span className="text-white font-bold">2</span>
@@ -156,7 +156,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           {/* Market Positioning Section */}
           <div className="mb-10">
             <h3 className="text-3xl font-[Albereto Regular] text-[#333333] mb-6">Market Positioning</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Comparable Market Examples */}
               <div className="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-t-4 border-black">
                 <h4 className="text-xl font-[Albereto Regular] mb-4 text-black">Comparable Market Examples</h4>
@@ -186,7 +186,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           {/* Financial Analysis Section */}
           <div className="mb-10">
             <h3 className="text-3xl font-[Albereto Regular] text-[#333333] mb-6">Financial Analysis</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Margin Analysis */}
               <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-green-600">
                 <h4 className="text-xl font-[Albereto Regular] mb-4 text-black">Margin Analysis</h4>
