@@ -87,7 +87,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       toast.success('Your details were emailed to our team.');
     } catch (err) {
       console.error('Email send failed:', err);
-      toast.error('We couldn't send the email. We'll still see your booking.');
+      toast.error('We could not send the email. We will still see your booking.');
     } finally {
       setSendingEmail(false);
     }
