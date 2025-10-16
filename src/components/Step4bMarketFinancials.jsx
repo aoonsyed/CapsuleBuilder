@@ -44,6 +44,8 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const targetInsight = suggestions.targetInsight || getSection('Target Consumer Insight');
   const marginAnalysis = suggestions.marginAnalysis || getSection('Margin Analysis');
   const pricing = suggestions.pricing || getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing') || getSection('Wholesale vs DTC');
+  const yieldConsumption = suggestions.yieldConsumption || getSection('Yield & Consumption Estimates');
+  const leadTime = suggestions.leadTime || getSection('Production Lead Time Estimate');
 
   // Build email params
   const buildEmailParams = () => {
@@ -112,83 +114,89 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
         {/* Title Section */}
         <div className="container mx-auto px-4 py-8">
-          <h2 className="text-[#333333] text-4xl md:text-5xl font-[Albereto Regular] text-center mb-4">
-            Market & Financial Analysis
+          <h2 className="text-[#333333] text-4xl md:text-5xl font-[Albereto Regular] text-center mb-8">
+            {title}
           </h2>
-          <p className="text-center text-[#666666] text-lg font-[Garamond] mb-8">
-            Understanding your market position and profitability potential
-          </p>
         </div>
 
         {/* Main Content Grid */}
         <div className="container mx-auto px-4 pb-12">
           
-          {/* Market & Brand Positioning Section */}
-          <div className="mb-8">
-            <h3 className="text-3xl font-[Albereto Regular] mb-6 text-[#333333] text-center">
-              Market & Brand Positioning
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Comparable Market Examples Card */}
-              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h4 className="text-2xl font-[Albereto Regular] mb-4 text-black">Comparable Market Examples</h4>
-                <div className="text-lg leading-relaxed text-black font-[Garamond]">
-                  {marketExamples ? (
-                    <ReactMarkdown>{marketExamples}</ReactMarkdown>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
+          {/* Grid Row 1: 2 Cards - Production Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Yield Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Yield & Consumption</h3>
+              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+                {yieldConsumption ? <ReactMarkdown>{yieldConsumption}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
+            </div>
 
-              {/* Target Consumer Insight Card */}
-              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h4 className="text-2xl font-[Albereto Regular] mb-4 text-black">Target Consumer Insight</h4>
-                <div className="text-lg leading-relaxed text-black font-[Garamond]">
-                  {targetInsight ? (
-                    <ReactMarkdown>{targetInsight}</ReactMarkdown>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
+            {/* Lead Time Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Production Lead Time</h3>
+              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+                {leadTime ? <ReactMarkdown>{leadTime}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
           </div>
 
-          {/* Business & Financial Tools Section */}
-          <div className="mb-8">
-            <h3 className="text-3xl font-[Albereto Regular] mb-6 text-[#333333] text-center">
-              Business & Financial Tools
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Margin Analysis Card */}
-              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h4 className="text-2xl font-[Albereto Regular] mb-4 text-black">Margin Analysis</h4>
-                <div className="text-lg leading-relaxed text-black font-[Garamond]">
-                  {marginAnalysis ? (
-                    <ReactMarkdown>{marginAnalysis}</ReactMarkdown>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
+          {/* Grid Row 2: 2 Cards - Market Positioning */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Comparable Market Examples Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Comparable Market Examples</h3>
+              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+                {marketExamples ? (
+                  <ReactMarkdown>{marketExamples}</ReactMarkdown>
+                ) : (
+                  <p className="text-gray-400">No data available</p>
+                )}
               </div>
+            </div>
 
-              {/* Wholesale vs DTC Pricing Card */}
-              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                <h4 className="text-2xl font-[Albereto Regular] mb-4 text-black">Wholesale vs DTC Pricing</h4>
-                <div className="text-lg leading-relaxed text-black font-[Garamond]">
-                  {pricing ? (
-                    <ReactMarkdown>{pricing}</ReactMarkdown>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
+            {/* Target Consumer Insight Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Target Consumer Insight</h3>
+              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+                {targetInsight ? (
+                  <ReactMarkdown>{targetInsight}</ReactMarkdown>
+                ) : (
+                  <p className="text-gray-400">No data available</p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12">
+          {/* Grid Row 3: 2 Cards - Financial Tools */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Margin Analysis Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Margin Analysis</h3>
+              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+                {marginAnalysis ? (
+                  <ReactMarkdown>{marginAnalysis}</ReactMarkdown>
+                ) : (
+                  <p className="text-gray-400">No data available</p>
+                )}
+              </div>
+            </div>
+
+            {/* Wholesale vs DTC Pricing Card */}
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Wholesale vs DTC Pricing</h3>
+              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+                {pricing ? (
+                  <ReactMarkdown>{pricing}</ReactMarkdown>
+                ) : (
+                  <p className="text-gray-400">No data available</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule Call Button */}
+          <div className="text-center mt-12">
             <button
               onClick={handleScheduleClick}
               disabled={sendingEmail}
@@ -198,15 +206,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             >
               {sendingEmail ? 'Sending details…' : 'Schedule Call →'}
             </button>
-          </div>
-
-          {/* Info Box */}
-          <div className="mt-8 bg-white/50 rounded-lg p-6 border-l-4 border-black">
-            <h4 className="font-[Albereto Regular] text-xl text-[#333333] mb-2">Ready to move forward?</h4>
-            <p className="text-[#666666] font-[Garamond] text-lg">
-              Schedule a call with our team to discuss your product vision, review these insights in detail, 
-              and explore the next steps in bringing your capsule collection to life.
-            </p>
           </div>
         </div>
       </div>
