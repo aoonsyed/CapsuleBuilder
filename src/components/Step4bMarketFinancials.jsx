@@ -133,7 +133,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                   </div>
                   <h3 className="text-2xl font-[Albereto Regular] text-black">Yield & Consumption Estimates</h3>
                 </div>
-                <div className="text-base leading-relaxed text-black font-[Garamond] pl-13">
+                <div className="text-lg leading-relaxed text-black font-[Garamond] pl-13">
                   {yieldConsumption ? <ReactMarkdown>{yieldConsumption}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
                 </div>
               </div>
@@ -146,7 +146,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                   </div>
                   <h3 className="text-xl font-[Albereto Regular] text-black">Lead Time</h3>
                 </div>
-                <div className="text-base leading-relaxed text-black font-[Garamond] pl-13">
+                <div className="text-lg leading-relaxed text-black font-[Garamond] pl-13">
                   {leadTime ? <ReactMarkdown>{leadTime}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
                 </div>
               </div>
@@ -155,12 +155,11 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
           {/* Market Positioning Section */}
           <div className="mb-10">
-            <h3 className="text-3xl font-[Albereto Regular] text-[#333333] mb-6">Market Positioning</h3>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Comparable Market Examples */}
-              <div className="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-t-4 border-black">
-                <h4 className="text-xl font-[Albereto Regular] mb-4 text-black">Comparable Market Examples</h4>
-                <div className="text-base leading-relaxed text-black font-[Garamond]">
+              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+                <h4 className="text-2xl font-[Albereto Regular] mb-6 text-black">Comparable Market Examples</h4>
+                <div className="text-lg leading-relaxed text-black font-[Garamond]">
                   {marketExamples ? (
                     <ReactMarkdown>{marketExamples}</ReactMarkdown>
                   ) : (
@@ -170,9 +169,9 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
               </div>
 
               {/* Target Consumer */}
-              <div className="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-t-4 border-black">
-                <h4 className="text-xl font-[Albereto Regular] mb-4 text-black">Target Consumer Insight</h4>
-                <div className="text-base leading-relaxed text-black font-[Garamond]">
+              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+                <h4 className="text-2xl font-[Albereto Regular] mb-6 text-black">Target Consumer Insight</h4>
+                <div className="text-lg leading-relaxed text-black font-[Garamond]">
                   {targetInsight ? (
                     <ReactMarkdown>{targetInsight}</ReactMarkdown>
                   ) : (
@@ -185,12 +184,11 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
           {/* Financial Analysis Section */}
           <div className="mb-10">
-            <h3 className="text-3xl font-[Albereto Regular] text-[#333333] mb-6">Financial Analysis</h3>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Margin Analysis */}
-              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-green-600">
-                <h4 className="text-xl font-[Albereto Regular] mb-4 text-black">Margin Analysis</h4>
-                <div className="text-base leading-relaxed text-black font-[Garamond]">
+              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+                <h4 className="text-2xl font-[Albereto Regular] mb-6 text-black">Margin Analysis</h4>
+                <div className="text-lg leading-relaxed text-black font-[Garamond]">
                   {marginAnalysis ? (
                     <ReactMarkdown>{marginAnalysis}</ReactMarkdown>
                   ) : (
@@ -200,9 +198,9 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
               </div>
 
               {/* Pricing Strategy */}
-              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-blue-600">
-                <h4 className="text-xl font-[Albereto Regular] mb-4 text-black">Wholesale vs DTC Pricing</h4>
-                <div className="text-base leading-relaxed text-black font-[Garamond]">
+              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+                <h4 className="text-2xl font-[Albereto Regular] mb-6 text-black">Wholesale vs DTC Pricing</h4>
+                <div className="text-lg leading-relaxed text-black font-[Garamond]">
                   {pricing ? (
                     <ReactMarkdown>{pricing}</ReactMarkdown>
                   ) : (
@@ -213,22 +211,17 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             </div>
           </div>
 
-          {/* Call to Action */}
+          {/* Schedule Call Button */}
           <div className="text-center mt-16 mb-8">
-            <div className="inline-block bg-white rounded-lg shadow-lg p-8 mb-6">
-              <p className="text-[#333333] font-[Garamond] text-lg mb-4">
-                Ready to discuss your capsule collection?
-              </p>
-              <button
-                onClick={handleScheduleClick}
-                disabled={sendingEmail}
-                className={`px-10 py-4 text-lg font-bold text-white rounded-lg shadow-lg transition-all ${
-                  sendingEmail ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-[#3A3A3D] hover:shadow-xl transform hover:scale-105'
-                }`}
-              >
-                {sendingEmail ? 'Sending details…' : 'Schedule Call →'}
-              </button>
-            </div>
+            <button
+              onClick={handleScheduleClick}
+              disabled={sendingEmail}
+              className={`px-10 py-4 text-lg font-bold text-white rounded-lg shadow-lg transition-all ${
+                sendingEmail ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-[#3A3A3D] hover:shadow-xl transform hover:scale-105'
+              }`}
+            >
+              {sendingEmail ? 'Sending details…' : 'Schedule Call →'}
+            </button>
           </div>
         </div>
       </div>
