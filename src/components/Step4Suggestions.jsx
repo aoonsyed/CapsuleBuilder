@@ -362,30 +362,17 @@ const generatePrompt = () => {
 
           {/* Navigation - Continue to Market Analysis */}
           <div className="text-center mt-12">
-            <div className="bg-white rounded-lg shadow-md p-8 mb-6 border-l-4 border-black max-w-2xl mx-auto">
-              <div className="mb-4">
-                <svg className="w-12 h-12 mx-auto text-green-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p className="text-[#333333] font-[Albereto Regular] text-2xl mb-3">
-                  Product Specifications Complete
-                </p>
-              </div>
-              <p className="text-[#666666] font-[Garamond] text-lg mb-2">
-                You have reviewed materials, pricing, colors, companion pieces, and production details.
-              </p>
-              <p className="text-[#666666] font-[Garamond] text-lg font-semibold">
-                Next: Production timelines, market positioning, and financial analysis
-              </p>
-            </div>
-            <div>
-              <button
-                onClick={onNext}
-                className="px-10 py-4 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg shadow-lg transition-all hover:shadow-xl transform hover:scale-105"
-              >
-                Continue to Production & Market Analysis →
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                toast.info('Continue to view production timelines and market analysis', {
+                  style: { backgroundColor: '#3A3A3D', color: '#fff' },
+                });
+                onNext();
+              }}
+              className="px-10 py-4 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg shadow-lg transition-all hover:shadow-xl"
+            >
+              Continue to Market Analysis →
+            </button>
           </div>
         </div>
       </div>
