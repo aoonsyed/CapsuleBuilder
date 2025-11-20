@@ -33,11 +33,25 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
   const cid = params.get("customer_id");
   // Check valid numeric 13 digits
   const isValid = /^\d{13}$/.test(cid);
+
   if (!isValid) {
     alert("Invalid customer ID format. Access denied.");
     window.location.href = "https://formdepartment.com/account/login";
     return;
   }
+
+  fetch(`https://d2d22964b231.ngrok-free.app/proxy/tool?customer_id=${customer_id}`)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.ok) {
+        console.log("User validated:", data);
+      } else {
+        window.location.href = data.redirect;
+      }
+    })
+    .catch(err => {
+        console.error(err);
+    });
   // If valid, continue normal flow
 }, []);
 
