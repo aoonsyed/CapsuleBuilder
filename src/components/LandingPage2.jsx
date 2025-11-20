@@ -3,18 +3,6 @@ import Step1Vision from "./Step1Vision";
 import Step2Inspiration from "./Step2Inspiration";
 import Step3ProductFocus from "./Step3ProductFocus";
 
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const cid = params.get("customer_id");
-  // Check valid numeric 13 digits
-  const isValid = /^\d{13}$/.test(cid);
-  if (!isValid) {
-    alert("Invalid customer ID format. Access denied.");
-    window.location.href = "https://formdepartment.com/account/login";
-    return;
-  }
-  // If valid, continue normal flow
-}, []);
 
 export default function LandingPage2({ onNext, onContinue, startInGrid = false }) {
     const colors = { black: "#000000", white: "#F8F8F8", darkGray: "#7B6240", charcoal: "#F4EBDC" };
@@ -40,6 +28,18 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
         setSelectedCategory(category);
         setCurrentStep((s) => (s % 4) + 1);
     };
+    useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const cid = params.get("customer_id");
+  // Check valid numeric 13 digits
+  const isValid = /^\d{13}$/.test(cid);
+  if (!isValid) {
+    alert("Invalid customer ID format. Access denied.");
+    window.location.href = "https://formdepartment.com/account/login";
+    return;
+  }
+  // If valid, continue normal flow
+}, []);
 
     const handleGetStarted = () => setShowAllForms(true);
 
