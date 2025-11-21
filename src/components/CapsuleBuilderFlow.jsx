@@ -101,11 +101,25 @@ export default function CapsuleBuilderFlow() {
         }
       } catch (err) {
         console.error("Validation error:", err);
-        // On network error, allow access since Shopify already validated login
-        // Backend validation is for subscription check, not authentication
-        // Network errors shouldn't block logged-in users
-        setIsValidated(true);
-        setIsValidating(false);
+        // Check if it's a CORS or network error
+        const isCorsError = err.message && (
+          err.message.includes('CORS') || 
+          err.message.includes('Failed to fetch') || 
+          err.message.includes('NetworkError') ||
+          err.name === 'TypeError'
+        );
+        
+        if (isCorsError) {
+          console.error("CORS or network error detected. Backend needs to allow requests from:", window.location.origin);
+          console.error("Backend URL should allow CORS from:", "https://capsule-builder-qhzx.vercel.app");
+          // Don't allow access on CORS errors - backend must be configured correctly
+          // Redirect to subscription page as fallback
+          window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+          return;
+        }
+        // For other errors, don't allow access without validation
+        console.error("Backend validation failed:", err);
+        window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
       }
     };
 
