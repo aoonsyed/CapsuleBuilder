@@ -28,32 +28,8 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
         setSelectedCategory(category);
         setCurrentStep((s) => (s % 4) + 1);
     };
-    useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const cid = params.get("customer_id");
-  // Check valid numeric 13 digits
-  const isValid = /^\d{13}$/.test(cid);
-
-  if (!isValid) {
-    alert("Invalid customer ID format. Access denied.");
-    window.location.href = "https://formdepartment.com/account/login";
-    return;
-  }
-
-  fetch(`https://backend-capsule-builder.onrender.com/proxy/tool?logged_in_customer_id=${cid}`)
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.ok) {
-        console.log("User validated:", data);
-      } else {
-        window.location.href = data.redirect;
-      }
-    })
-    .catch(err => {
-        console.error(err);
-    });
-  // If valid, continue normal flow
-}, []);
+    // Customer validation is now handled at the CapsuleBuilderFlow level
+    // No need to validate here anymore
 
     const handleGetStarted = () => setShowAllForms(true);
 

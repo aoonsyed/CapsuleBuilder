@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Navbar from "./Navbar";
 import LandingPage2 from "./LandingPage2";
@@ -13,12 +13,83 @@ export default function CapsuleBuilderFlow() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState();
   const [brand, setBrand] = useState("");
+  const [isValidating, setIsValidating] = useState(true);
+  const [isValidated, setIsValidated] = useState(false);
 
   // Track if the user began via the 3-form grid on Landing
   const [startedWithGrid, setStartedWithGrid] = useState(false);
 
   // Control whether Landing should immediately open in the 3-form grid view
   const [startLandingInGrid, setStartLandingInGrid] = useState(false);
+
+  // Backend validation - runs automatically when component mounts
+  useEffect(() => {
+    const validateCustomer = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const cid = params.get("customer_id");
+        
+        // Check if customer_id exists
+        if (!cid) {
+          console.error("No customer ID provided. Access denied.");
+          window.location.href = "https://formdepartment.com/account/login";
+          return;
+        }
+        
+        // Check valid numeric 13 digits
+        const isValid = /^\d{13}$/.test(cid);
+
+        if (!isValid) {
+          console.error("Invalid customer ID format. Access denied.");
+          window.location.href = "https://formdepartment.com/account/login";
+          return;
+        }
+
+        // Call backend to validate customer and check subscription
+        const response = await fetch(
+          `https://backend-capsule-builder.onrender.com/proxy/tool?logged_in_customer_id=${cid}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Backend validation failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+          console.log("User validated:", data);
+          setIsValidated(true);
+          setIsValidating(false);
+        } else {
+          // Redirect to subscription or login page based on backend response
+          window.location.href = data.redirect || "https://formdepartment.com/account/login";
+        }
+      } catch (err) {
+        console.error("Validation error:", err);
+        // On network/backend error, redirect to login for security
+        window.location.href = "https://formdepartment.com/account/login";
+      }
+    };
+
+    validateCustomer();
+  }, []);
+
+  // Show loading state while validating
+  if (isValidating) {
+    return (
+      <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-black font-[Garamond] text-lg">Validating access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Only render app content after validation passes
+  if (!isValidated) {
+    return null;
+  }
 
   return (
     <div className="bg-[#E8E8E8] min-h-screen bg-cover bg-center font-sans text-white relative">
