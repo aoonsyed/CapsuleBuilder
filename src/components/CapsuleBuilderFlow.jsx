@@ -72,13 +72,20 @@ export default function CapsuleBuilderFlow() {
         }
         
         // Handle backend response based on data.ok flag
-        // Backend returns: {"ok":true,...} for subscribed or {"ok":false,"redirect":"..."} for non-subscribed
-        if (data.ok === true || data.ok === "true") {
+        // Backend returns: {"ok":true,"plan":"pro",...} for subscribed or {"ok":false,"redirect":"..."} for non-subscribed
+        console.log("Checking data.ok value:", data.ok, "Type:", typeof data.ok);
+        
+        // Strictly check if ok is true (boolean true)
+        if (data.ok === true) {
           // User is subscribed, allow access to tool
           console.log("User validated and subscribed. Plan:", data.plan);
           setIsValidated(true);
           setIsValidating(false);
-        } else if (data.ok === false || data.ok === "false" || !data.ok) {
+          return; // Important: return to prevent any further execution
+        }
+        
+        // If ok is false or falsy, user is not subscribed
+        if (data.ok === false) {
           // User is not subscribed, redirect to Shopify subscription page (backend provides URL)
           if (data.redirect) {
             console.log("User not subscribed. Reason:", data.reason, "Redirecting to:", data.redirect);
@@ -92,13 +99,12 @@ export default function CapsuleBuilderFlow() {
             window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
             return;
           }
-        } else {
-          // Unexpected response format
-          console.error("Unexpected backend response format:", data);
-          // Allow access as fallback
-          setIsValidated(true);
-          setIsValidating(false);
         }
+        
+        // Unexpected response format - data.ok is neither true nor false
+        console.error("Unexpected backend response format. data.ok is:", data.ok, "Full data:", data);
+        // Don't allow access on unexpected format
+        window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
       } catch (err) {
         console.error("Validation error:", err);
         // Check if it's a CORS or network error
