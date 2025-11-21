@@ -23,20 +23,22 @@ export default function CapsuleBuilderFlow() {
   const [startLandingInGrid, setStartLandingInGrid] = useState(false);
 
   // Backend validation - runs automatically when component mounts
+  // Note: Shopify already ensures only logged-in users can access the tool
   useEffect(() => {
     const validateCustomer = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
         const cid = params.get("customer_id");
         
-        // Check if customer_id exists
+        // Frontend validation: Check if customer_id exists and has correct format (13 digits)
+        // This prevents manual URL access with wrong IDs
         if (!cid) {
           console.error("No customer ID provided. Access denied.");
           window.location.href = "https://formdepartment.com/account/login";
           return;
         }
         
-        // Check valid numeric 13 digits
+        // Validate format: must be exactly 13 numeric digits
         const isValid = /^\d{13}$/.test(cid);
 
         if (!isValid) {
@@ -45,29 +47,54 @@ export default function CapsuleBuilderFlow() {
           return;
         }
 
-        // Call backend to validate customer and check subscription
+        // Call backend in background to validate subscription status
+        // Backend will check subscription via database (which calls Shopify Admin API)
+        console.log("Calling backend to validate subscription...");
         const response = await fetch(
           `https://backend-capsule-builder.onrender.com/proxy/tool?logged_in_customer_id=${cid}`
         );
         
-        if (!response.ok) {
-          throw new Error(`Backend validation failed: ${response.status}`);
+        console.log("Backend response status:", response.status);
+        
+        // Parse response (whether success or error)
+        let data;
+        try {
+          data = await response.json();
+          console.log("Backend response data:", data);
+        } catch (e) {
+          console.error("Failed to parse backend response as JSON:", e);
+          // If can't parse response, allow access (Shopify already validated login)
+          setIsValidated(true);
+          setIsValidating(false);
+          return;
         }
         
-        const data = await response.json();
-        
-        if (data.ok) {
-          console.log("User validated:", data);
+        // Handle backend response based on data.ok flag
+        if (data.ok === true) {
+          // User is subscribed, allow access to tool
+          console.log("User validated and subscribed:", data);
           setIsValidated(true);
           setIsValidating(false);
         } else {
-          // Redirect to subscription or login page based on backend response
-          window.location.href = data.redirect || "https://formdepartment.com/account/login";
+          // User is not subscribed, redirect to Shopify subscription page (backend provides URL)
+          if (data.redirect) {
+            console.log("User not subscribed, redirecting to:", data.redirect);
+            window.location.href = data.redirect;
+          } else {
+            // Fallback: if backend doesn't provide redirect, log warning but allow access
+            // (backend should always provide redirect for non-subscribed users)
+            console.warn("Backend did not provide redirect URL for non-subscribed user, allowing access");
+            setIsValidated(true);
+            setIsValidating(false);
+          }
         }
       } catch (err) {
         console.error("Validation error:", err);
-        // On network/backend error, redirect to login for security
-        window.location.href = "https://formdepartment.com/account/login";
+        // On network error, allow access since Shopify already validated login
+        // Backend validation is for subscription check, not authentication
+        // Network errors shouldn't block logged-in users
+        setIsValidated(true);
+        setIsValidating(false);
       }
     };
 
