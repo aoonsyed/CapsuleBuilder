@@ -40,7 +40,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     return;
   }
 
-  fetch(`https://d2d22964b231.ngrok-free.app/proxy/tool?logged_in_customer_id=${cid}`)
+  fetch(`https://54b5cad98b50.ngrok-free.app/proxy/tool?logged_in_customer_id=${cid}`)
     .then((response) => response.json())
     .then((data) => {
       if (data.ok) {
