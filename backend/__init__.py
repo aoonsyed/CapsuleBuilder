@@ -1,3 +1,0 @@
-"""Capsule Builder backend package."""
-
-
