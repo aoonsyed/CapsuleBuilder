@@ -49,18 +49,20 @@ export default function CapsuleBuilderFlow() {
 
         // Call backend in background to validate subscription status
         // Backend will check subscription via database (which calls Shopify Admin API)
-        console.log("Calling backend to validate subscription...");
+        console.log("Calling backend to validate subscription for customer_id:", cid);
         const response = await fetch(
           `https://backend-capsule-builder.onrender.com/proxy/tool?logged_in_customer_id=${cid}`
         );
         
-        console.log("Backend response status:", response.status);
+        console.log("Backend response status:", response.status, response.statusText);
         
-        // Parse response (whether success or error)
+        // Parse response (backend returns JSON whether ok or not)
         let data;
         try {
-          data = await response.json();
-          console.log("Backend response data:", data);
+          const responseText = await response.text();
+          console.log("Backend response text:", responseText);
+          data = JSON.parse(responseText);
+          console.log("Backend response data (parsed):", data);
         } catch (e) {
           console.error("Failed to parse backend response as JSON:", e);
           // If can't parse response, allow access (Shopify already validated login)
@@ -70,23 +72,32 @@ export default function CapsuleBuilderFlow() {
         }
         
         // Handle backend response based on data.ok flag
-        if (data.ok === true) {
+        // Backend returns: {"ok":true,...} for subscribed or {"ok":false,"redirect":"..."} for non-subscribed
+        if (data.ok === true || data.ok === "true") {
           // User is subscribed, allow access to tool
-          console.log("User validated and subscribed:", data);
+          console.log("User validated and subscribed. Plan:", data.plan);
           setIsValidated(true);
           setIsValidating(false);
-        } else {
+        } else if (data.ok === false || data.ok === "false" || !data.ok) {
           // User is not subscribed, redirect to Shopify subscription page (backend provides URL)
           if (data.redirect) {
-            console.log("User not subscribed, redirecting to:", data.redirect);
+            console.log("User not subscribed. Reason:", data.reason, "Redirecting to:", data.redirect);
+            // Immediately redirect - don't set state
             window.location.href = data.redirect;
+            return; // Important: return to prevent state updates
           } else {
-            // Fallback: if backend doesn't provide redirect, log warning but allow access
-            // (backend should always provide redirect for non-subscribed users)
-            console.warn("Backend did not provide redirect URL for non-subscribed user, allowing access");
-            setIsValidated(true);
-            setIsValidating(false);
+            // Fallback: if backend doesn't provide redirect, log error
+            console.error("Backend returned ok=false but no redirect URL provided. Data:", data);
+            // Still redirect to subscription page as fallback
+            window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+            return;
           }
+        } else {
+          // Unexpected response format
+          console.error("Unexpected backend response format:", data);
+          // Allow access as fallback
+          setIsValidated(true);
+          setIsValidating(false);
         }
       } catch (err) {
         console.error("Validation error:", err);
