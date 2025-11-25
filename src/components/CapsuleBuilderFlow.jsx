@@ -15,6 +15,7 @@ export default function CapsuleBuilderFlow() {
   const [brand, setBrand] = useState("");
   const [isValidating, setIsValidating] = useState(true);
   const [isValidated, setIsValidated] = useState(false);
+  const [isTrial, setIsTrial] = useState(false);
 
   // Track if the user began via the 3-form grid on Landing
   const [startedWithGrid, setStartedWithGrid] = useState(false);
@@ -29,6 +30,10 @@ export default function CapsuleBuilderFlow() {
       try {
         const params = new URLSearchParams(window.location.search);
         const cid = params.get("customer_id");
+        const trialParam = params.get("trial");
+        
+        // Check if this is a trial request
+        const isTrialRequest = trialParam === "true" || trialParam === "1";
         
         // Frontend validation: Check if customer_id exists and has correct format (13 digits)
         // This prevents manual URL access with wrong IDs
@@ -49,10 +54,13 @@ export default function CapsuleBuilderFlow() {
 
         // Call backend in background to validate subscription status
         // Backend will check subscription via database (which calls Shopify Admin API)
-        console.log("Calling backend to validate subscription for customer_id:", cid);
-        const response = await fetch(
-          `https://backend-capsule-builder.onrender.com/proxy/tool?logged_in_customer_id=${cid}`
-        );
+        // Include trial parameter if present in URL
+        let backendUrl = `https://backend-capsule-builder.onrender.com/proxy/tool?logged_in_customer_id=${cid}`;
+        if (isTrialRequest) {
+          backendUrl += `&trial=true`;
+        }
+        console.log("Calling backend to validate subscription for customer_id:", cid, isTrialRequest ? "(TRIAL)" : "");
+        const response = await fetch(backendUrl);
         
         console.log("Backend response status:", response.status, response.statusText);
         
@@ -77,8 +85,13 @@ export default function CapsuleBuilderFlow() {
         
         // Strictly check if ok is true (boolean true)
         if (data.ok === true) {
-          // User is subscribed, allow access to tool
-          console.log("User validated and subscribed. Plan:", data.plan);
+          // User is subscribed or on trial, allow access to tool
+          if (data.trial === true) {
+            console.log("User validated and on free trial. Plan:", data.plan);
+            setIsTrial(true);
+          } else {
+            console.log("User validated and subscribed. Plan:", data.plan);
+          }
           setIsValidated(true);
           setIsValidating(false);
           return; // Important: return to prevent any further execution
@@ -152,6 +165,12 @@ export default function CapsuleBuilderFlow() {
   return (
     <div className="bg-[#E8E8E8] min-h-screen bg-cover bg-center font-sans text-white relative">
       <div className="absolute inset-0 bg-[#E8E8E8] z-0" />
+      {/* Free Trial Banner */}
+      {isTrial && (
+        <div className="relative z-20 bg-yellow-500 text-black text-center py-2 px-4 font-semibold">
+          🎉 You are currently using a FREE TRIAL. Upgrade to unlock full features!
+        </div>
+      )}
       <div className="relative z-10">
         <Navbar />
       </div>
