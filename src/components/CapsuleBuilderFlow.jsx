@@ -30,10 +30,6 @@ export default function CapsuleBuilderFlow() {
       try {
         const params = new URLSearchParams(window.location.search);
         const cid = params.get("customer_id");
-        const trialParam = params.get("trial");
-        
-        // Check if this is a trial request
-        const isTrialRequest = trialParam === "true" || trialParam === "1";
         
         // Frontend validation: Check if customer_id exists and has correct format (13 digits)
         // This prevents manual URL access with wrong IDs
@@ -52,15 +48,11 @@ export default function CapsuleBuilderFlow() {
           return;
         }
 
-        // Call backend in background to validate subscription status
-        // Backend will check subscription via database (which calls Shopify Admin API)
-        // Include trial parameter if present in URL
-        let backendUrl = `https://backend-capsule-builder.onrender.com/proxy/tool?logged_in_customer_id=${cid}`;
-        if (isTrialRequest) {
-          backendUrl += `&trial=true`;
-        }
-        console.log("Calling backend to validate subscription for customer_id:", cid, isTrialRequest ? "(TRIAL)" : "");
-        const response = await fetch(backendUrl);
+        // Call backend to get user status (always allows access, returns trial_used status)
+        console.log("Calling backend to get user status for customer_id:", cid);
+        const response = await fetch(
+          `https://backend-capsule-builder.onrender.com/proxy/tool?logged_in_customer_id=${cid}`
+        );
         
         console.log("Backend response status:", response.status, response.statusText);
         
@@ -79,45 +71,32 @@ export default function CapsuleBuilderFlow() {
           return;
         }
         
-        // Handle backend response based on data.ok flag
-        // Backend returns: {"ok":true,"plan":"pro",...} for subscribed or {"ok":false,"redirect":"..."} for non-subscribed
-        console.log("Checking data.ok value:", data.ok, "Type:", typeof data.ok);
+        // Handle backend response - backend now always allows access
+        console.log("Backend response data:", data);
         
-        // Strictly check if ok is true (boolean true)
+        // Backend always returns ok=true now, but provides trial_used status
         if (data.ok === true) {
-          // User is subscribed or on trial, allow access to tool
-          if (data.trial === true) {
-            console.log("User validated and on free trial. Plan:", data.plan);
+          // Show trial banner if trial hasn't been used yet
+          if (data.show_trial_banner || !data.trial_used) {
+            console.log("User is on free trial. Trial used:", data.trial_used);
             setIsTrial(true);
           } else {
-            console.log("User validated and subscribed. Plan:", data.plan);
+            console.log("User has already used trial. Has subscription:", data.has_subscription, "Plan:", data.plan);
+            setIsTrial(false);
           }
           setIsValidated(true);
           setIsValidating(false);
           return; // Important: return to prevent any further execution
         }
         
-        // If ok is false or falsy, user is not subscribed
+        // If ok is false, there was an error (shouldn't happen for tool access now)
         if (data.ok === false) {
-          // User is not subscribed, redirect to Shopify subscription page (backend provides URL)
-          if (data.redirect) {
-            console.log("User not subscribed. Reason:", data.reason, "Redirecting to:", data.redirect);
-            // Immediately redirect - don't set state
-            window.location.href = data.redirect;
-            return; // Important: return to prevent state updates
-          } else {
-            // Fallback: if backend doesn't provide redirect, log error
-            console.error("Backend returned ok=false but no redirect URL provided. Data:", data);
-            // Still redirect to subscription page as fallback
-            window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
-            return;
-          }
+          console.error("Backend error:", data.reason, data.message);
+          // Still allow access but log the error
+          setIsValidated(true);
+          setIsValidating(false);
+          return;
         }
-        
-        // Unexpected response format - data.ok is neither true nor false
-        console.error("Unexpected backend response format. data.ok is:", data.ok, "Full data:", data);
-        // Don't allow access on unexpected format
-        window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
       } catch (err) {
         console.error("Validation error:", err);
         // Check if it's a CORS or network error
