@@ -167,8 +167,8 @@ export default function CapsuleBuilderFlow() {
       <div className="absolute inset-0 bg-[#E8E8E8] z-0" />
       {/* Free Trial Banner */}
       {isTrial && (
-        <div className="relative z-20 bg-yellow-500 text-black text-center py-2 px-4 font-semibold">
-          🎉 You are currently using a FREE TRIAL. Upgrade to unlock full features!
+        <div className="relative z-20 bg-black text-white text-center py-2 px-4 font-semibold">
+          You are currently using a FREE TRIAL. Upgrade to unlock full features!
         </div>
       )}
       <div className="relative z-10">
