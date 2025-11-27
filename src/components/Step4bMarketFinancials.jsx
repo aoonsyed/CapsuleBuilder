@@ -7,7 +7,6 @@ import emailjs from '@emailjs/browser';
 export default function Step4bMarketFinancials({ onNext, onBack }) {
   const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers'));
   const [sendingEmail, setSendingEmail] = useState(false);
-  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
   const formData = useSelector((state) => state.form);
   const {
@@ -78,88 +77,27 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   };
 
   const handleScheduleClick = async () => {
-    // Get customer_id from URL
-    const params = new URLSearchParams(window.location.search);
-    const customerId = params.get("customer_id");
+    const schedulingUrl =
+      process.env.REACT_APP_SCHEDULING_URL ||
+      'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137';
     
-    if (!customerId) {
-      toast.error('Customer ID not found. Please try again.');
-      return;
-    }
-
-    // Validate submission with backend
+    window.open(schedulingUrl, '_blank', 'noopener,noreferrer');
+    
     try {
       setSendingEmail(true);
-      const response = await fetch(
-        `https://backend-capsule-builder.onrender.com/proxy/validate-submission?logged_in_customer_id=${customerId}`
-      );
-      
-      const data = await response.json();
-      
-      if (!data.ok) {
-        // User is not subscribed or trial already used
-        if (data.reason === 'no_active_subscription') {
-          setShowSubscribeModal(true);
-          setSendingEmail(false);
-          return;
-        } else {
-          toast.error(data.message || 'Unable to validate submission. Please try again.');
-          setSendingEmail(false);
-          return;
-        }
-      }
-      
-      // Validation passed - proceed with scheduling
-      const schedulingUrl =
-        process.env.REACT_APP_SCHEDULING_URL ||
-        'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137';
-      
-      window.open(schedulingUrl, '_blank', 'noopener,noreferrer');
-      
       await sendScheduleEmail();
       toast.success('Your details were emailed to our team.');
     } catch (err) {
-      console.error('Validation or email send failed:', err);
-      toast.error('We encountered an error. Please try again.');
+      console.error('Email send failed:', err);
+      toast.error('We could not send the email. We will still see your booking.');
     } finally {
       setSendingEmail(false);
     }
   };
 
-  const handleSubscribeClick = () => {
-    window.location.href = 'https://formdepartment.com/pages/about?view=subscription-plans';
-  };
-
   return (
     <>
       <Toaster position="top-right" richColors />
-      
-      {/* Subscribe Modal */}
-      {showSubscribeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-4 shadow-xl">
-            <h3 className="text-2xl font-bold text-black mb-4">Subscribe to Schedule Your Call</h3>
-            <p className="text-gray-700 mb-6">
-              You need an active subscription to schedule a call. Please subscribe to continue.
-            </p>
-            <div className="flex gap-4">
-              <button
-                onClick={handleSubscribeClick}
-                className="flex-1 px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-[#3A3A3D] transition"
-              >
-                View Plans
-              </button>
-              <button
-                onClick={() => setShowSubscribeModal(false)}
-                className="flex-1 px-6 py-3 bg-gray-200 text-black rounded-lg font-semibold hover:bg-gray-300 transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
       <div className="bg-[#E8E8E8] min-h-screen">
         {/* Header with Back Button */}
         <div className="bg-[#E8E8E8]">

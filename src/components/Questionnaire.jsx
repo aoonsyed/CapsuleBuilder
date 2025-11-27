@@ -16,6 +16,7 @@ export default function Questionaire({ onNext, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
+  const [validating, setValidating] = useState(false);
 
   const paramsKey = useMemo(
     () =>
@@ -35,10 +36,49 @@ export default function Questionaire({ onNext, onBack }) {
     setAnswers((prev) => ({ ...prev, [question]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    localStorage.setItem("questionnaireAnswers", JSON.stringify(answers));
-    if (onNext) onNext();
+    
+    // Get customer_id from URL
+    const params = new URLSearchParams(window.location.search);
+    const customerId = params.get("customer_id");
+    
+    if (!customerId) {
+      setError("Customer ID not found. Please try again.");
+      return;
+    }
+
+    // Validate subscription before proceeding
+    try {
+      setValidating(true);
+      const response = await fetch(
+        `https://backend-capsule-builder.onrender.com/proxy/validate-submission?logged_in_customer_id=${customerId}`
+      );
+      
+      const data = await response.json();
+      
+      if (!data.ok) {
+        // User is not subscribed - redirect smoothly to subscription page
+        if (data.redirect) {
+          // Smooth redirect to subscription page
+          window.location.href = data.redirect;
+          return;
+        } else {
+          setError(data.message || "Unable to validate. Please try again.");
+          setValidating(false);
+          return;
+        }
+      }
+      
+      // Validation passed - proceed with saving and next step
+      localStorage.setItem("questionnaireAnswers", JSON.stringify(answers));
+      if (onNext) onNext();
+    } catch (err) {
+      console.error("Validation error:", err);
+      setError("We encountered an error. Please try again.");
+    } finally {
+      setValidating(false);
+    }
   };
 
   const prompt = useMemo(
@@ -258,9 +298,14 @@ Only return the JSON. No markdown. No explanation.
 
           <button
             type="submit"
-            className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+            disabled={validating}
+            className={`px-6 py-2 text-lg font-bold text-white rounded-md shadow transition duration-200 ${
+              validating 
+                ? "bg-gray-400 cursor-not-allowed" 
+                : "bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C]"
+            }`}
           >
-            Next →
+            {validating ? "Validating..." : "Next →"}
           </button>
         </div>
       </form>
