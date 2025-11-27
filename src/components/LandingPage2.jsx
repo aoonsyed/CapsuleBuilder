@@ -12,6 +12,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     const [selectedCategory, setSelectedCategory] = useState("Outerwear");
     const [currentStep, setCurrentStep] = useState(1);
     const [showAllForms, setShowAllForms] = useState(startInGrid);
+    const [validating, setValidating] = useState(false);
 
     const categoryImages = {
         Outerwear: "/assets/7.png",
@@ -32,6 +33,52 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     // No need to validate here anymore
 
     const handleGetStarted = () => setShowAllForms(true);
+
+    const handleContinue = async () => {
+        // Get customer_id from URL
+        const params = new URLSearchParams(window.location.search);
+        const customerId = params.get("customer_id");
+        
+        if (!customerId) {
+            alert("Customer ID not found. Please try again.");
+            return;
+        }
+
+        // Validate subscription before proceeding
+        try {
+            setValidating(true);
+            const response = await fetch(
+                `https://backend-capsule-builder.onrender.com/proxy/validate-submission?logged_in_customer_id=${customerId}`
+            );
+            
+            const data = await response.json();
+            
+            if (!data.ok) {
+                // User is not subscribed - redirect smoothly to subscription page
+                if (data.redirect) {
+                    // Smooth redirect to subscription page
+                    window.location.href = data.redirect;
+                    return;
+                } else {
+                    alert(data.message || "Unable to validate. Please try again.");
+                    setValidating(false);
+                    return;
+                }
+            }
+            
+            // Validation passed - proceed to next step
+            if (typeof onContinue === "function") {
+                onContinue();
+            } else if (onNext) {
+                onNext();
+            }
+        } catch (err) {
+            console.error("Validation error:", err);
+            alert("We encountered an error. Please try again.");
+        } finally {
+            setValidating(false);
+        }
+    };
 
     /* ================= FULL-PAGE: THREE FORMS ONLY ================= */
     /* ================= FULL-PAGE: THREE FORMS ONLY ================= */
@@ -67,10 +114,15 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                     <div className="mt-8 mx-auto max-w-7xl flex justify-end">
                         <button
                             type="button"
-                            onClick={() => (typeof onContinue === "function" ? onContinue() : onNext?.())}
-                            className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] active:bg-[#2A2A2A] rounded-md shadow transition duration-200"
+                            onClick={handleContinue}
+                            disabled={validating}
+                            className={`px-6 py-2 text-lg font-bold text-white rounded-md shadow transition duration-200 ${
+                                validating 
+                                    ? "bg-gray-400 cursor-not-allowed" 
+                                    : "bg-black hover:bg-[#3A3A3D] active:bg-[#2A2A2A]"
+                            }`}
                         >
-                            Continue →
+                            {validating ? "Validating..." : "Continue →"}
                         </button>
                     </div>
                 </section>
