@@ -10,7 +10,6 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     const name = ["Jacket", "Tops", "Pants", "Outerwear"];
 
     const [selectedCategory, setSelectedCategory] = useState("Outerwear");
-    const [currentStep, setCurrentStep] = useState(1);
     const [showAllForms, setShowAllForms] = useState(startInGrid);
     const [validating, setValidating] = useState(false);
 
@@ -18,7 +17,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
         Outerwear: "/assets/7.png",
         Tops: "/assets/8.png",
         Pants: "/assets/9.png",
-        Dresses: "/assets/10.png",
+        Dresses: "/assets/12.png",
     };
 
     useEffect(() => {
@@ -26,8 +25,8 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     }, [startInGrid]);
 
     const handleCategorySelect = (category) => {
+        // Only change the selected category; keep the step indicator static
         setSelectedCategory(category);
-        setCurrentStep((s) => (s % 4) + 1);
     };
     // Customer validation is now handled at the CapsuleBuilderFlow level
     // No need to validate here anymore
@@ -197,7 +196,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                 <div className="mx-auto max-w-7xl">
                     <div className="mb-2">
                         <h1 className="text-black text-xl font-[Garamond]">
-                            Step <span className="font-[Albereto Regular]">{currentStep}</span> Of <span className="font-[Albereto Regular]">4</span>
+                            Step <span className="font-[Albereto Regular]">1</span> Of <span className="font-[Albereto Regular]">4</span>
                         </h1>
                     </div>
 
