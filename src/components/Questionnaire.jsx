@@ -200,20 +200,20 @@ Only return the JSON. No markdown. No explanation.
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg">
-      <form onSubmit={handleSubmit} className="space-y-8 text-white font-sans">
-        <div>
-          <p className="ml-5 text-sm font-[Helvetica] text-black mb-2">Step 4 of 5</p>
-          <h2 className="text-[26pt] font-[Garamond] font-bold text-black mb-2">Clarifying Questions</h2>
+    <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-inter">
+      <form onSubmit={handleSubmit} className="space-y-8 text-black">
+        <div className="mb-8">
+          <p className="ml-5 text-sm font-inter text-[14px] font-medium leading-[140%] mb-2">Step 4 of 5</p>
+          <h2 className="text-[32px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-2">Clarifying Questions</h2>
         </div>
 
         {questionsData.map((category, ci) => (
-          <div key={ci}>
-            <h3 className="text-[20pt] font-[Garamond] font-bold text-black mb-2">{category.title}</h3>
+          <div key={ci} className="mb-6">
+            <h3 className="text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-4">{category.title}</h3>
 
             {category.questions.map((q, qi) => (
-              <div key={qi} className="mb-4">
-                <label className="block text-base font-[Helvetica] mb-1 text-black">{q.question}</label>
+              <div key={qi} className="mb-6">
+                <label className="block text-[14px] font-inter font-medium leading-[140%] mb-2 text-black">{q.question}</label>
 
                 {q.type === "multiple-choice" && Array.isArray(q.options) ? (
                   <div className="space-y-2">
@@ -228,14 +228,14 @@ Only return the JSON. No markdown. No explanation.
                           className="accent-[#3A3A3D]"
                           required={oi === 0 && !answers[q.question]}
                         />
-                        <span>{opt}</span>
+                        <span className="text-[14px] font-inter font-medium leading-[140%]">{opt}</span>
                       </label>
                     ))}
                   </div>
                 ) : (
                   <input
                     type="text"
-                    className="w-full border border-black bg-transparent px-4 py-2 text-black focus:outline-none rounded-md"
+                    className="w-full border border-black bg-transparent px-5 py-3 text-[16px] font-inter font-normal leading-[150%] text-black focus:outline-none rounded-md"
                     placeholder="Your answer"
                     value={answers[q.question] || ""}
                     onChange={(e) => handleAnswerChange(q.question, e.target.value)}
@@ -247,18 +247,18 @@ Only return the JSON. No markdown. No explanation.
           </div>
         ))}
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 mt-8">
           <button
             type="button"
             onClick={onBack}
-            className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+            className="px-6 py-3 text-[14px] font-inter font-medium leading-[140%] text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
           >
             ← Back
           </button>
 
           <button
             type="submit"
-            className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+            className="px-6 py-3 text-[14px] font-inter font-medium leading-[140%] text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
           >
             Next →
           </button>

@@ -130,7 +130,7 @@ export default function CapsuleBuilderFlow() {
       <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-black font-[Garamond] text-lg">Validating access...</p>
+          <p className="text-black font-inter text-[16px] font-normal leading-[150%]">Validating access...</p>
         </div>
       </div>
     );

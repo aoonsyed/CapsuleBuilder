@@ -83,7 +83,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     /* ================= FULL-PAGE: THREE FORMS ONLY ================= */
     if (showAllForms) {
         return (
-            <div className="min-h-[10px] font-[Helvetica] w-full" style={{ backgroundColor: "#E8E8E8" }}>
+            <div className="min-h-[10px] font-inter w-full" style={{ backgroundColor: "#E8E8E8" }}>
                 <section className="w-full px-4 sm:px-6">
                     <div
                         className="
@@ -115,7 +115,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                             type="button"
                             onClick={handleContinue}
                             disabled={validating}
-                            className={`px-6 py-2 text-lg font-bold text-white rounded-md shadow transition duration-200 ${
+                            className={`px-6 py-3 text-[14px] font-inter font-medium leading-[140%] text-white rounded-md shadow transition duration-200 ${
                                 validating 
                                     ? "bg-gray-400 cursor-not-allowed" 
                                     : "bg-black hover:bg-[#3A3A3D] active:bg-[#2A2A2A]"
@@ -143,31 +143,31 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
 
     /* ================= DEFAULT LANDING ================= */
     return (
-        <div className="min-h-screen font-[Helvetica] overflow-x-hidden w-full" style={{ backgroundColor: "#E8E8E8" }}>
+        <div className="min-h-screen font-inter overflow-x-hidden w-full" style={{ backgroundColor: "#E8E8E8" }}>
             {/* HERO */}
             <div className="w-full grid grid-cols-1 lg:grid-cols-2 px-4 pt-0 pb-16 sm:px-6 lg:px-12 xl:px-20 2xl:px-32 items-center">
                 <div>
-                    <h2 className="font-[Aboreto] font-extralight text-[30px] sm:text-[42px] md:text-[56px] text-black leading-tight text-center lg:text-left">
+                    <h2 className="font-sf-pro font-semibold text-[32px] sm:text-[32px] md:text-[32px] text-black leading-[120%] tracking-[-0.2%] text-center lg:text-left">
                         START YOUR
                         <br />
                         <span className="whitespace-normal">CAPSULE COLLECTION</span>
                     </h2>
-                    <p className="text-black font-ebgaramond text-[16px] sm:text-[18px] md:text-[20px] leading-relaxed mt-4 text-center lg:text-left">
-                        Tell us your vision, and we’ll help you shape it into a
+                    <p className="text-black font-inter text-[16px] font-normal leading-[150%] mt-6 text-center lg:text-left">
+                        Tell us your vision, and we'll help you shape it into a
                         <br />
                         <span>sellable, production-ready line.</span>
                     </p>
-                    <div className="mt-6 flex justify-center lg:justify-start">
+                    <div className="mt-8 flex justify-center lg:justify-start">
                         <button
                             onClick={handleGetStarted}
                             className="
                 inline-flex items-center justify-center
-                w-[178px] h-[61px]
+                px-6 py-3
                 rounded-[20px]
                 bg-black text-white
                 hover:bg-[#3A3A3D]
-                font-['EB Garamond'] font-semibold
-                text-[20px] leading-[24px] tracking-[-0.16px] capitalize align-middle
+                font-inter font-medium
+                text-[14px] leading-[140%]
                 shadow transition duration-200
                 focus:outline-none focus:ring-2 focus:ring-black/30 active:scale-[0.99]
               "
@@ -194,13 +194,13 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
             {/* CURATED CAPSULE */}
             <div className="w-full bg-white px-4 sm:px-6 py-10 md:py-14 overflow-x-hidden">
                 <div className="mx-auto max-w-7xl">
-                    <div className="mb-2">
-                        <h1 className="text-black text-xl font-[Garamond]">
-                            Step <span className="font-[Albereto Regular]">1</span> Of <span className="font-[Albereto Regular]">4</span>
+                    <div className="mb-4">
+                        <h1 className="text-black text-[14px] font-inter font-medium leading-[140%]">
+                            Step <span className="font-inter font-medium">1</span> Of <span className="font-inter font-medium">4</span>
                         </h1>
                     </div>
 
-                    <h1 className="text-black text-[22pt] sm:text-[26pt] md:text-[28pt] font-[Aboreto] mb-6">
+                    <h1 className="text-black text-[32px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-8">
                         WHAT CATEGORY ARE YOU DESIGNING?
                     </h1>
 
@@ -209,7 +209,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                             <button
                                 key={category}
                                 onClick={() => handleCategorySelect(category)}
-                                className={`px-5 sm:px-6 py-2 rounded-full font-[Garamond] font-[500] text-[13pt] sm:text-[14pt] transition-all flex items-center gap-3 ${selectedCategory === category ? "bg-black text-white hover:bg-[#3A3A3D]" : "bg-black text-white hover:bg-[#3A3A3D]"
+                                className={`px-5 sm:px-6 py-3 rounded-full font-inter font-medium text-[14px] leading-[140%] transition-all flex items-center gap-3 ${selectedCategory === category ? "bg-black text-white hover:bg-[#3A3A3D]" : "bg-black text-white hover:bg-[#3A3A3D]"
                                     }`}
                             >
                                 <input
@@ -226,8 +226,8 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                         ))}
                     </div>
 
-                    <div className="flex justify-between items-center mt-20 mb-6">
-                        <h2 className="text-black text-xl sm:text-2xl md:text-[22pt] font-[Garamond]">YOUR CURATED CAPSULE</h2>
+                    <div className="flex justify-between items-center mt-12 mb-6">
+                        <h2 className="text-black text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%]">YOUR CURATED CAPSULE</h2>
                     </div>
 
                     <div className="flex flex-wrap gap-8 justify-start items-start">
@@ -237,10 +237,10 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                                 <img src={categoryImages[selectedCategory]} alt="Bomber Jacket" className="w-full h-full object-contain mb-2" />
                             </div>
                             <div className="p-4">
-                                <h2 className="text-black font-[Garamond] text-[16pt] ml-6 font-semibold">
+                                <h2 className="text-black font-inter text-[14px] ml-6 font-medium leading-[140%]">
                                     Bomber {name[categories.indexOf(selectedCategory)]}
                                 </h2>
-                                <p className="text-[#000000] font-[Garamond] text-[12pt] ml-6">Suggested Fabrics: Nylon, Cotton Blend</p>
+                                <p className="text-[#000000] font-inter text-[16px] ml-6 font-normal leading-[150%]">Suggested Fabrics: Nylon, Cotton Blend</p>
                             </div>
                         </div>
 
@@ -248,7 +248,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                         <div className="flex flex-col sm:h-[518px] sm:w-[535px] w-full h-auto justify-between">
                             {/* Suggested Product */}
                             <div className="bg-[#E8E8E8] rounded-2xl shadow-md border border-[#E4E4E4] p-4 sm:p-5 w-full sm:w-[535px] h-auto sm:h-[233px]">
-                                <h2 className="text-black text-lg sm:text-xl font-[Garamond] font-semibold ml-1 sm:ml-3 mt-1 sm:mt-3 mb-4 sm:mb-5 tracking-tight">
+                                <h2 className="text-black text-[14px] font-inter font-medium leading-[140%] ml-1 sm:ml-3 mt-1 sm:mt-3 mb-4 sm:mb-5">
                                     Suggested Product
                                 </h2>
 
@@ -270,13 +270,13 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-6 sm:justify-items-center
   "
 >
-  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
+  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-inter font-medium text-[14px] leading-[140%] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
     Jacket
   </div>
-  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
+  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-inter font-medium text-[14px] leading-[140%] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
     Top
   </div>
-  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-[Garamond] font-semibold text-[12pt] sm:text-[13pt] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
+  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-inter font-medium text-[14px] leading-[140%] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
     Outerwear
   </div>
   <div className="hidden sm:block" />
@@ -287,7 +287,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
 
                             {/* Suggested Color Palette */}
                             <div className="bg-[#E8E8E8] rounded-2xl shadow-md border border-[#E4E4E4] p-4 sm:p-5 w-full sm:w-[535px] h-auto sm:h-[233px] mt-4 sm:mt-0">
-                                <h2 className="text-black text-lg sm:text-xl font-[Garamond] font-semibold mb-4 sm:mb-6 mt-1 sm:mt-3 tracking-tight">
+                                <h2 className="text-black text-[14px] font-inter font-medium leading-[140%] mb-4 sm:mb-6 mt-1 sm:mt-3">
                                     Suggested Color Palette
                                 </h2>
                                 <div className="flex gap-4 sm:gap-6 px-2 sm:px-3 py-3 flex-wrap">
@@ -303,8 +303,8 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
 
             {/* WHAT YOU'LL RECEIVE */}
             <div className="w-full bg-[#333333] text-white py-12 px-4 text-center">
-                <h1 className="font-[Aboreto] text-[24pt] sm:text-[28pt] md:text-[30pt] mb-8">WHAT YOU'LL RECEIVE</h1>
-                <div className="text-[12pt] font-[Garamond] space-y-5 max-w-4xl mx-auto">
+                <h1 className="font-sf-pro font-semibold text-[32px] leading-[120%] tracking-[-0.2%] mb-8">WHAT YOU'LL RECEIVE</h1>
+                <div className="text-[16px] font-inter font-normal leading-[150%] space-y-6 max-w-4xl mx-auto">
                     <div>
                         <h2 className="font-semibold">Curated Materials</h2>
                         <p>Thoughtfully selected fabrics tailored to your aesthetic, function and brand goals.</p>
@@ -324,10 +324,10 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                 </div>
             </div>
 
-            {/* WHO IT’S FOR */}
+            {/* WHO IT'S FOR */}
             <div className="w-full background-color:rgb(var(--color-background)) py-14 px-4 text-center">
-                <h1 className="font-[Aboreto] text-[24pt] sm:text-[28pt] md:text-[30pt] text-black mb-6">WHO IT'S FOR</h1>
-                <p className="text-[#000000] text-[10px] md:text-[15px]  font-[ebgaramond] leading-snug max-w-4xl mx-auto">
+                <h1 className="font-sf-pro font-semibold text-[32px] leading-[120%] tracking-[-0.2%] text-black mb-6">WHO IT'S FOR</h1>
+                <p className="text-[#000000] text-[16px] font-inter font-normal leading-[150%] max-w-4xl mx-auto">
                     Capsule Builder is designed for founders, creators, and brands ready to refine an idea without needing technical expertise.
                     <br />
                     Gain clarity on design, fabrication, color, and cost so you can move forward with purpose, whether into production or deeper development.

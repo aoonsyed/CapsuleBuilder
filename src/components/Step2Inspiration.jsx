@@ -14,20 +14,20 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-[Helvetica]">
+    <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-inter">
       <form onSubmit={handleSubmit} className="space-y-8 text-black">
-        <div>
-          <p className="ml-2 text-sm mb-2">Step 2 of 5</p>
-          <h1 className="text-[26pt] font-[Garamond] font-bold">Reference Brand</h1>
+        <div className="mb-8">
+          <p className="ml-2 text-sm mb-2 font-inter text-[14px] font-medium leading-[140%]">Step 2 of 5</p>
+          <h1 className="text-[32px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%]">Reference Brand</h1>
         </div>
 
         <div>
-          <label className="block text-base mb-2">
+          <label className="block text-[14px] font-inter font-medium leading-[140%] mb-2">
             What current brand most closely aligns with what you are trying to create?
           </label>
           <input
             type="text"
-            className="w-full border border-black bg-[#F5F5F5] px-4 py-2 text-black placeholder-black/50 focus:outline-none rounded-md"
+            className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[14px] font-inter font-medium leading-[140%] text-black placeholder-black/50 focus:outline-none rounded-md"
             placeholder="Enter a similar fashion brand here"
             value={brand2}
             onChange={(e) => dispatch(setBrand2(e.target.value))}
@@ -36,7 +36,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
         </div>
 
         <div>
-          <label className="block text-base mb-2">What draws you to this reference brand?</label>
+          <label className="block text-[14px] font-inter font-medium leading-[140%] mb-2">What draws you to this reference brand?</label>
           <div className="flex flex-col md:flex-row md:space-x-10 ml-2 space-y-4 md:space-y-0">
             <div className="flex flex-col space-y-2">
               {["fit", "price", "material"].map((key) => (
@@ -47,7 +47,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
                     onChange={() => dispatch(toggleBrandPreference(key))}
                     className="accent-[#3A3A3D]"
                   />
-                  <span className="ml-2 capitalize text-base">{key}</span>
+                  <span className="ml-2 capitalize text-[14px] font-inter font-medium leading-[140%]">{key}</span>
                 </label>
               ))}
             </div>
@@ -60,7 +60,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
                     onChange={() => dispatch(toggleBrandPreference(key))}
                     className="accent-[#3A3A3D]"
                   />
-                  <span className="ml-2 capitalize text-base">
+                  <span className="ml-2 capitalize text-[14px] font-inter font-medium leading-[140%]">
                     {key === "brand_ethics" ? "Brand Ethics" : "Aesthetic"}
                   </span>
                 </label>
@@ -70,12 +70,12 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
         </div>
 
         <div>
-          <label className="block text-base mb-2">
+          <label className="block text-[14px] font-inter font-medium leading-[140%] mb-2">
             Tell us a little more about why this brand resonates with you:
           </label>
           <input
             type="text"
-            className="w-full border border-black bg-[#F5F5F5] px-4 py-2 text-black placeholder-black/40 focus:outline-none rounded-md"
+            className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[16px] font-inter font-normal leading-[150%] text-black placeholder-black/40 focus:outline-none rounded-md"
             placeholder="Preferred brand (optional)"
             value={sharedPreference}
             onChange={(e) => dispatch(setSharedPreference(e.target.value))}
@@ -87,13 +87,13 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
             <button
               type="button"
               onClick={onBack}
-              className="px-6 py-2 text-lg font-bold text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+              className="px-6 py-3 text-[14px] font-inter font-medium leading-[140%] text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
             >
               ← Back
             </button>
             <button
               type="submit"
-              className="px-6 py-2 text-lg font-bold text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+              className="px-6 py-3 text-[14px] font-inter font-medium leading-[140%] text-white bg-[#3A3A3D] hover:bg-black active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
             >
               Next →
             </button>

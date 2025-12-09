@@ -11,9 +11,11 @@ module.exports = {
       fontFamily: {
         serif: ['"Playfair Display"', 'serif'],
         sans: ['"Open Sans"', 'sans-serif'],
-        serif: ['"DM Serif Display"', 'serif'],
         aboreto: ['"Aboreto"', 'cursive'],
-         ebgaramond: ['"EB Garamond"', 'serif'],
+        ebgaramond: ['"EB Garamond"', 'serif'],
+        // Font Guide fonts
+        'sf-pro': ['"SF Pro Display"', '"Sohne"', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        inter: ['"Inter"', 'system-ui', 'sans-serif'],
       },
     },
   },
