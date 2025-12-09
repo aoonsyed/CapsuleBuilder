@@ -47,7 +47,7 @@ export default function Step1Vision({
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col text-black" noValidate>
         {/* Header */}
         <div className="mb-8">
-          {!embedded && <p className="ml-2 text-sm mb-2 font-inter text-[14px] font-medium leading-[140%]">Step 1 of 5</p>}
+          <p className="ml-2 text-sm mb-2 font-inter text-[14px] font-medium leading-[140%]">Step 1 of 5</p>
           <h1 className="text-[32px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%]">Line Strategy</h1>
         </div>
 
