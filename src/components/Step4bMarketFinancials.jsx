@@ -134,7 +134,19 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                   <h3 className="text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] text-black">Yield & Consumption Estimates</h3>
                 </div>
                 <div className="text-[16px] leading-[150%] text-black font-inter font-normal pl-13">
-                  {yieldConsumption ? <ReactMarkdown>{yieldConsumption}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+                  {yieldConsumption ? (
+                    <div className="bg-[#E8E8E8] rounded-md p-6">
+                      <ReactMarkdown
+                        components={{
+                          hr: () => null,
+                        }}
+                      >
+                        {yieldConsumption}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="text-gray-400">No data available</p>
+                  )}
                 </div>
               </div>
 
@@ -147,7 +159,19 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                   <h3 className="text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] text-black">Lead Time</h3>
                 </div>
                 <div className="text-[16px] leading-[150%] text-black font-inter font-normal pl-13">
-                  {leadTime ? <ReactMarkdown>{leadTime}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+                  {leadTime ? (
+                    <div className="bg-[#E8E8E8] rounded-md p-6">
+                      <ReactMarkdown
+                        components={{
+                          hr: () => null,
+                        }}
+                      >
+                        {leadTime}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="text-gray-400">No data available</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -161,7 +185,15 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 <h4 className="text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-6 text-black">Comparable Market Examples</h4>
                 <div className="text-[16px] leading-[150%] text-black font-inter font-normal">
                   {marketExamples ? (
-                    <ReactMarkdown>{marketExamples}</ReactMarkdown>
+                    <div className="bg-[#E8E8E8] rounded-md p-6">
+                      <ReactMarkdown
+                        components={{
+                          hr: () => null,
+                        }}
+                      >
+                        {marketExamples}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <p className="text-gray-400">No data available</p>
                   )}
@@ -173,7 +205,15 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 <h4 className="text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-6 text-black">Target Consumer Insight</h4>
                 <div className="text-[16px] leading-[150%] text-black font-inter font-normal">
                   {targetInsight ? (
-                    <ReactMarkdown>{targetInsight}</ReactMarkdown>
+                    <div className="bg-[#E8E8E8] rounded-md p-6">
+                      <ReactMarkdown
+                        components={{
+                          hr: () => null,
+                        }}
+                      >
+                        {targetInsight}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <p className="text-gray-400">No data available</p>
                   )}
@@ -190,7 +230,15 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 <h4 className="text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-6 text-black">Margin Analysis</h4>
                 <div className="text-[16px] leading-[150%] text-black font-inter font-normal">
                   {marginAnalysis ? (
-                    <ReactMarkdown>{marginAnalysis}</ReactMarkdown>
+                    <div className="bg-[#E8E8E8] rounded-md p-6">
+                      <ReactMarkdown
+                        components={{
+                          hr: () => null,
+                        }}
+                      >
+                        {marginAnalysis}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <p className="text-gray-400">No data available</p>
                   )}
@@ -202,7 +250,15 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 <h4 className="text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-6 text-black">Wholesale vs DTC Pricing</h4>
                 <div className="text-[16px] leading-[150%] text-black font-inter font-normal">
                   {pricing ? (
-                    <ReactMarkdown>{pricing}</ReactMarkdown>
+                    <div className="bg-[#E8E8E8] rounded-md p-6">
+                      <ReactMarkdown
+                        components={{
+                          hr: () => null,
+                        }}
+                      >
+                        {pricing}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <p className="text-gray-400">No data available</p>
                   )}

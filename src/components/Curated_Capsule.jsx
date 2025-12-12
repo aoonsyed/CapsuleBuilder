@@ -7,18 +7,18 @@ export default function Curated_Capsule() {
     darkGray: "#7B6240",
     charcoal: "#F4EBDC",
   };
-  const categories = ['Outerwear', 'Tops', 'Pants', 'Dresses'];
+  const categories = ['Outerwear', 'Tee Shirt', 'Pants', 'Dresses'];
   const categoryMap = {
   Outerwear: ['Jacket', 'Pants', 'Outerwear'],     
-  Tops: ['Jacket', 'Pants', 'Outerwear'],       
-  Pants: ['Jacket', 'Pants', 'Outerwear'],        
+  'Tee Shirt': ['Jacket', 'Pants', 'Outerwear'],       
+  Pants: ['Pants'],        
   Dresses: ['Jacket', 'Pants', 'Outerwear']       
 } 
-const name = ['Jacket','Tops','Pants','Outerwear'];
+const name = ['Jacket','Tee Shirt','Pants','Outerwear'];
   const [selectedCategory, setSelectedCategory] = useState('Outerwear');
   const categoryImages = {
     Outerwear: '/assets/7.png',
-    Tops: '/assets/8.png',
+    'Tee Shirt': '/assets/8.png',
     Pants: '/assets/9.png',
     Dresses: '/assets/10.png',
   };

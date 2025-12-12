@@ -4,7 +4,7 @@ import CapsuleOverview from './Capsule_overview';
 
 export default function LandingPage({ onNext }) {
   const [selected, setSelected] = useState([]);
-  const categories = ['Outerwear', 'Tops', 'Pants', 'Dresses'];
+  const categories = ['Outerwear', 'Tee Shirt', 'Pants', 'Dresses'];
 
   const toggleSelection = (category) => {
     setSelected((prev) =>

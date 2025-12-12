@@ -6,8 +6,8 @@ import Step3ProductFocus from "./Step3ProductFocus";
 
 export default function LandingPage2({ onNext, onContinue, startInGrid = false }) {
     const colors = { black: "#000000", white: "#F8F8F8", darkGray: "#7B6240", charcoal: "#F4EBDC" };
-    const categories = ["Outerwear", "Tops", "Pants", "Dresses"];
-    const name = ["Jacket", "Tops", "Pants", "Outerwear"];
+    const categories = ["Outerwear", "Tee Shirt", "Pants", "Dresses"];
+    const name = ["Jacket", "Tee Shirt", "Pants", "Outerwear"];
 
     const [selectedCategory, setSelectedCategory] = useState("Outerwear");
     const [showAllForms, setShowAllForms] = useState(startInGrid);
@@ -15,9 +15,16 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
 
     const categoryImages = {
         Outerwear: "/assets/7.png",
-        Tops: "/assets/8.png",
+        "Tee Shirt": "/assets/8.png",
         Pants: "/assets/9.png",
         Dresses: "/assets/12.png",
+    };
+
+    const categoryMap = {
+        Outerwear: ['Jacket', 'Pants', 'Outerwear'],
+        "Tee Shirt": ['Jacket', 'Pants', 'Outerwear'],
+        Pants: ['Pants'],
+        Dresses: ['Jacket', 'Pants', 'Outerwear']
     };
 
     useEffect(() => {
@@ -270,16 +277,13 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-6 sm:justify-items-center
   "
 >
-  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-inter font-medium text-[14px] leading-[140%] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
-    Jacket
-  </div>
-  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-inter font-medium text-[14px] leading-[140%] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
-    Top
-  </div>
-  <div className="flex items-center justify-center bg-white text-black rounded-2xl font-inter font-medium text-[14px] leading-[140%] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
-    Outerwear
-  </div>
-  <div className="hidden sm:block" />
+  {categoryMap[selectedCategory]?.map((item, index) => (
+    <div key={index} className="flex items-center justify-center bg-white text-black rounded-2xl font-inter font-medium text-[14px] leading-[140%] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
+      {item}
+    </div>
+  ))}
+  {categoryMap[selectedCategory]?.length === 1 && <div className="hidden sm:block" />}
+  {categoryMap[selectedCategory]?.length === 1 && <div className="hidden sm:block" />}
 </div>
 
                                 </div>
