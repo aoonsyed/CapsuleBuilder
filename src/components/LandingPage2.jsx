@@ -16,14 +16,14 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     const categoryImages = {
         Outerwear: "/assets/7.png",
         "Tee Shirt": "/assets/8.png",
-        Pants: "/assets/9.png",
+        Pants: "/assets/9.jpg",
         Dresses: "/assets/12.png",
     };
 
     const categoryMap = {
         Outerwear: ['Jacket', 'Pants', 'Outerwear'],
         "Tee Shirt": ['Jacket', 'Pants', 'Outerwear'],
-        Pants: ['Pants'],
+        Pants:  ['Jacket', 'Pants', 'Outerwear'],
         Dresses: ['Jacket', 'Pants', 'Outerwear']
     };
 
