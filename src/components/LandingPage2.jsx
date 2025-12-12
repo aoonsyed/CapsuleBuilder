@@ -16,7 +16,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     const categoryImages = {
         Outerwear: "/assets/7.png",
         "Tee Shirt": "/assets/8.png",
-        Pants: "/assets/9.jpg",
+        Pants: "/assets/13.png",
         Dresses: "/assets/12.png",
     };
 
