@@ -3,8 +3,6 @@ import Step1Vision from "./Step1Vision";
 import Step2Inspiration from "./Step2Inspiration";
 import Step3ProductFocus from "./Step3ProductFocus";
 
-const BACKEND_URL = "https://backend-capsule-builder.onrender.com";
-
 // Prefer CRA-style env var, but fall back to Vite-style if present
 const ADMIN_DASHBOARD_TOKEN =
   process.env.REACT_APP_ADMIN_DASHBOARD_TOKEN ||
@@ -50,10 +48,15 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
 
     const handleAdminDashboardClick = () => {
         if (!ADMIN_DASHBOARD_TOKEN) {
-            console.error("Missing admin dashboard token. Set REACT_APP_ADMIN_DASHBOARD_TOKEN or VITE_ADMIN_DASHBOARD_TOKEN in the environment.");
+            console.error(
+                "Missing admin dashboard token. Set REACT_APP_ADMIN_DASHBOARD_TOKEN or VITE_ADMIN_DASHBOARD_TOKEN in the environment."
+            );
+            // Navigate to the SPA admin route so at least the page loads and can surface its own error state
+            window.location.href = "/admin";
             return;
         }
-        window.location.href = `${BACKEND_URL}/admin/dashboard?token=${ADMIN_DASHBOARD_TOKEN}`;
+        // Navigate to our React-admin route; the page itself reads ?token=... and calls the backend
+        window.location.href = `/admin?token=${ADMIN_DASHBOARD_TOKEN}`;
     };
 
     const handleContinue = async () => {
