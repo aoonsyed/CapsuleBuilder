@@ -152,7 +152,14 @@ export default function AdminDashboard() {
   };
 
   const handleBackToCapsule = () => {
-    navigate("/capsule-builder");
+    const params = new URLSearchParams(window.location.search);
+    const customerId = params.get("customer_id");
+
+    if (customerId) {
+      navigate(`/capsule-builder?customer_id=${encodeURIComponent(customerId)}`);
+    } else {
+      navigate("/capsule-builder");
+    }
   };
 
   return (

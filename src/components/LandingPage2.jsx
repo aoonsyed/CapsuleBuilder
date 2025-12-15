@@ -54,8 +54,19 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
             alert("Admin dashboard token is not configured. Please set it in the deployment environment.");
             return;
         }
+
+        // Preserve current customer_id so admin can return to the tool without being logged out
+        const currentParams = new URLSearchParams(window.location.search);
+        const customerId = currentParams.get("customer_id");
+
+        const nextParams = new URLSearchParams();
+        if (customerId) {
+            nextParams.set("customer_id", customerId);
+        }
+        nextParams.set("token", ADMIN_DASHBOARD_TOKEN);
+
         // Navigate within this SPA to the admin dashboard route; the page itself calls the backend
-        window.location.href = `/admin?token=${encodeURIComponent(ADMIN_DASHBOARD_TOKEN)}`;
+        window.location.href = `/admin?${nextParams.toString()}`;
     };
 
     const handleContinue = async () => {
