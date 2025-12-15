@@ -56,8 +56,8 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
             alert("Admin dashboard token is not configured. Please set it in the deployment environment.");
             return;
         }
-        // Full-page navigation to backend-rendered dashboard with token
-        window.location.href = `${BACKEND_URL}/admin/dashboard?token=${ADMIN_DASHBOARD_TOKEN}`;
+        // Navigate to our SPA admin route; the page itself calls the backend with this token
+        window.location.href = `/admin?token=${ADMIN_DASHBOARD_TOKEN}`;
     };
 
     const handleContinue = async () => {

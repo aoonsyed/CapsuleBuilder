@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = "https://backend-capsule-builder.onrender.com";
+
 // Simple badge component following Capsule Builder typography + spacing
 function Badge({ children, colorClass = "bg-gray-100 text-gray-800", extra = "" }) {
   return (
@@ -34,7 +36,9 @@ export default function AdminDashboard() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`/admin/dashboard?token=${encodeURIComponent(token)}`);
+        const res = await fetch(
+          `${BACKEND_URL}/admin/dashboard?token=${encodeURIComponent(token)}`
+        );
         const data = await res.json();
 
         if (!res.ok || !data.ok) {
@@ -257,7 +261,8 @@ export default function AdminDashboard() {
             <table className="min-w-full text-left text-[13px]">
               <thead className="bg-[#F5F5F5] text-[#555] font-medium">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Full Name</th>
+                  <th className="px-4 py-3 font-medium">First Name</th>
+                  <th className="px-4 py-3 font-medium">Last Name</th>
                   <th className="px-4 py-3 font-medium">Email</th>
                   <th className="px-4 py-3 font-medium">Trial Used</th>
                   <th className="px-4 py-3 font-medium">Plan</th>
@@ -271,7 +276,7 @@ export default function AdminDashboard() {
                 {filteredUsers.length === 0 && (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="px-4 py-6 text-center text-[13px] text-[#777]"
                     >
                       {loading
@@ -291,12 +296,21 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3 align-middle">
                       <div className="flex flex-col">
                         <span className="font-medium text-[13px]">
-                          {user.full_name || "-"}
+                          {user.first_name ||
+                            (user.full_name || "").split(" ")[0] ||
+                            "-"}
                         </span>
                         <span className="text-[11px] text-[#777]">
                           ID: {user.customer_id}
                         </span>
                       </div>
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      <span className="font-medium text-[13px]">
+                        {user.last_name ||
+                          (user.full_name || "").split(" ").slice(1).join(" ") ||
+                          "-"}
+                      </span>
                     </td>
                     <td className="px-4 py-3 align-middle">
                       <span className="text-[13px]">{user.email || "-"}</span>
