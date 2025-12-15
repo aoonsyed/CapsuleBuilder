@@ -3,7 +3,8 @@ import Step1Vision from "./Step1Vision";
 import Step2Inspiration from "./Step2Inspiration";
 import Step3ProductFocus from "./Step3ProductFocus";
 
-const BACKEND_URL = "https://backend-capsule-builder.onrender.com";
+const FRONTEND_BASE_URL =
+  process.env.REACT_APP_FRONTEND_BASE_URL || "https://capsule-builder-qhzx.vercel.app";
 
 // Prefer CRA-style env var, but fall back to Vite-style if present
 const ADMIN_DASHBOARD_TOKEN =
@@ -56,8 +57,8 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
             alert("Admin dashboard token is not configured. Please set it in the deployment environment.");
             return;
         }
-        // Navigate to our SPA admin route; the page itself calls the backend with this token
-        window.location.href = `/admin?token=${ADMIN_DASHBOARD_TOKEN}`;
+        // Always send admins to the Capsule Builder SPA domain, not the Shopify domain
+        window.location.href = `${FRONTEND_BASE_URL}/admin?token=${ADMIN_DASHBOARD_TOKEN}`;
     };
 
     const handleContinue = async () => {
