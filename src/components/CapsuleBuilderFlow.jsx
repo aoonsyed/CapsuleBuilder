@@ -16,6 +16,7 @@ export default function CapsuleBuilderFlow() {
   const [isValidating, setIsValidating] = useState(true);
   const [isValidated, setIsValidated] = useState(false);
   const [isTrial, setIsTrial] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Track if the user began via the 3-form grid on Landing
   const [startedWithGrid, setStartedWithGrid] = useState(false);
@@ -74,8 +75,11 @@ export default function CapsuleBuilderFlow() {
         // Handle backend response - backend now always allows access
         console.log("Backend response data:", data);
         
-        // Backend always returns ok=true now, but provides trial_used status
+        // Backend always returns ok=true now, but provides trial_used and admin status
         if (data.ok === true) {
+          // Admin flag is the single source of truth for admin visibility
+          setIsAdmin(Boolean(data.is_admin));
+
           // Show trial banner if trial hasn't been used yet
           if (data.show_trial_banner || !data.trial_used) {
             console.log("User is on free trial. Trial used:", data.trial_used);
@@ -173,6 +177,7 @@ export default function CapsuleBuilderFlow() {
             {/* Step 1 — Landing */}
             {step === 1 && (
               <LandingPage2
+                isAdmin={isAdmin}
                 startInGrid={startLandingInGrid} // tells Landing to open directly in 3-form grid (when coming back)
                 onContinue={() => {
                   // User used the 3-form grid "Continue"

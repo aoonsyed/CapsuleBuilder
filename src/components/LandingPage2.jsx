@@ -3,8 +3,16 @@ import Step1Vision from "./Step1Vision";
 import Step2Inspiration from "./Step2Inspiration";
 import Step3ProductFocus from "./Step3ProductFocus";
 
+const BACKEND_URL = "https://backend-capsule-builder.onrender.com";
 
-export default function LandingPage2({ onNext, onContinue, startInGrid = false }) {
+// Prefer CRA-style env var, but fall back to Vite-style if present
+const ADMIN_DASHBOARD_TOKEN =
+  process.env.REACT_APP_ADMIN_DASHBOARD_TOKEN ||
+  (typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    import.meta.env.VITE_ADMIN_DASHBOARD_TOKEN);
+
+export default function LandingPage2({ onNext, onContinue, startInGrid = false, isAdmin = false }) {
     const colors = { black: "#000000", white: "#F8F8F8", darkGray: "#7B6240", charcoal: "#F4EBDC" };
     const categories = ["Outerwear", "Tee Shirt", "Pants", "Dresses"];
     const name = ["Jacket", "Tee Shirt", "Pants", "Outerwear"];
@@ -39,6 +47,14 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
     // No need to validate here anymore
 
     const handleGetStarted = () => setShowAllForms(true);
+
+    const handleAdminDashboardClick = () => {
+        if (!ADMIN_DASHBOARD_TOKEN) {
+            console.error("Missing admin dashboard token. Set REACT_APP_ADMIN_DASHBOARD_TOKEN or VITE_ADMIN_DASHBOARD_TOKEN in the environment.");
+            return;
+        }
+        window.location.href = `${BACKEND_URL}/admin/dashboard?token=${ADMIN_DASHBOARD_TOKEN}`;
+    };
 
     const handleContinue = async () => {
         // Get customer_id from URL
@@ -164,7 +180,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                         <br />
                         <span>sellable, production-ready line.</span>
                     </p>
-                    <div className="mt-8 flex justify-center lg:justify-start">
+                    <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                         <button
                             onClick={handleGetStarted}
                             className="
@@ -181,6 +197,26 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false }
                         >
                             Get Started
                         </button>
+                        {isAdmin && (
+                            <button
+                                type="button"
+                                onClick={handleAdminDashboardClick}
+                                className="
+                  inline-flex items-center justify-center
+                  px-6 py-3
+                  rounded-[20px]
+                  bg-white text-black
+                  border border-black
+                  hover:bg-black hover:text-white
+                  font-inter font-medium
+                  text-[14px] leading-[140%]
+                  shadow transition duration-200
+                  focus:outline-none focus:ring-2 focus:ring-black/30 active:scale-[0.99]
+                "
+                            >
+                                Admin Dashboard
+                            </button>
+                        )}
                     </div>
                 </div>
 

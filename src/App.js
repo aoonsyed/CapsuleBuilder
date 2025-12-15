@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import AdminDashboard from "./components/AdminDashboard";
 
 import Step1Vision from "./components/Step1Vision";
 import Step2Inspiration from "./components/Step2Inspiration";
@@ -15,9 +16,7 @@ function CapsuleBuilderFlow() {
   return (
     <div className="min-h-screen relative font-sans text-white">
       {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-      />
+      <div className="absolute inset-0 bg-cover bg-center" />
 
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
@@ -39,17 +38,17 @@ function CapsuleBuilderFlow() {
 
 function App() {
   return (
-
     <Router>
       <Routes>
         <Route path="/capsule-builder" element={<CapsuleBuilderFlow />} />
-        <Route path="*" element={<div className="text-white p-10">404 - Page Not Found</div>} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route
+          path="*"
+          element={<div className="text-white p-10">404 - Page Not Found</div>}
+        />
       </Routes>
     </Router>
-
   );
 }
-
-
 
 export default App;
