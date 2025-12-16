@@ -384,83 +384,82 @@ export default function AdminDashboard() {
         </section>
       </main>
 
-      {/* Footer (same as Capsule Builder landing) */}
-      <footer className="w-full background-color:rgb(var(--color-background)) font-ebgaramond py-16 px-12 text-[#22211C] text-[17px]">
-        <div className="footer__top-wrapper flex flex-col md:flex-row justify-between gap-8 md:gap-14 px-4 md:px-10">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <svg width="20" height="20" fill="none" stroke="currentColor">
-                <path
-                  d="M2.5 4.375H17.5V15C17.5 15.1658 17.4342 15.3247 17.3169 15.4419C17.1997 15.5592 17.0408 15.625 16.875 15.625H3.125C2.95924 15.625 2.80027 15.5592 2.68306 15.4419C2.56585 15.3247 2.5 15.1658 2.5 15V4.375Z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M17.5 4.375L10 11.25L2.5 4.375"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>info@formdepartment.com</span>
+      {/* Footer – constrained and organized for dashboard */}
+      <footer className="w-full bg-[#F5F5F5] font-ebgaramond text-[#22211C] text-[17px] mt-10 border-t border-[#E0E0E0]">
+        <div className="max-w-7xl mx-auto px-4 md:px-10 py-10">
+          <div className="flex flex-col md:flex-row justify-between gap-8 md:gap-14">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <svg width="20" height="20" fill="none" stroke="currentColor">
+                  <path
+                    d="M2.5 4.375H17.5V15C17.5 15.1658 17.4342 15.3247 17.3169 15.4419C17.1997 15.5592 17.0408 15.625 16.875 15.625H3.125C2.95924 15.625 2.80027 15.5592 2.68306 15.4419C2.56585 15.3247 2.5 15.1658 2.5 15V4.375Z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M17.5 4.375L10 11.25L2.5 4.375"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>info@formdepartment.com</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg width="20" height="20" fill="none" stroke="currentColor">
+                  <path
+                    d="M15 16.875L15 3.125C15 2.464 14.4404 1.875 13.75 1.875H6.25C5.55964 1.875 5 2.464 5 3.125L5 16.875C5 17.5654 5.55964 18.125 6.25 18.125H13.75C14.4404 18.125 15 17.5654 15 16.875Z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M10 5.625C10.5178 5.625 10.9375 5.20527 10.9375 4.6875C10.9375 4.16973 10.5178 3.75 10 3.75C9.48223 3.75 9.0625 4.16973 9.0625 4.6875C9.0625 5.20527 9.48223 5.625 10 5.625Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                <span>+1 213 265 7977</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <svg width="20" height="20" fill="none" stroke="currentColor">
-                <path
-                  d="M15 16.875L15 3.125C15 2.464 14.4404 1.875 13.75 1.875H6.25C5.55964 1.875 5 2.464 5 3.125L5 16.875C5 17.5654 5.55964 18.125 6.25 18.125H13.75C14.4404 18.125 15 17.5654 15 16.875Z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M10 5.625C10.5178 5.625 10.9375 5.20527 10.9375 4.6875C10.9375 4.16973 10.5178 3.75 10 3.75C9.48223 3.75 9.0625 4.16973 9.0625 4.6875C9.0625 5.20527 9.48223 5.625 10 5.625Z"
-                  fill="currentColor"
-                />
-              </svg>
-              <span>+1 213 265 7977</span>
+
+            <div className="flex flex-col gap-4 md:items-end">
+              <div className="flex gap-4">
+                <a
+                  href="https://www.facebook.com/formdepartment"
+                  aria-label="Facebook"
+                  className="text-black hover:opacity-70 transition"
+                >
+                  <i className="fab fa-facebook-f text-lg"></i>
+                </a>
+                <a
+                  href="https://www.instagram.com/formdepartment/"
+                  aria-label="Instagram"
+                  className="text-black hover:opacity-70 transition"
+                >
+                  <i className="fab fa-instagram text-lg"></i>
+                </a>
+              </div>
+
+              <div className="flex flex-wrap gap-x-6 gap-y-3 text-[17px] md:justify-end">
+                {[
+                  { label: "Policies", href: "/pages/policies" },
+                  { label: "Client Form", href: "/pages/client-form" },
+                  { label: "Item Form", href: "/pages/item-form-1" },
+                  { label: "Adjustment Form", href: "/pages/adjustment-form-1" },
+                  { label: "Labels & Packaging", href: "/pages/labels-packaging-1" },
+                  { label: "Printing & Embroidery", href: "/pages/printing-embroidery-1" },
+                  { label: "FAQ", href: "/pages/faq" },
+                ].map(({ label, href }, idx) => (
+                  <a key={idx} href={href} className="relative group transition inline-block">
+                    <span className="pb-1 hover-line">{label}</span>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <br />
-        <br />
-
-        <div className="footer__bottom page-width mt-10 px-4 md:px-10 text-[#22211C] font-[EB Garamond] text-[17px] flex flex-col gap-6">
-          <div className="flex gap-4">
-            <a
-              href="https://www.facebook.com/formdepartment"
-              aria-label="Facebook"
-              className="text-black hover:opacity-70 transition"
-            >
-              <i className="fab fa-facebook-f text-lg"></i>
-            </a>
-            <a
-              href="https://www.instagram.com/formdepartment/"
-              aria-label="Instagram"
-              className="text-black hover:opacity-70 transition"
-            >
-              <i className="fab fa-instagram text-lg"></i>
-            </a>
-          </div>
-
-          <div className="footer__bottom-row flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 w-full">
-            <p className="whitespace-nowrap text-left w-full md:w-auto">
+          <div className="mt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[15px]">
+            <p className="whitespace-nowrap">
               © 2025 <a href="/">Form Department</a>
             </p>
-
-            <div className="flex flex-wrap gap-x-6 gap-y-3 text-[17px] w-full md:justify-end md:w-auto">
-              {[
-                { label: "Policies", href: "/pages/policies" },
-                { label: "Client Form", href: "/pages/client-form" },
-                { label: "Item Form", href: "/pages/item-form-1" },
-                { label: "Adjustment Form", href: "/pages/adjustment-form-1" },
-                { label: "Labels & Packaging", href: "/pages/labels-packaging-1" },
-                { label: "Printing & Embroidery", href: "/pages/printing-embroidery-1" },
-                { label: "FAQ", href: "/pages/faq" },
-              ].map(({ label, href }, idx) => (
-                <a key={idx} href={href} className="relative group transition inline-block">
-                  <span className="pb-1 hover-line">{label}</span>
-                </a>
-              ))}
-            </div>
           </div>
 
           <style>{`
