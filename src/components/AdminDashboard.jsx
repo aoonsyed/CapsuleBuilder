@@ -114,25 +114,36 @@ export default function AdminDashboard() {
     else if (normalized === "pro") label = "Pro";
     else if (normalized === "admin") label = "Admin";
 
+    // Admin should stay visually distinct
     if (normalized === "admin") {
-      return <Badge colorClass="bg-purple-100 text-purple-800">{label}</Badge>;
+      return <Badge colorClass="bg-purple-100 text-purple-800 border border-purple-200">{label}</Badge>;
     }
 
+    // No plan / none
     if (!normalized || normalized === "none" || normalized === "null") {
-      return <Badge colorClass="bg-gray-100 text-gray-700">{label}</Badge>;
+      return (
+        <Badge colorClass="bg-gray-100 text-gray-700 border border-gray-200">
+          {label}
+        </Badge>
+      );
     }
 
-    // Tier1 low-uses warning
+    // Tier1 low-uses warning – softer amber pill
     const isTier1 = normalized === "tier1";
     if (isTier1 && typeof remainingUses === "number" && remainingUses < 3) {
       return (
-        <Badge colorClass="bg-amber-100 text-amber-800 border border-amber-200">
+        <Badge colorClass="bg-amber-50 text-amber-800 border border-amber-200">
           {label} – Low uses
         </Badge>
       );
     }
 
-    return <Badge colorClass="bg-black text-white">{label}</Badge>;
+    // Regular plans (Tier 1, Tier 2, Pro) – subtle outlined pill
+    return (
+      <Badge colorClass="bg-white text-black border border-gray-300">
+        {label}
+      </Badge>
+    );
   };
 
   const renderStatusBadge = (user) => {
@@ -344,7 +355,7 @@ export default function AdminDashboard() {
                           Used
                         </Badge>
                       ) : (
-                        <Badge colorClass="bg-white text-gray-700 border border-gray-300">
+                        <Badge colorClass="bg-gray-100 text-gray-700 border border-gray-200">
                           Not used
                         </Badge>
                       )}
