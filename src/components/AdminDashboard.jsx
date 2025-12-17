@@ -8,7 +8,7 @@ const BACKEND_URL = "https://backend-capsule-builder.onrender.com";
 function Badge({ children, colorClass = "bg-gray-100 text-gray-800", extra = "" }) {
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-inter font-medium leading-[140%] ${colorClass} ${extra}`}
+      className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[12px] font-inter font-medium leading-[140%] ${colorClass} ${extra}`}
     >
       {children}
     </span>
@@ -116,13 +116,23 @@ export default function AdminDashboard() {
 
     // Admin should stay visually distinct
     if (normalized === "admin") {
-      return <Badge colorClass="bg-purple-100 text-purple-800 border border-purple-200">{label}</Badge>;
+      return (
+        <Badge
+          colorClass="bg-black text-white"
+          extra="min-w-[88px]"
+        >
+          {label}
+        </Badge>
+      );
     }
 
     // No plan / none
     if (!normalized || normalized === "none" || normalized === "null") {
       return (
-        <Badge colorClass="bg-gray-100 text-gray-700 border border-gray-200">
+        <Badge
+          colorClass="bg-gray-100 text-gray-700 border border-gray-200"
+          extra="min-w-[88px]"
+        >
           {label}
         </Badge>
       );
@@ -132,15 +142,21 @@ export default function AdminDashboard() {
     const isTier1 = normalized === "tier1";
     if (isTier1 && typeof remainingUses === "number" && remainingUses < 3) {
       return (
-        <Badge colorClass="bg-amber-50 text-amber-800 border border-amber-200">
+        <Badge
+          colorClass="bg-amber-50 text-amber-800 border border-amber-200"
+          extra="min-w-[110px]"
+        >
           {label} – Low uses
         </Badge>
       );
     }
 
-    // Regular plans (Tier 1, Tier 2, Pro) – subtle outlined pill
+    // Regular plans (Tier 1, Tier 2, Pro) – slim black pill for strong emphasis
     return (
-      <Badge colorClass="bg-white text-black border border-gray-300">
+      <Badge
+        colorClass="bg-black text-white"
+        extra="min-w-[88px]"
+      >
         {label}
       </Badge>
     );
@@ -351,11 +367,17 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-4 py-3 align-middle text-center">
                       {user.trial_used ? (
-                        <Badge colorClass="bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <Badge
+                          colorClass="bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          extra="min-w-[88px]"
+                        >
                           Used
                         </Badge>
                       ) : (
-                        <Badge colorClass="bg-gray-100 text-gray-700 border border-gray-200">
+                        <Badge
+                          colorClass="bg-gray-100 text-gray-700 border border-gray-200"
+                          extra="min-w-[88px]"
+                        >
                           Not used
                         </Badge>
                       )}
