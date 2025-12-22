@@ -183,7 +183,7 @@ function ImageGeneration({onBack}) {
   }, []);
 
 if (loading) {
-    return <div className="flex flex-col items-center justify-center min-h-screen text-black/70 font-sans">
+    return <div className="flex flex-col items-center justify-center min-h-screen text-black/70 font-aboreto">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mb-4"></div>
 
                 In progress...

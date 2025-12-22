@@ -81,7 +81,7 @@ export default function Step6Complete({ email ,onNext,onBack,onContinue}) {
             </p>
            */}
 
-            <h2 className="text-3xl mb-4 font-inter text-black">Want expert eyes on your capsule?</h2>
+            <h2 className="text-3xl mb-4 font-aboreto text-black">Want expert eyes on your capsule?</h2>
 
             <p className="text-sm text-black/70 mb-4">
                 Add professional review or complete tech pack service.

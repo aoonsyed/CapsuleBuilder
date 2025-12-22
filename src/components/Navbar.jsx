@@ -24,7 +24,7 @@ export default function Navbar() {
     );
 
     return (
-        <nav className="bg-[#E8E8E8] font-ebgaramond sticky text-black leading-[24px] px-4 md:px-6 py-4 md:py-6 text-[14px]">
+        <nav className="bg-[#E8E8E8] font-aboreto sticky text-black leading-[24px] px-4 md:px-6 py-4 md:py-6 text-[14px]">
             <div className="max-w-7xl mx-auto h-auto md:h-[100px]">
                 {/* Top Row */}
                 <div className="flex items-center justify-between">

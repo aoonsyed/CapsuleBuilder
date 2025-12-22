@@ -26,7 +26,7 @@ export default function Step5ExportOptions({ email, onNext }) {
     };
 
     return (
-        <div className="max-w-xl mx-auto mt-12 p-8 font-sans text-white bg-black/40 border border-white backdrop-blur-md rounded-lg shadow-lg space-y-6">
+        <div className="max-w-xl mx-auto mt-12 p-8 font-aboreto text-white bg-black/40 border border-white backdrop-blur-md rounded-lg shadow-lg space-y-6">
             <h2 className="text-3xl font-normal">Export Your Capsule</h2>
             <p className="text-sm text-white/70">
                 You’ve finished your capsule. Download your personalized tech pack to take the next step.

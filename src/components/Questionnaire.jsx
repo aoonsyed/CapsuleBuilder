@@ -168,7 +168,7 @@ Only return the JSON. No markdown. No explanation.
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-black/70 font-sans">
+      <div className="flex items-center justify-center min-h-screen text-black/70 font-aboreto">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mr-3" />
         <p>Loading questions...</p>
       </div>
@@ -200,20 +200,20 @@ Only return the JSON. No markdown. No explanation.
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-inter">
+    <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-aboreto">
       <form onSubmit={handleSubmit} className="space-y-8 text-black">
         <div className="mb-8">
-          <p className="ml-5 text-sm font-inter text-[14px] font-medium leading-[140%] mb-2">Step 4 of 5</p>
-          <h2 className="text-[32px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-2">Clarifying Questions</h2>
+          <p className="ml-5 text-sm font-aboreto text-[14px] font-medium leading-[140%] mb-2">Step 4 of 5</p>
+          <h2 className="text-[32px] font-aboreto font-semibold leading-[120%] tracking-[-0.2%] mb-2">Clarifying Questions</h2>
         </div>
 
         {questionsData.map((category, ci) => (
           <div key={ci} className="mb-6">
-            <h3 className="text-[24px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%] mb-4">{category.title}</h3>
+            <h3 className="text-[24px] font-aboreto font-semibold leading-[120%] tracking-[-0.2%] mb-4">{category.title}</h3>
 
             {category.questions.map((q, qi) => (
               <div key={qi} className="mb-6">
-                <label className="block text-[14px] font-inter font-medium leading-[140%] mb-2 text-black">{q.question}</label>
+                <label className="block text-[14px] font-aboreto font-medium leading-[140%] mb-2 text-black">{q.question}</label>
 
                 {q.type === "multiple-choice" && Array.isArray(q.options) ? (
                   <div className="space-y-2">
@@ -228,14 +228,14 @@ Only return the JSON. No markdown. No explanation.
                           className="accent-[#3A3A3D]"
                           required={oi === 0 && !answers[q.question]}
                         />
-                        <span className="text-[14px] font-inter font-medium leading-[140%]">{opt}</span>
+                        <span className="text-[14px] font-aboreto font-medium leading-[140%]">{opt}</span>
                       </label>
                     ))}
                   </div>
                 ) : (
                   <input
                     type="text"
-                    className="w-full border border-black bg-transparent px-5 py-3 text-[16px] font-inter font-normal leading-[150%] text-black focus:outline-none rounded-md"
+                    className="w-full border border-black bg-transparent px-5 py-3 text-[16px] font-aboreto font-normal leading-[150%] text-black focus:outline-none rounded-md"
                     placeholder="Your answer"
                     value={answers[q.question] || ""}
                     onChange={(e) => handleAnswerChange(q.question, e.target.value)}
@@ -251,14 +251,14 @@ Only return the JSON. No markdown. No explanation.
           <button
             type="button"
             onClick={onBack}
-            className="px-6 py-3 text-[14px] font-inter font-medium leading-[140%] text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+            className="px-6 py-3 text-[14px] font-aboreto font-medium leading-[140%] text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
           >
             ← Back
           </button>
 
           <button
             type="submit"
-            className="px-6 py-3 text-[14px] font-inter font-medium leading-[140%] text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
+            className="px-6 py-3 text-[14px] font-aboreto font-medium leading-[140%] text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
           >
             Next →
           </button>

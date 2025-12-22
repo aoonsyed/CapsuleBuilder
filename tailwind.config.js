@@ -9,13 +9,12 @@ module.exports = {
         borderStrong: '#000000',
       },
       fontFamily: {
-        serif: ['"Playfair Display"', 'serif'],
-        sans: ['"Open Sans"', 'sans-serif'],
+        sans: ['"Aboreto"', 'cursive'],
+        serif: ['"Aboreto"', 'cursive'],
         aboreto: ['"Aboreto"', 'cursive'],
-        ebgaramond: ['"EB Garamond"', 'serif'],
-        // Font Guide fonts
-        'sf-pro': ['"SF Pro Display"', '"Sohne"', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-        inter: ['"Inter"', 'system-ui', 'sans-serif'],
+        inter: ['"Aboreto"', 'cursive'],
+        'sf-pro': ['"Aboreto"', 'cursive'],
+        ebgaramond: ['"Aboreto"', 'cursive'],
       },
     },
   },

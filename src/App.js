@@ -14,7 +14,7 @@ function CapsuleBuilderFlow() {
   const email = "demo@example.com";
 
   return (
-    <div className="min-h-screen relative font-sans text-white">
+    <div className="min-h-screen relative font-aboreto text-white">
       {/* Background image */}
       <div className="absolute inset-0 bg-cover bg-center" />
 

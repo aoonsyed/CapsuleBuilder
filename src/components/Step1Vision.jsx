@@ -38,8 +38,8 @@ export default function Step1Vision({
 
   // Slightly tighter padding when embedded, and make the card a flex column
   const cardClass = embedded
-    ? "bg-white/60 w-full max-w-[380px] p-6 pb-4 backdrop-blur-md rounded-lg shadow-xl font-inter flex flex-col overflow-hidden"
-    : "bg-white/60 max-w-md mx-auto p-8 pb-6 backdrop-blur-md rounded-lg shadow-xl font-inter flex flex-col overflow-hidden";
+    ? "bg-white/60 w-full max-w-[380px] p-6 pb-4 backdrop-blur-md rounded-lg shadow-xl font-aboreto flex flex-col overflow-hidden"
+    : "bg-white/60 max-w-md mx-auto p-8 pb-6 backdrop-blur-md rounded-lg shadow-xl font-aboreto flex flex-col overflow-hidden";
 
   return (
     <div className={cardClass} style={containerStyle}>
@@ -47,14 +47,14 @@ export default function Step1Vision({
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col text-black" noValidate>
         {/* Header */}
         <div className="mb-8">
-          <p className="ml-2 text-sm mb-2 font-inter text-[14px] font-medium leading-[140%]">Step 1 of 5</p>
-          <h1 className="text-[32px] font-sf-pro font-semibold leading-[120%] tracking-[-0.2%]">Line Strategy</h1>
+          <p className="ml-2 text-sm mb-2 font-aboreto text-[14px] font-medium leading-[140%]">Step 1 of 5</p>
+          <h1 className="text-[32px] font-aboreto font-semibold leading-[120%] tracking-[-0.2%]">Line Strategy</h1>
         </div>
 
         {/* Scrollable fields block (adjust internal spacing here) */}
         <div className="flex-1 overflow-y-auto pr-1 space-y-6">
           <div>
-            <label htmlFor="brandName" className="block text-[14px] font-inter font-medium leading-[140%] mb-2">
+            <label htmlFor="brandName" className="block text-[14px] font-aboreto font-medium leading-[140%] mb-2">
               Do you have a name for your brand?
             </label>
             <input
@@ -62,7 +62,7 @@ export default function Step1Vision({
               name="brandName"
               type="text"
               autoComplete="off"
-              className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[14px] font-inter font-medium leading-[140%] text-black placeholder-black/60 focus:outline-none rounded-md"
+              className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[14px] font-aboreto font-medium leading-[140%] text-black placeholder-black/60 focus:outline-none rounded-md"
               placeholder="e.g. Reformation"
               value={brandValue}
               onChange={(e) => dispatch(setBrand(e.target.value))}
@@ -70,14 +70,14 @@ export default function Step1Vision({
           </div>
 
           <div>
-            <label htmlFor="idea" className="block text-[14px] font-inter font-medium leading-[140%] mb-2">
+            <label htmlFor="idea" className="block text-[14px] font-aboreto font-medium leading-[140%] mb-2">
               Tell us a little bit about your idea:
             </label>
             <textarea
               id="idea"
               name="idea"
               rows={4}
-              className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[16px] font-inter font-normal leading-[150%] text-black placeholder-black/60 focus:outline-none rounded-md"
+              className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[16px] font-aboreto font-normal leading-[150%] text-black placeholder-black/60 focus:outline-none rounded-md"
               placeholder="Share a quick overview of your idea!"
               value={idea}
               onChange={(e) => dispatch(setIdea(e.target.value))}
