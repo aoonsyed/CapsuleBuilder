@@ -8,7 +8,7 @@ const BACKEND_URL = "https://backend-capsule-builder.onrender.com";
 function Badge({ children, colorClass = "bg-gray-100 text-gray-800", extra = "" }) {
   return (
     <span
-      className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[12px] font-aboreto font-medium leading-[140%] ${colorClass} ${extra}`}
+      className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[12px] font-sans font-medium leading-[1.2] ${colorClass} ${extra}`}
     >
       {children}
     </span>
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#E8E8E8] font-aboreto text-black">
+    <div className="min-h-screen w-full bg-[#E8E8E8] font-sans text-black">
       {/* Global header (same as Capsule Builder) */}
       <Navbar />
 
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
       <header className="w-full border-b border-[#E0E0E0] bg-[#E8E8E8]/90 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="font-aboreto font-semibold text-[26px] sm:text-[30px] leading-[120%] tracking-[-0.2%]">
+            <h1 className="font-heading font-semibold text-[26px] sm:text-[30px] leading-[1.2]">
               Admin Dashboard
             </h1>
             <p className="mt-1 text-[13px] sm:text-[14px] text-[#555]">
@@ -223,37 +223,37 @@ export default function AdminDashboard() {
         {/* Summary cards */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white rounded-2xl border border-[#E4E4E4] px-4 py-4 flex flex-col gap-1 shadow-sm">
-            <span className="text-[12px] font-medium text-[#555] uppercase tracking-[0.08em]">
+            <span className="text-[12px] font-medium text-[#555] uppercase tracking-[0]">
               Total users
             </span>
-            <span className="text-[24px] font-aboreto font-semibold leading-[120%]">
+            <span className="text-[24px] font-heading font-semibold leading-[1.2]">
               {metrics.total}
             </span>
           </div>
 
           <div className="bg-white rounded-2xl border border-[#E4E4E4] px-4 py-4 flex flex-col gap-1 shadow-sm">
-            <span className="text-[12px] font-medium text-[#555] uppercase tracking-[0.08em]">
+            <span className="text-[12px] font-medium text-[#555] uppercase tracking-[0]">
               Trial used
             </span>
-            <span className="text-[24px] font-aboreto font-semibold leading-[120%]">
+            <span className="text-[24px] font-heading font-semibold leading-[1.2]">
               {metrics.trialUsed}
             </span>
           </div>
 
           <div className="bg-white rounded-2xl border border-[#E4E4E4] px-4 py-4 flex flex-col gap-1 shadow-sm">
-            <span className="text-[12px] font-medium text-[#555] uppercase tracking-[0.08em]">
+            <span className="text-[12px] font-medium text-[#555] uppercase tracking-[0]">
               Active subscriptions
             </span>
-            <span className="text-[24px] font-aboreto font-semibold leading-[120%] text-emerald-700">
+            <span className="text-[24px] font-heading font-semibold leading-[1.2] text-emerald-700">
               {metrics.activeSubs}
             </span>
           </div>
 
           <div className="bg-white rounded-2xl border border-[#E4E4E4] px-4 py-4 flex flex-col gap-1 shadow-sm">
-            <span className="text-[12px] font-medium text-[#555] uppercase tracking-[0.08em]">
+            <span className="text-[12px] font-medium text-[#555] uppercase tracking-[0]">
               Expired subscriptions
             </span>
-            <span className="text-[24px] font-aboreto font-semibold leading-[120%] text-red-700">
+            <span className="text-[24px] font-heading font-semibold leading-[1.2] text-red-700">
               {metrics.expiredSubs}
             </span>
           </div>
@@ -418,7 +418,7 @@ export default function AdminDashboard() {
       </main>
 
       {/* Footer – constrained and organized for dashboard */}
-      <footer className="w-full bg-[#F5F5F5] font-aboreto text-[#22211C] text-[17px] mt-10 border-t border-[#E0E0E0]">
+      <footer className="w-full bg-[#F5F5F5] font-sans text-[#22211C] text-[17px] mt-10 border-t border-[#E0E0E0] leading-[1.2]">
         <div className="max-w-7xl mx-auto px-4 md:px-10 py-10">
           <div className="flex flex-col md:flex-row justify-between gap-8 md:gap-14">
             <div className="flex flex-col gap-4">

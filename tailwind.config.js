@@ -9,12 +9,16 @@ module.exports = {
         borderStrong: '#000000',
       },
       fontFamily: {
-        sans: ['"Aboreto"', 'cursive'],
-        serif: ['"Aboreto"', 'cursive'],
-        aboreto: ['"Aboreto"', 'cursive'],
-        inter: ['"Aboreto"', 'cursive'],
-        'sf-pro': ['"Aboreto"', 'cursive'],
-        ebgaramond: ['"Aboreto"', 'cursive'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: ['"Playfair Display"', 'Georgia', 'serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+      },
+      letterSpacing: {
+        '0': '0',
+      },
+      lineHeight: {
+        'body': '1.2',
       },
     },
   },

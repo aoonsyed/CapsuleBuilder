@@ -15,10 +15,10 @@ export default function LandingPage({ onNext }) {
   };
 
   return (
-    <div className="bg-[#e5e5e5] font-serif text-black min-h-screen">
+    <div className="bg-[#e5e5e5] font-sans text-black min-h-screen leading-[1.2]">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4">
-        <h1 className="text-4xl font-bold tracking-wide">FORM</h1>
+        <h1 className="text-4xl font-heading font-bold">FORM</h1>
         <nav className="space-x-4 text-sm">
           <a href="#" className="hover:underline">All The Details</a>
           <a href="#" className="hover:underline">Blogs</a>
@@ -29,7 +29,7 @@ export default function LandingPage({ onNext }) {
       {/* Hero Section */}
       <section className="flex flex-col md:flex-row items-center px-6 md:px-16 py-12 space-y-8 md:space-y-0 md:space-x-16">
         <div className="md:w-1/2 space-y-4">
-          <h2 className="text-3xl md:text-5xl font-light leading-tight">
+          <h2 className="text-3xl md:text-5xl font-heading font-light leading-[1.2]">
             START YOUR <br /> CAPSULE COLLECTION
           </h2>
           <p className="text-sm">
@@ -47,7 +47,7 @@ export default function LandingPage({ onNext }) {
       {/* Step Section */}
       <section className="bg-white py-10 px-6 md:px-16">
         <p className="text-sm text-gray-600">Step 4 Of 4</p>
-        <h3 className="text-xl md:text-2xl font-light mt-2 mb-6">WHAT CATEGORY ARE YOU DESIGNING?</h3>
+        <h3 className="text-xl md:text-2xl font-heading font-light mt-2 mb-6 leading-[1.2]">WHAT CATEGORY ARE YOU DESIGNING?</h3>
 
         {/* Category Buttons */}
         <div className="flex flex-wrap gap-4 mb-10">
@@ -105,7 +105,7 @@ export default function LandingPage({ onNext }) {
 
       {/* What You'll Receive */}
       <section className="bg-[#2b2b2b] text-white text-center py-12 px-6 md:px-16">
-        <h3 className="text-xl mb-6">WHAT YOU’LL RECEIVE</h3>
+        <h3 className="text-xl font-heading mb-6 leading-[1.2]">WHAT YOU’LL RECEIVE</h3>
         <div className="text-xs space-y-4">
           <p><strong>Curated Materials</strong><br />Thoughtfully Selected Fabrics Tailored To Your Aesthetic, Function, And Brand Goals.</p>
           <p><strong>Color Direction</strong><br />A Cohesive Palette Shaped By Your Feedback And Market Position.</p>
@@ -116,7 +116,7 @@ export default function LandingPage({ onNext }) {
 
       {/* Who It's For */}
       <section className="bg-[#e5e5e5] text-center py-12 px-6 md:px-16 text-sm">
-        <h3 className="text-xl mb-4 tracking-wide">WHO IT’S FOR</h3>
+        <h3 className="text-xl font-heading mb-4 leading-[1.2]">WHO IT’S FOR</h3>
         <p className="max-w-3xl mx-auto">
           Capsule Builder Is Designed For Founders, Creators, And Brands Ready To Refine An Idea Without Needing Technical Expertise. <br />
           Gain Clarity On Design, Fabrication, Color, And Cost—So You Can Move Forward With Purpose, Whether Into Production Or Deeper Development.

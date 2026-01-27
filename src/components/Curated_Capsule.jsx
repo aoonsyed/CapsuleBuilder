@@ -32,12 +32,12 @@ const handleCategorySelect = (category) => {
     <div className="w-screen relative left-1/2 -ml-[50vw] bg-white overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-12 transform md:-translate-x-5 overflow-x-hidden">
        <div className="w-full mb-4 md:transform md:translate-x-5">
-  <h1 className="text-black text-xl font-[Garamond]">
-    Step <span className="font-[Albereto Regular]">{currentStep}</span> Of <span className="font-[Albereto Regular]">4</span>
+  <h1 className="text-black text-xl font-sans leading-[1.2]">
+    Step <span className="font-sans">{currentStep}</span> Of <span className="font-sans">4</span>
   </h1>
 </div>
 
-        <h1 className="text-black text-[20pt] sm:text-[24pt] md:text-[26pt] font-[Albereto Regular] mb-3 md:transform md:translate-x-5">
+        <h1 className="text-black text-[20pt] sm:text-[24pt] md:text-[26pt] font-heading mb-3 md:transform md:translate-x-5 leading-[1.2]">
           WHAT CATEGORY ARE YOU DESIGNING?
         </h1>
          <div className="flex justify-start gap-3 sm:gap-4 flex-wrap mb-10 md:mb-16 md:transform md:translate-x-5">
@@ -45,7 +45,7 @@ const handleCategorySelect = (category) => {
           <button
   key={category}
   onClick={() => {}} // Disabled click handler
-  className={`px-5 sm:px-6 py-2 rounded-full font-[Garamond] font-[500] text-[13pt] sm:text-[14pt] transition-all border flex items-center gap-3 cursor-not-allowed opacity-50
+  className={`px-5 sm:px-6 py-2 rounded-full font-sans font-medium text-[13pt] sm:text-[14pt] transition-all border flex items-center gap-3 cursor-not-allowed opacity-50 leading-[1.2]
     ${
       selectedCategory === category
         ? 'bg-black text-white'
@@ -70,10 +70,10 @@ const handleCategorySelect = (category) => {
       </div>
         {/* Heading */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-5">
-  <h1 className="text-black text-[18pt] sm:text-[20pt] font-[Albereto Regular] md:transform md:translate-x-5 mb-1 sm:mb-2">
+  <h1 className="text-black text-[18pt] sm:text-[20pt] font-heading md:transform md:translate-x-5 mb-1 sm:mb-2 leading-[1.2]">
     YOUR CURATED CAPSULE
   </h1>
-  <h1 className="text-black text-[12pt] sm:text-[14pt] font-[Albereto Regular] font-normal md:transform md:-translate-x-[30px]">
+  <h1 className="text-black text-[12pt] sm:text-[14pt] font-sans font-normal md:transform md:-translate-x-[30px] leading-[1.2]">
   SESTEDD SUGT
 </h1>
 </div>
@@ -90,8 +90,8 @@ const handleCategorySelect = (category) => {
     />
   </div>
   <div className="p-4">
-    <h2 className='text-black font-[Garamond] text-[16pt] ml-6 font-semibold'>Bomber {name[categories.indexOf(selectedCategory)]}</h2>
-    <p className="text-[#000000] font-[Garamond] text-[12pt] ml-6"> Suggested Fabrics:Nylon,Cotton Blend</p>
+    <h2 className='text-black font-heading text-[16pt] ml-6 font-semibold leading-[1.2]'>Bomber {name[categories.indexOf(selectedCategory)]}</h2>
+    <p className="text-[#000000] font-sans text-[12pt] ml-6 leading-[1.2]"> Suggested Fabrics:Nylon,Cotton Blend</p>
  </div>
            
            
@@ -102,7 +102,7 @@ const handleCategorySelect = (category) => {
           <div className="flex flex-col gap-6 sm:gap-10 md:gap-12 ">
            {/* Suggested Product (Hor izontal) */}
 <div className="bg-[#E8E8E8] rounded-2xl shadow-md border border-[#E4E4E4] p-5 gap-6 w-full max-w-[560px] h-[230px]">
-   <h2 className="text-black text-xl font-[Garamond] font-[580] ml-3 mt-3 mb-5 tracking-tight">
+   <h2 className="text-black text-xl font-heading font-semibold ml-3 mt-3 mb-5 leading-[1.2]">
                 Suggested Product
               </h2>
               <div className = "flex items-center gap-6">
@@ -120,7 +120,7 @@ const handleCategorySelect = (category) => {
     {categoryMap[selectedCategory].map((subcategory, index) => (
       <div
         key={index}
-       className="w-[140px] h-[60px] flex items-center justify-center bg-white text-black rounded-3xl font-[Garamond] font-[550] text-[14pt] text-center transition border"
+       className="w-[140px] h-[60px] flex items-center justify-center bg-white text-black rounded-3xl font-sans font-medium text-[14pt] text-center transition border leading-[1.2]"
 >
         {subcategory.trim()}
       </div>
@@ -133,7 +133,7 @@ const handleCategorySelect = (category) => {
 
             {/* Color Palette */}
             <div className="bg-[#E8E8E8] rounded-2xl shadow-md border border-[#E4E4E4] p-5 w-full max-w-[560px] h-[230px] justify center items-center">
-               <h2 className="text-black text-xl font-[Garamond] font-[580] mb-6 mt-5 tracking-tight">
+               <h2 className="text-black text-xl font-heading font-semibold mb-6 mt-5 leading-[1.2]">
                 Suggested Color Palette
               </h2>
               <div className="flex gap-6 px-3 py-5">

@@ -76,12 +76,12 @@ export default function Step6Complete({ email ,onNext,onBack,onContinue}) {
                ←
            </button>
            {/*
-            <p className="pt-1 text-sm text-white/60 mb-2 font-[Garamond]">
+            <p className="pt-1 text-sm text-white/60 mb-2 font-sans leading-[1.2]">
                 Form Department — <span className="text-white">Capsule Builder</span>
             </p>
            */}
 
-            <h2 className="text-3xl mb-4 font-aboreto text-black">Want expert eyes on your capsule?</h2>
+            <h2 className="text-3xl mb-4 font-heading text-black leading-[1.2]">Want expert eyes on your capsule?</h2>
 
             <p className="text-sm text-black/70 mb-4">
                 Add professional review or complete tech pack service.

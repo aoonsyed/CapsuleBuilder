@@ -134,7 +134,7 @@ export default function CapsuleBuilderFlow() {
       <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-black font-aboreto text-[16px] font-normal leading-[150%]">Validating access...</p>
+          <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">Validating access...</p>
         </div>
       </div>
     );
@@ -146,7 +146,7 @@ export default function CapsuleBuilderFlow() {
   }
 
   return (
-    <div className="bg-[#E8E8E8] min-h-screen bg-cover bg-center font-aboreto text-white relative">
+    <div className="bg-[#E8E8E8] min-h-screen bg-cover bg-center font-sans text-white relative">
       <div className="absolute inset-0 bg-[#E8E8E8] z-0" />
       {/* Free Trial Banner */}
       {isTrial && (

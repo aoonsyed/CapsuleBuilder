@@ -262,12 +262,12 @@ const generatePrompt = () => {
   <>
     <Toaster position="top-right" richColors />
     {loading ? (
-      <div className="fixed inset-0 flex flex-col items-center justify-center h-screen text-black/70 font-[Garamond]">
+      <div className="fixed inset-0 flex flex-col items-center justify-center h-screen text-black/70 font-sans">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mb-4"></div>
         In progress...
       </div>
     ) : !suggestions ? (
-      <div className="flex flex-col items-center justify-center min-h-screen text-[#3A3A3D] font-[Garamond] text-lg">
+      <div className="flex flex-col items-center justify-center min-h-screen text-[#3A3A3D] font-sans text-lg leading-[1.2]">
         <p className="mb-4">No Suggestions For Now</p>
         <button
           onClick={onBack}
@@ -293,7 +293,7 @@ const generatePrompt = () => {
 
         {/* Title Section */}
         <div className="container mx-auto px-4 py-8">
-          <h2 className="text-[#333333] text-4xl md:text-5xl font-[Albereto Regular] text-center mb-8">
+          <h2 className="text-[#333333] text-4xl md:text-5xl font-heading text-center mb-8 leading-[1.2]">
             {title}
           </h2>
         </div>
@@ -305,24 +305,24 @@ const generatePrompt = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {/* Materials Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Materials</h3>
-              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Materials</h3>
+              <div className="text-lg leading-[1.2] text-black font-sans">
                 {suggestions.materials ? <ReactMarkdown>{suggestions.materials}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
 
             {/* Sales Price Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Sales Price</h3>
-              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Sales Price</h3>
+              <div className="text-lg leading-[1.2] text-black font-sans">
                 {suggestions.saleprices ? <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
 
             {/* Cost Production Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Cost Production</h3>
-              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Cost Production</h3>
+              <div className="text-lg leading-[1.2] text-black font-sans">
                 {suggestions.productionCosts ? <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>
@@ -332,7 +332,7 @@ const generatePrompt = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Color Palette Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Color Palette</h3>
+              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Color Palette</h3>
               {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
                 <div className="flex flex-wrap gap-6 mt-4 justify-center">
                   {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
@@ -342,19 +342,19 @@ const generatePrompt = () => {
                         style={{ backgroundColor: hex }}
                         title={name}
                       />
-                      <span className="text-black text-xs font-[Garamond] font-bold">{hex}</span>
+                      <span className="text-black text-xs font-sans font-bold">{hex}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-400 font-[Garamond] text-center mt-4">No color data available</p>
+                <p className="text-gray-400 font-sans text-center mt-4">No color data available</p>
               )}
             </div>
 
             {/* Companion Items Card */}
             <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-[Albereto Regular] mb-4 text-black">Companion Pieces</h3>
-              <div className="text-lg leading-relaxed text-black font-[Garamond]">
+              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Companion Pieces</h3>
+              <div className="text-lg leading-[1.2] text-black font-sans">
                 {suggestions.companionItems ? <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
               </div>
             </div>

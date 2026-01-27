@@ -183,7 +183,7 @@ function ImageGeneration({onBack}) {
   }, []);
 
 if (loading) {
-    return <div className="flex flex-col items-center justify-center min-h-screen text-black/70 font-aboreto">
+    return <div className="flex flex-col items-center justify-center min-h-screen text-black/70 font-sans">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mb-4"></div>
 
                 In progress...
@@ -212,7 +212,7 @@ if (loading) {
                ←
            </button>
            
-        <h1 className="text-[#333333] text-[32pt] font-serif leading-tight mb-6 mt-8">
+        <h1 className="text-[#333333] text-[32pt] font-heading leading-[1.2] mb-6 mt-8">
           Your Curated Capsule
         </h1>
 
@@ -223,7 +223,7 @@ if (loading) {
           <div className="flex gap-4">
             {/* Suggested Image */}
             <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] overflow-hidden flex flex-col">
-              <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black px-7 py-4">
+              <h1 className="text-xl font-heading font-semibold mb-4 text-black px-7 py-4 leading-[1.2]">
                 Suggested Image
               </h1>
               {imageUrl && (
@@ -239,14 +239,14 @@ if (loading) {
             <div className="flex flex-col gap-6">
               {/* Suggested Product */}
               <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[220px] overflow-hidden p-4">
-                <h1 className="text-xl font-[Helvetica] font-semibold mb-4 text-black">
+                <h1 className="text-xl font-heading font-semibold mb-4 text-black leading-[1.2]">
                   Suggested Product
                 </h1>
                 <div className="flex flex-wrap gap-4">
                   {suggestions.map((item, index) => (
                     <div
                       key={index}
-                      className="w-[150px] h-[60px] bg-[#EDEDED] rounded-2xl p-4 shadow text-black flex items-center justify-center text-sm font-[Helvetica]"
+                      className="w-[150px] h-[60px] bg-[#EDEDED] rounded-2xl p-4 shadow text-black flex items-center justify-center text-sm font-sans"
                     >
                       {item}
                     </div>
@@ -256,7 +256,7 @@ if (loading) {
 
               {/* Suggested Color Palette */}
               <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[150px] overflow-hidden p-4">
-                <h1 className="text-xl font-[Helvetica] font-semibold mt-2 mb-2 text-black">Suggested Color Palette</h1>
+                <h1 className="text-xl font-heading font-semibold mt-2 mb-2 text-black leading-[1.2]">Suggested Color Palette</h1>
                 <div className="flex gap-4 p-4">
                   {hexColors.map(([name, hex]) => (
                     <div
@@ -276,7 +276,7 @@ if (loading) {
           <div className="mr-10 flex gap-6">
            
             <div className=" bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[450px] h-[150px] overflow-hidden p-4">
-              <h1 className="text-xl font-[Helvetica] font-semibold mt-2 mb-2 text-black">Suggested Color Palette</h1>
+              <h1 className="text-xl font-heading font-semibold mt-2 mb-2 text-black leading-[1.2]">Suggested Color Palette</h1>
               <div className="flex gap-4 p-4">
                 {hexColors.map(([name, hex]) => (
                   <div
@@ -291,8 +291,8 @@ if (loading) {
 
             
             <div className="bg-white rounded-2xl shadow-lg border border-[#E4E4E4] w-[400px] h-auto overflow-hidden p-4">
-              <h1 className="text-xl font-[Helvetica] font-semibold mt-2 mb-2 text-black">Construction Notes</h1>
-              <div className="text-black font-[Helvetica] text-sm">
+              <h1 className="text-xl font-heading font-semibold mt-2 mb-2 text-black leading-[1.2]">Construction Notes</h1>
+              <div className="text-black font-sans text-sm leading-[1.2]">
                 {construction}
               </div>
             </div>
