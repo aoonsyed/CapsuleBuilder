@@ -1,8 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
+
+const STORE_HOMEPAGE = "https://formdepartment.com";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+
+    // Preserve customer_id when redirecting to store so user stays in logged-in context
+    const storeHref = useMemo(() => {
+        const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+        const cid = params.get("customer_id");
+        if (cid) {
+            const u = new URL(STORE_HOMEPAGE);
+            u.searchParams.set("customer_id", cid);
+            return u.toString();
+        }
+        return STORE_HOMEPAGE;
+    }, []);
 
     const DropdownArrow = () => (
         <svg
@@ -30,11 +44,19 @@ export default function Navbar() {
                 <div className="flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center">
-                        <img
-                            src="/assets/11.png"
-                            alt="Form Department Logo"
-                            className="px-4 md:px-14 h-16 md:h-[50px] w-auto rounded-2xl transform translate-x-0 md:-translate-x-[70px]"
-                        />
+                        <a
+                            href={storeHref}
+                            target="_top"
+                            rel="noopener noreferrer"
+                            className="block focus:outline-none focus:ring-2 focus:ring-black/20 rounded-2xl"
+                            aria-label="Form Department – go to store homepage"
+                        >
+                            <img
+                                src="/assets/11.png"
+                                alt="Form Department Logo"
+                                className="px-4 md:px-14 h-16 md:h-[50px] w-auto rounded-2xl transform translate-x-0 md:-translate-x-[70px] hover:opacity-90 transition-opacity"
+                            />
+                        </a>
                     </div>
 
                     {/* Desktop Nav */}
