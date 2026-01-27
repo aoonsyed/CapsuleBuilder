@@ -182,7 +182,12 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Comparable Market Examples */}
               <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <h4 className="text-[24px] font-heading font-semibold leading-[1.2] mb-6 text-black">Comparable Market Examples</h4>
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">3</span>
+                  </div>
+                  <h4 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Comparable Market Examples</h4>
+                </div>
                 <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
                   {marketExamples ? (
                     <div className="bg-[#E8E8E8] rounded-md p-6">
@@ -202,7 +207,12 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
               {/* Target Consumer */}
               <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <h4 className="text-[24px] font-heading font-semibold leading-[1.2] mb-6 text-black">Target Consumer Insight</h4>
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">4</span>
+                  </div>
+                  <h4 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Target Consumer Insight</h4>
+                </div>
                 <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
                   {targetInsight ? (
                     <div className="bg-[#E8E8E8] rounded-md p-6">
@@ -227,7 +237,12 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Margin Analysis */}
               <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <h4 className="text-[24px] font-heading font-semibold leading-[1.2] mb-6 text-black">Margin Analysis</h4>
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">5</span>
+                  </div>
+                  <h4 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Margin Analysis</h4>
+                </div>
                 <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
                   {marginAnalysis ? (
                     <div className="bg-[#E8E8E8] rounded-md p-6">
@@ -247,7 +262,12 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
               {/* Pricing Strategy */}
               <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <h4 className="text-[24px] font-heading font-semibold leading-[1.2] mb-6 text-black">Wholesale vs DTC Pricing</h4>
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                    <span className="text-white font-bold">6</span>
+                  </div>
+                  <h4 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Wholesale vs DTC Pricing</h4>
+                </div>
                 <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
                   {pricing ? (
                     <div className="bg-[#E8E8E8] rounded-md p-6">
