@@ -27,10 +27,21 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const sanitizeSectionText = (text) => {
     if (!text || typeof text !== 'string') return text;
     let s = text.trim();
+    
+    // Remove all types of dashes (em dash —, en dash –, hyphen -, and similar characters)
     // Remove trailing lines that are only dashes, underscores, or whitespace
-    s = s.replace(/\n[\s\-_]*$/, '');
-    // Remove trailing dash/hyphen/underscore at end of last line
-    s = s.replace(/[\s\-_]+$/, '');
+    s = s.replace(/\n[\s\-–—_]*$/g, '');
+    
+    // Remove trailing dashes (all types) with optional whitespace at end of each line
+    s = s.replace(/[\s\-–—]+$/gm, '');
+    
+    // Remove trailing dash/hyphen/underscore at end of last line (after all line breaks)
+    s = s.replace(/[\s\-–—_]+$/, '');
+    
+    // Remove any standalone dash lines (lines that are only dashes)
+    s = s.replace(/^[\s\-–—_]+\n?$/gm, '');
+    
+    // Final trim
     return s.trim();
   };
 
