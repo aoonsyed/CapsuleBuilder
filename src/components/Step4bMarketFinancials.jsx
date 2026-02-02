@@ -28,18 +28,24 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     if (!text || typeof text !== 'string') return text;
     let s = text.trim();
     
+    // Remove the triple em dash separator (⸻) and similar characters
+    s = s.replace(/⸻/g, '');
+    
     // Remove all types of dashes (em dash —, en dash –, hyphen -, and similar characters)
     // Remove trailing lines that are only dashes, underscores, or whitespace
-    s = s.replace(/\n[\s\-–—_]*$/g, '');
+    s = s.replace(/\n[\s\-–—_⸻]*$/g, '');
     
     // Remove trailing dashes (all types) with optional whitespace at end of each line
-    s = s.replace(/[\s\-–—]+$/gm, '');
+    s = s.replace(/[\s\-–—⸻]+$/gm, '');
     
     // Remove trailing dash/hyphen/underscore at end of last line (after all line breaks)
-    s = s.replace(/[\s\-–—_]+$/, '');
+    s = s.replace(/[\s\-–—_⸻]+$/, '');
     
-    // Remove any standalone dash lines (lines that are only dashes)
-    s = s.replace(/^[\s\-–—_]+\n?$/gm, '');
+    // Remove any standalone dash lines (lines that are only dashes or separators)
+    s = s.replace(/^[\s\-–—_⸻]+\n?$/gm, '');
+    
+    // Remove lines containing only the separator character with optional whitespace
+    s = s.replace(/^\s*⸻\s*$/gm, '');
     
     // Final trim
     return s.trim();
@@ -48,9 +54,9 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   // Parse sections for this screen
   const getSection = (label) => {
     const patterns = [
-      new RegExp(`\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i'),
-      new RegExp(`\\*\\*${label}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i'),
-      new RegExp(`${label}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|$)`, 'i'),
+      new RegExp(`\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
+      new RegExp(`\\*\\*${label}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
+      new RegExp(`${label}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
     ];
     
     for (const pattern of patterns) {
