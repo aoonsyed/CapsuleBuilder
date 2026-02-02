@@ -23,6 +23,17 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const rawAnswer = localStorage.getItem('answer') || '';
   const suggestions = JSON.parse(localStorage.getItem('parsedSuggestions') || '{}');
 
+  // Remove trailing dashes and similar AI artifacts from section text
+  const sanitizeSectionText = (text) => {
+    if (!text || typeof text !== 'string') return text;
+    let s = text.trim();
+    // Remove trailing lines that are only dashes, underscores, or whitespace
+    s = s.replace(/\n[\s\-_]*$/, '');
+    // Remove trailing dash/hyphen/underscore at end of last line
+    s = s.replace(/[\s\-_]+$/, '');
+    return s.trim();
+  };
+
   // Parse sections for this screen
   const getSection = (label) => {
     const patterns = [
@@ -40,12 +51,12 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     return '';
   };
 
-  const marketExamples = suggestions.marketExamples || getSection('Comparable Market Examples');
-  const targetInsight = suggestions.targetInsight || getSection('Target Consumer Insight');
-  const marginAnalysis = suggestions.marginAnalysis || getSection('Margin Analysis');
-  const pricing = suggestions.pricing || getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing') || getSection('Wholesale vs DTC');
-  const yieldConsumption = suggestions.yieldConsumption || getSection('Yield & Consumption Estimates');
-  const leadTime = suggestions.leadTime || getSection('Production Lead Time Estimate');
+  const marketExamples = sanitizeSectionText(suggestions.marketExamples || getSection('Comparable Market Examples'));
+  const targetInsight = sanitizeSectionText(suggestions.targetInsight || getSection('Target Consumer Insight'));
+  const marginAnalysis = sanitizeSectionText(suggestions.marginAnalysis || getSection('Margin Analysis'));
+  const pricing = sanitizeSectionText(suggestions.pricing || getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing') || getSection('Wholesale vs DTC'));
+  const yieldConsumption = sanitizeSectionText(suggestions.yieldConsumption || getSection('Yield & Consumption Estimates'));
+  const leadTime = sanitizeSectionText(suggestions.leadTime || getSection('Production Lead Time Estimate'));
 
   // Build email params
   const buildEmailParams = () => {
