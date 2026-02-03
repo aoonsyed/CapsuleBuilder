@@ -14,7 +14,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const [hasAccess, setHasAccess] = useState(false);
   const [sections, setSections] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [userPlan, setUserPlan] = useState(null);
 
   // All hooks must be called before any early returns
   const formData = useSelector((state) => state.form);
@@ -227,7 +226,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
         } else {
           // Show upgrade page instead of redirecting
           setAccessDenied(true);
-          setUserPlan(data.plan || 'tier1');
           setAccessChecked(true);
         }
       } catch (err) {
