@@ -14,67 +14,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const [hasAccess, setHasAccess] = useState(false);
   const [sections, setSections] = useState(null);
 
-  // Check page access on mount
-  useEffect(() => {
-    const checkAccess = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const cid = params.get("customer_id");
-      
-      if (!cid) {
-        window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
-        return;
-      }
-      
-      try {
-        const response = await fetch(
-          `https://backend-capsule-builder.onrender.com/proxy/check-page-access?customer_id=${cid}&page=market-analysis`
-        );
-        const data = await response.json();
-        
-        if (data.ok && data.allowed) {
-          setHasAccess(true);
-          setAccessChecked(true);
-        } else {
-          // Redirect to subscription page or show error
-          if (data.redirect) {
-            window.location.href = data.redirect;
-          } else {
-            toast.error(data.message || "This page requires Tier 2 subscription. Please upgrade.", {
-              style: { backgroundColor: '#3A3A3D', color: '#fff' },
-            });
-            setTimeout(() => {
-              window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
-            }, 2000);
-          }
-        }
-      } catch (err) {
-        console.error("Access check error:", err);
-        toast.error("Unable to verify access. Please try again.", {
-          style: { backgroundColor: '#3A3A3D', color: '#fff' },
-        });
-        setTimeout(() => {
-          window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
-        }, 2000);
-      }
-    };
-
-    checkAccess();
-  }, []);
-
-  // Show loading while checking access or loading sections
-  if (!accessChecked || !hasAccess || !sections) {
-    return (
-      <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">
-            {!accessChecked || !hasAccess ? 'Verifying access...' : 'Loading Market Analysis...'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+  // All hooks must be called before any early returns
   const formData = useSelector((state) => state.form);
   const {
     localBrand,
@@ -260,6 +200,88 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       leadTime: sanitizeSectionText(suggestions.leadTime || getSection('Production Lead Time Estimate')),
     };
   }, [suggestions]);
+
+  // Check page access on mount
+  useEffect(() => {
+    const checkAccess = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const cid = params.get("customer_id");
+      
+      if (!cid) {
+        window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+        return;
+      }
+      
+      try {
+        const response = await fetch(
+          `https://backend-capsule-builder.onrender.com/proxy/check-page-access?customer_id=${cid}&page=market-analysis`
+        );
+        const data = await response.json();
+        
+        if (data.ok && data.allowed) {
+          setHasAccess(true);
+          setAccessChecked(true);
+        } else {
+          // Redirect to subscription page or show error
+          if (data.redirect) {
+            window.location.href = data.redirect;
+          } else {
+            toast.error(data.message || "This page requires Tier 2 subscription. Please upgrade.", {
+              style: { backgroundColor: '#3A3A3D', color: '#fff' },
+            });
+            setTimeout(() => {
+              window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+            }, 2000);
+          }
+        }
+      } catch (err) {
+        console.error("Access check error:", err);
+        toast.error("Unable to verify access. Please try again.", {
+          style: { backgroundColor: '#3A3A3D', color: '#fff' },
+        });
+        setTimeout(() => {
+          window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+        }, 2000);
+      }
+    };
+
+    checkAccess();
+  }, []);
+
+  // Load cached sections or parse from localStorage
+  useEffect(() => {
+    if (!hasAccess) return;
+
+    const cached = loadCachedSections();
+    if (cached && cached.sections) {
+      console.log("Loading Market Analysis from cache");
+      setSections(cached.sections);
+      return;
+    }
+
+    // Parse from legacy localStorage or cached raw answer
+    if (rawAnswer) {
+      const parsed = parseSections(rawAnswer);
+      setSections(parsed);
+      
+      // Save parsed sections to cache
+      saveSectionsToCache(parsed);
+    }
+  }, [hasAccess, rawAnswer, loadCachedSections, parseSections, saveSectionsToCache]);
+
+  // Show loading while checking access or loading sections
+  if (!accessChecked || !hasAccess || !sections) {
+    return (
+      <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">
+            {!accessChecked || !hasAccess ? 'Verifying access...' : 'Loading Market Analysis...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Load cached sections or parse from localStorage
   useEffect(() => {
