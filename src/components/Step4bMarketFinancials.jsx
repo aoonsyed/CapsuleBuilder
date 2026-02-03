@@ -13,6 +13,8 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const [accessChecked, setAccessChecked] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
   const [sections, setSections] = useState(null);
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [userPlan, setUserPlan] = useState(null);
 
   // All hooks must be called before any early returns
   const formData = useSelector((state) => state.form);
@@ -222,26 +224,16 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           setHasAccess(true);
           setAccessChecked(true);
         } else {
-          // Redirect to subscription page or show error
-          if (data.redirect) {
-            window.location.href = data.redirect;
-          } else {
-            toast.error(data.message || "This page requires Tier 2 subscription. Please upgrade.", {
-              style: { backgroundColor: '#3A3A3D', color: '#fff' },
-            });
-            setTimeout(() => {
-              window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
-            }, 2000);
-          }
+          // Show upgrade page instead of redirecting
+          setAccessDenied(true);
+          setUserPlan(data.plan || 'tier1');
+          setAccessChecked(true);
         }
       } catch (err) {
         console.error("Access check error:", err);
-        toast.error("Unable to verify access. Please try again.", {
-          style: { backgroundColor: '#3A3A3D', color: '#fff' },
-        });
-        setTimeout(() => {
-          window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
-        }, 2000);
+        // On error, still show upgrade page
+        setAccessDenied(true);
+        setAccessChecked(true);
       }
     };
 
@@ -269,14 +261,67 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     }
   }, [hasAccess, rawAnswer, loadCachedSections, parseSections, saveSectionsToCache]);
 
-  // Show loading while checking access or loading sections
-  if (!accessChecked || !hasAccess || !sections) {
+  // Show loading while checking access
+  if (!accessChecked) {
     return (
       <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
           <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">
-            {!accessChecked || !hasAccess ? 'Verifying access...' : 'Loading Market Analysis...'}
+            Verifying access...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show upgrade page if access is denied
+  if (accessDenied && !hasAccess) {
+    const tier2ProductId = 8424683241647;
+    const tier2CheckoutUrl = `https://formdepartment.com/cart/${tier2ProductId}:1`;
+    
+    return (
+      <>
+        <Toaster position="top-right" richColors />
+        <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center px-4">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+            <h2 className="text-[32px] font-heading font-semibold text-black mb-4">
+              Upgrade Required
+            </h2>
+            <p className="text-[16px] font-sans text-gray-700 mb-8 leading-relaxed">
+              Your current subscription plan doesn't include access to the Market Analysis page. 
+              Upgrade to Tier 2 to unlock production timelines, market analysis, and more advanced features.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={onBack}
+                className="px-6 py-3 text-[16px] font-bold text-black bg-gray-200 hover:bg-gray-300 rounded-lg transition-all"
+              >
+                ← Go Back
+              </button>
+              <a
+                href={tier2CheckoutUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 text-[16px] font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg transition-all inline-block"
+              >
+                Buy Tier 2 →
+              </a>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Show loading while loading sections
+  if (!hasAccess || !sections) {
+    return (
+      <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">
+            Loading Market Analysis...
           </p>
         </div>
       </div>
