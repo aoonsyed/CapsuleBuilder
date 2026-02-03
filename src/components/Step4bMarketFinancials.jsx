@@ -144,8 +144,9 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   }, [getStorageKeys]);
 
   // Get suggestions from localStorage (legacy) or cache
-  const rawAnswer = localStorage.getItem('answer') || '';
-  const suggestions = JSON.parse(localStorage.getItem('parsedSuggestions') || '{}');
+  // Use useMemo to ensure these are always available for hooks
+  const rawAnswer = useMemo(() => localStorage.getItem('answer') || '', []);
+  const suggestions = useMemo(() => JSON.parse(localStorage.getItem('parsedSuggestions') || '{}'), []);
 
   // Remove trailing dashes and similar AI artifacts from section text
   const sanitizeSectionText = (text) => {
