@@ -32,6 +32,9 @@ export default function Questionaire({ onNext, onBack }) {
   const lastKeyRef = useRef(null);
   const saveTimeoutRef = useRef(null);
 
+  // Cache expiration time in milliseconds (5 minutes)
+  const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
+
   // Hash function to create consistent localStorage keys
   const hashParamsKey = useCallback((key) => {
     let hash = 0;
@@ -59,9 +62,25 @@ export default function Questionaire({ onNext, onBack }) {
       const cached = localStorage.getItem(questionsKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        // Validate structure
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const isValid = parsed.every(
+        
+        // Check if cached data has timestamp
+        if (parsed.timestamp) {
+          const age = Date.now() - parsed.timestamp;
+          if (age > CACHE_EXPIRATION_MS) {
+            // Cache expired, remove it
+            localStorage.removeItem(questionsKey);
+            return null;
+          }
+        } else {
+          // Old format without timestamp - treat as expired and remove
+          localStorage.removeItem(questionsKey);
+          return null;
+        }
+        
+        // Validate structure (new format with timestamp)
+        const questions = parsed.questions;
+        if (Array.isArray(questions) && questions.length > 0) {
+          const isValid = questions.every(
             (cat) =>
               cat &&
               typeof cat === "object" &&
@@ -69,7 +88,7 @@ export default function Questionaire({ onNext, onBack }) {
               Array.isArray(cat.questions)
           );
           if (isValid) {
-            return parsed;
+            return questions;
           }
         }
       }
@@ -86,8 +105,25 @@ export default function Questionaire({ onNext, onBack }) {
       const cached = localStorage.getItem(answersKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (typeof parsed === "object" && parsed !== null) {
-          return parsed;
+        
+        // Check if cached data has timestamp
+        if (parsed.timestamp) {
+          const age = Date.now() - parsed.timestamp;
+          if (age > CACHE_EXPIRATION_MS) {
+            // Cache expired, remove it
+            localStorage.removeItem(answersKey);
+            return null;
+          }
+        } else {
+          // Old format without timestamp - treat as expired and remove
+          localStorage.removeItem(answersKey);
+          return null;
+        }
+        
+        // Handle new format with timestamp
+        const answers = parsed.answers;
+        if (typeof answers === "object" && answers !== null) {
+          return answers;
         }
       }
     } catch (err) {
@@ -128,7 +164,11 @@ export default function Questionaire({ onNext, onBack }) {
       saveTimeoutRef.current = setTimeout(() => {
         try {
           const { answers: answersKey } = getStorageKeys();
-          localStorage.setItem(answersKey, JSON.stringify(answersToSave));
+          const dataToSave = {
+            answers: answersToSave,
+            timestamp: Date.now(),
+          };
+          localStorage.setItem(answersKey, JSON.stringify(dataToSave));
         } catch (err) {
           console.warn("Failed to save answers to localStorage:", err);
         }
@@ -148,7 +188,11 @@ export default function Questionaire({ onNext, onBack }) {
       
       try {
         const { answers: answersKey } = getStorageKeys();
-        localStorage.setItem(answersKey, JSON.stringify(answersToSave));
+        const dataToSave = {
+          answers: answersToSave,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(answersKey, JSON.stringify(dataToSave));
       } catch (err) {
         console.warn("Failed to save answers to localStorage:", err);
       }
@@ -351,10 +395,14 @@ Only return the JSON. No markdown. No explanation.
           }),
         }));
 
-        // Save to cache
+        // Save to cache with timestamp
         try {
           const { questions: questionsKey } = getStorageKeys();
-          localStorage.setItem(questionsKey, JSON.stringify(cleaned));
+          const dataToSave = {
+            questions: cleaned,
+            timestamp: Date.now(),
+          };
+          localStorage.setItem(questionsKey, JSON.stringify(dataToSave));
         } catch (err) {
           console.warn("Failed to cache questions:", err);
         }
