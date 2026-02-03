@@ -34,7 +34,23 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-sans">
+        <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-sans max-h-[90vh] overflow-y-auto overflow-x-hidden" style={{ scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
+            <style>{`
+                div::-webkit-scrollbar {
+                    width: 12px;
+                }
+                div::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 6px;
+                }
+                div::-webkit-scrollbar-thumb {
+                    background: #888;
+                    border-radius: 6px;
+                }
+                div::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+                }
+            `}</style>
             <form onSubmit={handleSubmit} className="space-y-8 text-black">
                 <div className="mb-8">
                     <p className="ml-5 text-sm font-sans text-[14px] font-medium leading-[1.2] mb-2">Step 3 of 5</p>
@@ -88,7 +104,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
 
                 <div>
                     <label className="block text-[14px] font-sans font-medium leading-[1.2] mb-2">
-                        Do you know what material you would like to use? <span className="text-red-500">*</span>
+                        Do you know what material you would like to use?
                     </label>
 
                     <div className="space-x-6">
