@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
+
+// Cache expiration time in milliseconds (5 minutes)
+const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
 export default function Step4Suggestions({ onNext, onBack, userPlan }) {
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const formData = useSelector((state) => state.form);
-  const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers'));
+  const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
   const {
     idea,
     localBrand,
@@ -30,6 +33,108 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
   const title = localBrand?.trim()
     ? `${localBrand.trim()} ${productType?.trim()}`
     : 'Product Breakdown';
+
+  // Create paramsKey based on all inputs that affect AI output
+  const paramsKey = useMemo(
+    () =>
+      JSON.stringify({
+        idea,
+        brand2,
+        sharedPrefernce,
+        productType,
+        targetPrice,
+        quantity,
+        category,
+        keyFeatures,
+        materialPreferenceOptions,
+        manufacturingPreference,
+        savedAnswers,
+      }),
+    [idea, brand2, sharedPrefernce, productType, targetPrice, quantity, category, keyFeatures, materialPreferenceOptions, manufacturingPreference, savedAnswers]
+  );
+
+  // Hash function to create consistent localStorage keys
+  const hashParamsKey = useCallback((key) => {
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      const char = key.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }, []);
+
+  // Get localStorage keys for current paramsKey
+  const getStorageKeys = useCallback(() => {
+    const hash = hashParamsKey(paramsKey);
+    return {
+      rawAnswer: `productBreakdownRawAnswer_${hash}`,
+      parsedSuggestions: `productBreakdownParsed_${hash}`,
+    };
+  }, [paramsKey, hashParamsKey]);
+
+  // Load cached suggestions from localStorage
+  const loadCachedSuggestions = useCallback(() => {
+    try {
+      const { rawAnswer: rawKey, parsedSuggestions: parsedKey } = getStorageKeys();
+      
+      // Check cached raw answer
+      const cachedRaw = localStorage.getItem(rawKey);
+      const cachedParsed = localStorage.getItem(parsedKey);
+      
+      if (cachedRaw && cachedParsed) {
+        const rawData = JSON.parse(cachedRaw);
+        const parsedData = JSON.parse(cachedParsed);
+        
+        // Check if cached data has timestamp and if it's expired
+        if (rawData.timestamp && parsedData.timestamp) {
+          const age = Date.now() - rawData.timestamp;
+          if (age > CACHE_EXPIRATION_MS) {
+            // Cache expired, remove it
+            localStorage.removeItem(rawKey);
+            localStorage.removeItem(parsedKey);
+            return null;
+          }
+        } else {
+          // Old format without timestamp - treat as expired and remove
+          localStorage.removeItem(rawKey);
+          localStorage.removeItem(parsedKey);
+          return null;
+        }
+        
+        // Validate structure
+        if (rawData.answer && parsedData.suggestions && typeof parsedData.suggestions === 'object') {
+          return {
+            rawAnswer: rawData.answer,
+            parsedSuggestions: parsedData.suggestions,
+          };
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load cached suggestions:", err);
+    }
+    return null;
+  }, [getStorageKeys]);
+
+  // Save suggestions to cache
+  const saveSuggestionsToCache = useCallback((rawAnswer, parsedSuggestions) => {
+    try {
+      const { rawAnswer: rawKey, parsedSuggestions: parsedKey } = getStorageKeys();
+      const timestamp = Date.now();
+      
+      localStorage.setItem(rawKey, JSON.stringify({
+        answer: rawAnswer,
+        timestamp,
+      }));
+      
+      localStorage.setItem(parsedKey, JSON.stringify({
+        suggestions: parsedSuggestions,
+        timestamp,
+      }));
+    } catch (err) {
+      console.warn("Failed to save suggestions to cache:", err);
+    }
+  }, [getStorageKeys]);
 
  // Extract colors from the "Color Palette" markdown/text the AI returns
   const extractHexColors = (rawText) => {
@@ -243,48 +348,69 @@ const generatePrompt = () => {
 };
 
 
-  // Fetch AI suggestions
+  // Fetch AI suggestions (check cache first)
   useEffect(() => {
-   const callOpenAI = async () => {
-  try {
-    const prompt = generatePrompt();
-    const response = await axios.post('/api/openai', { prompt });
+    const fetchSuggestions = async () => {
+      setLoading(true);
+      
+      // First, try to load from cache
+      const cached = loadCachedSuggestions();
+      if (cached) {
+        console.log("Loading Product Breakdown from cache");
+        // Also save to legacy keys for backward compatibility
+        localStorage.setItem('answer', cached.rawAnswer);
+        localStorage.setItem('parsedSuggestions', JSON.stringify(cached.parsedSuggestions));
+        setSuggestions(cached.parsedSuggestions);
+        setLoading(false);
+        toast.success('Product Breakdown loaded from cache', {
+          style: { backgroundColor: '#3A3A3D', color: '#fff' },
+        });
+        return;
+      }
 
-    console.log("OpenAI Response:", response.data); // Log the full response
+      // Cache miss - fetch from API
+      try {
+        const prompt = generatePrompt();
+        const response = await axios.post('/api/openai', { prompt });
 
-    if (response?.data?.error) {
-      throw new Error(`OpenAI API error: ${response.data.error}`);
-    }
+        console.log("OpenAI Response:", response.data); // Log the full response
 
-    const answer = response?.data?.choices?.[0]?.message?.content ?? response?.data?.choices?.[0]?.text ?? '';
-    
-    console.log("Parsed Answer:", answer); // Log parsed answer
+        if (response?.data?.error) {
+          throw new Error(`OpenAI API error: ${response.data.error}`);
+        }
 
-    localStorage.setItem('answer', answer);
-    console.log('Raw AI Response:', answer);
-    const parsed = parseAIResponse(answer);
-    console.log('Parsed Suggestions:', parsed);
-    setSuggestions(parsed);
+        const answer = response?.data?.choices?.[0]?.message?.content ?? response?.data?.choices?.[0]?.text ?? '';
+        
+        console.log("Parsed Answer:", answer); // Log parsed answer
 
-    // Store parsed suggestions for the next screen
-    localStorage.setItem('parsedSuggestions', JSON.stringify(parsed));
+        // Save to legacy keys for backward compatibility
+        localStorage.setItem('answer', answer);
+        console.log('Raw AI Response:', answer);
+        const parsed = parseAIResponse(answer);
+        console.log('Parsed Suggestions:', parsed);
+        setSuggestions(parsed);
 
-    toast.success('Suggestions loaded successfully!', {
-      style: { backgroundColor: '#3A3A3D', color: '#fff' },
-    });
-  } catch (err) {
-    console.error('OpenAI error:', err);
-    toast.error('Something went wrong while fetching suggestions.', {
-      style: { backgroundColor: '#3A3A3D', color: 'white' },
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+        // Store parsed suggestions for the next screen (legacy)
+        localStorage.setItem('parsedSuggestions', JSON.stringify(parsed));
 
+        // Save to cache with timestamp
+        saveSuggestionsToCache(answer, parsed);
 
-    callOpenAI();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        toast.success('Product Breakdown generated successfully!', {
+          style: { backgroundColor: '#3A3A3D', color: '#fff' },
+        });
+      } catch (err) {
+        console.error('OpenAI error:', err);
+        toast.error('Something went wrong while fetching suggestions.', {
+          style: { backgroundColor: '#3A3A3D', color: 'white' },
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [paramsKey, loadCachedSuggestions, saveSuggestionsToCache]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
   <>
@@ -297,27 +423,31 @@ const generatePrompt = () => {
     ) : !suggestions ? (
       <div className="flex flex-col items-center justify-center min-h-screen text-[#3A3A3D] font-sans text-lg leading-[1.2]">
         <p className="mb-4">No Suggestions For Now</p>
-        <button
-          onClick={onBack}
-          className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-gray-600 rounded-md transition"
-        >
-          ← Back
-        </button>
+        {userPlan === 'tier2' && (
+          <button
+            onClick={onBack}
+            className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-gray-600 rounded-md transition"
+          >
+            ← Back
+          </button>
+        )}
       </div>
     ) : (
       <div className="bg-[#E8E8E8] min-h-screen">
-        {/* Header with Back Button */}
-        <div className="bg-[#E8E8E8]">
-          <div className="container mx-auto px-4 py-6">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
-            >
-              ← Back
-            </button>
+        {/* Header with Back Button - Only show if user has access to Market Analysis */}
+        {userPlan === 'tier2' && (
+          <div className="bg-[#E8E8E8]">
+            <div className="container mx-auto px-4 py-6">
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
+              >
+                ← Back
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Title Section */}
         <div className="w-full px-6 py-8">

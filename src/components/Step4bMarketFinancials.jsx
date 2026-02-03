@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import emailjs from '@emailjs/browser';
 
+// Cache expiration time in milliseconds (5 minutes)
+const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
+
 export default function Step4bMarketFinancials({ onNext, onBack }) {
-  const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers'));
+  const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
+  const [sections, setSections] = useState(null);
 
   // Check page access on mount
   useEffect(() => {
@@ -57,13 +61,15 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     checkAccess();
   }, []);
 
-  // Show loading while checking access
-  if (!accessChecked || !hasAccess) {
+  // Show loading while checking access or loading sections
+  if (!accessChecked || !hasAccess || !sections) {
     return (
       <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">Verifying access...</p>
+          <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">
+            {!accessChecked || !hasAccess ? 'Verifying access...' : 'Loading Market Analysis...'}
+          </p>
         </div>
       </div>
     );
@@ -74,13 +80,128 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     localBrand,
     brand2,
     productType,
+    idea,
+    sharedPrefernce,
+    targetPrice,
+    quantity,
+    category,
+    keyFeatures,
+    materialPreferenceOptions,
+    manufacturingPreference,
   } = formData;
 
   const title = localBrand?.trim()
     ? `${localBrand.trim()} ${productType?.trim()}`
     : `Your ${productType?.trim()}`;
 
-  // Get suggestions from localStorage
+  // Create paramsKey based on all inputs that affect AI output
+  const paramsKey = useMemo(
+    () =>
+      JSON.stringify({
+        idea,
+        brand2,
+        sharedPrefernce,
+        productType,
+        targetPrice,
+        quantity,
+        category,
+        keyFeatures,
+        materialPreferenceOptions,
+        manufacturingPreference,
+        savedAnswers,
+      }),
+    [idea, brand2, sharedPrefernce, productType, targetPrice, quantity, category, keyFeatures, materialPreferenceOptions, manufacturingPreference, savedAnswers]
+  );
+
+  // Hash function to create consistent localStorage keys
+  const hashParamsKey = useCallback((key) => {
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      const char = key.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }, []);
+
+  // Get localStorage keys for current paramsKey
+  // Note: We use the same raw answer cache key as Step4Suggestions since they share the same paramsKey
+  const getStorageKeys = useCallback(() => {
+    const hash = hashParamsKey(paramsKey);
+    return {
+      rawAnswer: `productBreakdownRawAnswer_${hash}`, // Same as Step4Suggestions
+      parsedSections: `marketAnalysisParsed_${hash}`, // Separate cache for Market Analysis sections
+    };
+  }, [paramsKey, hashParamsKey]);
+
+  // Load cached sections from localStorage
+  const loadCachedSections = useCallback(() => {
+    try {
+      const { rawAnswer: rawKey, parsedSections: parsedKey } = getStorageKeys();
+      
+      // First check if we have cached parsed sections
+      const cachedParsed = localStorage.getItem(parsedKey);
+      if (cachedParsed) {
+        const parsedData = JSON.parse(cachedParsed);
+        
+        // Check if cached data has timestamp and if it's expired
+        if (parsedData.timestamp) {
+          const age = Date.now() - parsedData.timestamp;
+          if (age > CACHE_EXPIRATION_MS) {
+            // Cache expired, remove it
+            localStorage.removeItem(parsedKey);
+            return null;
+          }
+        } else {
+          // Old format without timestamp - treat as expired and remove
+          localStorage.removeItem(parsedKey);
+          return null;
+        }
+        
+        // Validate structure
+        if (parsedData.sections && typeof parsedData.sections === 'object') {
+          return {
+            sections: parsedData.sections,
+          };
+        }
+      }
+      
+      // If no cached sections, check if we have the raw answer (from Step4Suggestions cache)
+      const cachedRaw = localStorage.getItem(rawKey);
+      if (cachedRaw) {
+        const rawData = JSON.parse(cachedRaw);
+        if (rawData.timestamp) {
+          const age = Date.now() - rawData.timestamp;
+          if (age > CACHE_EXPIRATION_MS) {
+            // Cache expired
+            return null;
+          }
+        }
+        // Return null to trigger parsing from raw answer
+        return null;
+      }
+    } catch (err) {
+      console.warn("Failed to load cached sections:", err);
+    }
+    return null;
+  }, [getStorageKeys]);
+
+  // Save sections to cache (only cache parsed sections, raw answer is cached by Step4Suggestions)
+  const saveSectionsToCache = useCallback((sections) => {
+    try {
+      const { parsedSections: parsedKey } = getStorageKeys();
+      const timestamp = Date.now();
+      
+      localStorage.setItem(parsedKey, JSON.stringify({
+        sections: sections,
+        timestamp,
+      }));
+    } catch (err) {
+      console.warn("Failed to save sections to cache:", err);
+    }
+  }, [getStorageKeys]);
+
+  // Get suggestions from localStorage (legacy) or cache
   const rawAnswer = localStorage.getItem('answer') || '';
   const suggestions = JSON.parse(localStorage.getItem('parsedSuggestions') || '{}');
 
@@ -113,28 +234,60 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   };
 
   // Parse sections for this screen
-  const getSection = (label) => {
-    const patterns = [
-      new RegExp(`\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
-      new RegExp(`\\*\\*${label}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
-      new RegExp(`${label}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
-    ];
-    
-    for (const pattern of patterns) {
-      const match = rawAnswer.match(pattern);
-      if (match && match[1] && match[1].trim()) {
-        return match[1].trim();
+  const parseSections = useCallback((rawText) => {
+    const getSection = (label) => {
+      const patterns = [
+        new RegExp(`\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
+        new RegExp(`\\*\\*${label}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
+        new RegExp(`${label}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
+      ];
+      
+      for (const pattern of patterns) {
+        const match = rawText.match(pattern);
+        if (match && match[1] && match[1].trim()) {
+          return match[1].trim();
+        }
       }
-    }
-    return '';
-  };
+      return '';
+    };
 
-  const marketExamples = sanitizeSectionText(suggestions.marketExamples || getSection('Comparable Market Examples'));
-  const targetInsight = sanitizeSectionText(suggestions.targetInsight || getSection('Target Consumer Insight'));
-  const marginAnalysis = sanitizeSectionText(suggestions.marginAnalysis || getSection('Margin Analysis'));
-  const pricing = sanitizeSectionText(suggestions.pricing || getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing') || getSection('Wholesale vs DTC'));
-  const yieldConsumption = sanitizeSectionText(suggestions.yieldConsumption || getSection('Yield & Consumption Estimates'));
-  const leadTime = sanitizeSectionText(suggestions.leadTime || getSection('Production Lead Time Estimate'));
+    return {
+      marketExamples: sanitizeSectionText(suggestions.marketExamples || getSection('Comparable Market Examples')),
+      targetInsight: sanitizeSectionText(suggestions.targetInsight || getSection('Target Consumer Insight')),
+      marginAnalysis: sanitizeSectionText(suggestions.marginAnalysis || getSection('Margin Analysis')),
+      pricing: sanitizeSectionText(suggestions.pricing || getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing') || getSection('Wholesale vs DTC')),
+      yieldConsumption: sanitizeSectionText(suggestions.yieldConsumption || getSection('Yield & Consumption Estimates')),
+      leadTime: sanitizeSectionText(suggestions.leadTime || getSection('Production Lead Time Estimate')),
+    };
+  }, [suggestions]);
+
+  // Load cached sections or parse from localStorage
+  useEffect(() => {
+    if (!hasAccess) return;
+
+    const cached = loadCachedSections();
+    if (cached && cached.sections) {
+      console.log("Loading Market Analysis from cache");
+      setSections(cached.sections);
+      return;
+    }
+
+    // Parse from legacy localStorage or cached raw answer
+    if (rawAnswer) {
+      const parsed = parseSections(rawAnswer);
+      setSections(parsed);
+      
+      // Save parsed sections to cache
+      saveSectionsToCache(parsed);
+    }
+  }, [hasAccess, rawAnswer, loadCachedSections, parseSections, saveSectionsToCache]);
+
+  const marketExamples = sections?.marketExamples || '';
+  const targetInsight = sections?.targetInsight || '';
+  const marginAnalysis = sections?.marginAnalysis || '';
+  const pricing = sections?.pricing || '';
+  const yieldConsumption = sections?.yieldConsumption || '';
+  const leadTime = sections?.leadTime || '';
 
   // Build email params
   const buildEmailParams = () => {

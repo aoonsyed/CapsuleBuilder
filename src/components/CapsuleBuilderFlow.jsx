@@ -259,7 +259,6 @@ export default function CapsuleBuilderFlow() {
               <Step3ProductFocus
                 email={email}
                 onNext={() => setStep(5)}
-                onBack={() => setStep(3)}
               />
             )}
 
@@ -286,7 +285,13 @@ export default function CapsuleBuilderFlow() {
                 brand={brand}
                 userPlan={userPlan}
                 onNext={handleNavigateToMarketAnalysis}
-                onBack={() => setStep(5)}
+                onBack={() => {
+                  // Only allow back to Market Analysis (step 7) if user has Tier 2 access
+                  // Cannot go back to Questionnaire (step 5) - output pages are locked
+                  if (userPlan === 'tier2') {
+                    setStep(7);
+                  }
+                }}
               />
             )}
 

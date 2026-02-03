@@ -11,7 +11,7 @@ import {
     setMaterialError,
 } from "../formSlice";
 
-export default function Step3ProductFocus({ email, onNext, onBack, embedded = false }) {
+export default function Step3ProductFocus({ email, onNext, embedded = false }) {
     const dispatch = useDispatch();
     const {
         productType,
