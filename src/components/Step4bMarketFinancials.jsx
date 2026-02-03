@@ -283,27 +283,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     );
   }
 
-  // Load cached sections or parse from localStorage
-  useEffect(() => {
-    if (!hasAccess) return;
-
-    const cached = loadCachedSections();
-    if (cached && cached.sections) {
-      console.log("Loading Market Analysis from cache");
-      setSections(cached.sections);
-      return;
-    }
-
-    // Parse from legacy localStorage or cached raw answer
-    if (rawAnswer) {
-      const parsed = parseSections(rawAnswer);
-      setSections(parsed);
-      
-      // Save parsed sections to cache
-      saveSectionsToCache(parsed);
-    }
-  }, [hasAccess, rawAnswer, loadCachedSections, parseSections, saveSectionsToCache]);
-
   const marketExamples = sections?.marketExamples || '';
   const targetInsight = sections?.targetInsight || '';
   const marginAnalysis = sections?.marginAnalysis || '';
