@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 
+// Cache expiration time in milliseconds (5 minutes)
+const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
+
 export default function Questionaire({ onNext, onBack }) {
   const {
     productType,
@@ -31,9 +34,6 @@ export default function Questionaire({ onNext, onBack }) {
 
   const lastKeyRef = useRef(null);
   const saveTimeoutRef = useRef(null);
-
-  // Cache expiration time in milliseconds (5 minutes)
-  const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
   // Hash function to create consistent localStorage keys
   const hashParamsKey = useCallback((key) => {
