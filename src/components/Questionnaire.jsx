@@ -221,7 +221,7 @@ export default function Questionaire({ onNext, onBack }) {
   const prompt = useMemo(
     () =>
       `
-You are generating a product questionnaire for a custom apparel item.
+You are generating a product questionnaire for a custom apparel item. CRITICAL: All questions must be specifically relevant to the product type provided.
 
 Return a JSON array with exactly 3 fixed categories:
 1. "Fit & Support"
@@ -230,6 +230,25 @@ Return a JSON array with exactly 3 fixed categories:
 
 Each category must contain 2–4 related multiple-choice or text questions.
 
+IMPORTANT RULES:
+- Questions MUST be tailored to the specific product type (e.g., sweatpants, t-shirt, jacket, dress, etc.)
+- DO NOT ask generic questions that don't apply to the product type
+- DO NOT ask about sizing/fit preferences (e.g., "What size do you wear?", "What fit do you prefer?")
+- DO NOT ask about features that don't exist for the product type (e.g., don't ask about "ankle support" for sweatpants, "collar style" for pants, "sleeve length" for shorts)
+- Focus on design, material, construction, and functional aspects that are relevant to THIS specific product
+- Consider the product type when crafting questions (e.g., for pants: waist, leg opening, rise; for tops: neckline, sleeve style, length; for outerwear: closure type, pockets, insulation)
+
+Examples of RELEVANT questions:
+- For sweatpants: "What type of waistband do you prefer?" (drawstring, elastic, etc.), "Do you want tapered or straight leg opening?"
+- For t-shirts: "What neckline style do you prefer?" (crew, v-neck, etc.), "Do you want a relaxed or fitted silhouette?"
+- For jackets: "What type of closure do you prefer?" (zipper, buttons, snaps), "Do you need insulation for warmth?"
+
+Examples of IRRELEVANT questions to AVOID:
+- "What size do you wear?" (sizing is not relevant)
+- "What fit do you prefer?" (too generic)
+- "Do you need ankle support?" (for products that don't have ankle features)
+- "What collar style do you prefer?" (for products without collars)
+
 Use this format only:
 
 [
@@ -237,7 +256,7 @@ Use this format only:
     "title": "Fit & Support",
     "questions": [
       {
-        "question": "Write a relevant question?",
+        "question": "Write a relevant question specific to this product type?",
         "type": "multiple-choice" or "text",
         "options": ["Option 1", "Option 2"]
       }
@@ -247,14 +266,14 @@ Use this format only:
   { "title": "Adjustability & Comfort", "questions": [...] }
 ]
 
-User’s product input:
+User's product input:
 - Product Type: ${productType || "-"}
 - Key Features: ${keyFeatures || "-"}
 - Target Price: ${targetPrice || "-"}
 - Idea: ${idea || "-"}
 - Material Preference: ${materialPreference || "-"}
 
-Only return the JSON. No markdown. No explanation.
+Generate questions that are SPECIFICALLY relevant to "${productType || "this product"}". Only return the JSON. No markdown. No explanation.
 `.trim(),
     [productType, keyFeatures, targetPrice, idea, materialPreference]
   );
