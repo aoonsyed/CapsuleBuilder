@@ -29,7 +29,7 @@ export default function Step4Suggestions({ onNext, onBack }) {
 
   const title = localBrand?.trim()
     ? `${localBrand.trim()} ${productType?.trim()}`
-    : `Your ${productType?.trim()}`;
+    : 'Product Breakdown';
 
  // Extract colors from the "Color Palette" markdown/text the AI returns
   const extractHexColors = (rawText) => {
@@ -320,70 +320,147 @@ const generatePrompt = () => {
         </div>
 
         {/* Title Section */}
-        <div className="container mx-auto px-4 py-8">
-          <h2 className="text-[#333333] text-4xl md:text-5xl font-heading text-center mb-8 leading-[1.2]">
+        <div className="w-full px-6 py-8">
+          <h2 className="text-[#333333] text-[32px] font-heading font-semibold leading-[1.2] text-center mb-12">
             {title}
           </h2>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="container mx-auto px-4 pb-12">
+        {/* Main Content - Full Width Layout */}
+        <div className="w-full px-6 pb-12">
           
           {/* Grid Row 1: 3 Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             {/* Materials Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Materials</h3>
-              <div className="text-lg leading-[1.2] text-black font-sans">
-                {suggestions.materials ? <ReactMarkdown>{suggestions.materials}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">1</span>
+                </div>
+                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Materials</h3>
+              </div>
+              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
+                {suggestions.materials ? (
+                  <div className="bg-[#E8E8E8] rounded-md p-6">
+                    <ReactMarkdown
+                      components={{
+                        hr: () => null,
+                      }}
+                    >
+                      {suggestions.materials}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No data available</p>
+                )}
               </div>
             </div>
 
             {/* Sales Price Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Sales Price</h3>
-              <div className="text-lg leading-[1.2] text-black font-sans">
-                {suggestions.saleprices ? <ReactMarkdown>{suggestions.saleprices}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">2</span>
+                </div>
+                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Sales Price</h3>
+              </div>
+              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
+                {suggestions.saleprices ? (
+                  <div className="bg-[#E8E8E8] rounded-md p-6">
+                    <ReactMarkdown
+                      components={{
+                        hr: () => null,
+                      }}
+                    >
+                      {suggestions.saleprices}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No data available</p>
+                )}
               </div>
             </div>
 
             {/* Cost Production Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Cost Production</h3>
-              <div className="text-lg leading-[1.2] text-black font-sans">
-                {suggestions.productionCosts ? <ReactMarkdown>{suggestions.productionCosts}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">3</span>
+                </div>
+                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Cost Production</h3>
+              </div>
+              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
+                {suggestions.productionCosts ? (
+                  <div className="bg-[#E8E8E8] rounded-md p-6">
+                    <ReactMarkdown
+                      components={{
+                        hr: () => null,
+                      }}
+                    >
+                      {suggestions.productionCosts}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No data available</p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Grid Row 2: 2 Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             {/* Color Palette Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Color Palette</h3>
-              {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
-                <div className="flex flex-wrap gap-6 mt-4 justify-center">
-                  {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
-                    <div key={idx} className="flex flex-col items-center gap-2">
-                      <div
-                        className="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md"
-                        style={{ backgroundColor: hex }}
-                        title={name}
-                      />
-                      <span className="text-black text-xs font-sans font-bold">{hex}</span>
-                    </div>
-                  ))}
+            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">4</span>
                 </div>
-              ) : (
-                <p className="text-gray-400 font-sans text-center mt-4">No color data available</p>
-              )}
+                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Color Palette</h3>
+              </div>
+              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
+                {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
+                  <div className="bg-[#E8E8E8] rounded-md p-6">
+                    <div className="flex flex-wrap gap-6 justify-center">
+                      {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
+                        <div key={idx} className="flex flex-col items-center gap-2">
+                          <div
+                            className="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md"
+                            style={{ backgroundColor: hex }}
+                            title={name}
+                          />
+                          <span className="text-black text-xs font-sans font-bold">{hex}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-center">No color data available</p>
+                )}
+              </div>
             </div>
 
             {/* Companion Items Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h3 className="text-2xl font-heading mb-4 text-black leading-[1.2]">Companion Pieces</h3>
-              <div className="text-lg leading-[1.2] text-black font-sans">
-                {suggestions.companionItems ? <ReactMarkdown>{suggestions.companionItems}</ReactMarkdown> : <p className="text-gray-400">No data available</p>}
+            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">5</span>
+                </div>
+                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Companion Pieces</h3>
+              </div>
+              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
+                {suggestions.companionItems ? (
+                  <div className="bg-[#E8E8E8] rounded-md p-6">
+                    <ReactMarkdown
+                      components={{
+                        hr: () => null,
+                      }}
+                    >
+                      {suggestions.companionItems}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No data available</p>
+                )}
               </div>
             </div>
           </div>
