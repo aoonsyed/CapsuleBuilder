@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
 
-export default function Step4Suggestions({ onNext, onBack }) {
+export default function Step4Suggestions({ onNext, onBack, userPlan }) {
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -467,17 +467,34 @@ const generatePrompt = () => {
 
           {/* Navigation - Continue to Market Analysis */}
           <div className="text-center mt-12">
-            <button
-              onClick={() => {
-                toast.info('Continue to view production timelines and market analysis', {
-                  style: { backgroundColor: '#3A3A3D', color: '#fff' },
-                });
-                onNext();
-              }}
-              className="px-10 py-4 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg shadow-lg transition-all hover:shadow-xl"
-            >
-              Continue to Market Analysis →
-            </button>
+            {userPlan === 'tier1' ? (
+              <div className="bg-white rounded-lg border border-gray-300 p-6 max-w-md mx-auto">
+                <h3 className="text-[20px] font-heading font-semibold mb-3 text-black">Upgrade to Tier 2</h3>
+                <p className="text-[14px] font-sans text-gray-700 mb-4">
+                  Access Market Analysis, Production Timelines, and more with Tier 2 subscription.
+                </p>
+                <a
+                  href="https://formdepartment.com/pages/about?view=subscription-plans"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block px-8 py-3 text-[14px] font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg shadow-lg transition-all hover:shadow-xl"
+                >
+                  Upgrade Now →
+                </a>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  toast.info('Continue to view production timelines and market analysis', {
+                    style: { backgroundColor: '#3A3A3D', color: '#fff' },
+                  });
+                  if (onNext) onNext();
+                }}
+                className="px-10 py-4 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg shadow-lg transition-all hover:shadow-xl"
+              >
+                Continue to Market Analysis →
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -17,6 +17,7 @@ export default function CapsuleBuilderFlow() {
   const [isValidated, setIsValidated] = useState(false);
   const [isTrial, setIsTrial] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userPlan, setUserPlan] = useState(null); // 'tier1', 'tier2', 'admin', or null
 
   // Track if the user began via the 3-form grid on Landing
   const [startedWithGrid, setStartedWithGrid] = useState(false);
@@ -79,6 +80,9 @@ export default function CapsuleBuilderFlow() {
         if (data.ok === true) {
           // Admin flag is the single source of truth for admin visibility
           setIsAdmin(Boolean(data.is_admin));
+          
+          // Store user's plan/tier for access control
+          setUserPlan(data.plan || null);
 
           // Show trial banner if trial hasn't been used yet
           if (data.show_trial_banner || !data.trial_used) {
@@ -139,6 +143,48 @@ export default function CapsuleBuilderFlow() {
       </div>
     );
   }
+
+  // Check page access before navigating to Market Analysis
+  const checkMarketAnalysisAccess = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const cid = params.get("customer_id");
+    
+    if (!cid) {
+      window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+      return false;
+    }
+    
+    try {
+      const response = await fetch(
+        `https://backend-capsule-builder.onrender.com/proxy/check-page-access?customer_id=${cid}&page=market-analysis`
+      );
+      const data = await response.json();
+      
+      if (data.ok && data.allowed) {
+        return true;
+      } else {
+        // Show upgrade message or redirect
+        if (data.redirect) {
+          window.location.href = data.redirect;
+        } else {
+          alert(data.message || "This page requires Tier 2 subscription. Please upgrade.");
+        }
+        return false;
+      }
+    } catch (err) {
+      console.error("Access check error:", err);
+      alert("Unable to verify access. Please try again.");
+      return false;
+    }
+  };
+
+  // Handle navigation to Market Analysis with access check
+  const handleNavigateToMarketAnalysis = async () => {
+    const hasAccess = await checkMarketAnalysisAccess();
+    if (hasAccess) {
+      setStep(7);
+    }
+  };
 
   // Only render app content after validation passes
   if (!isValidated) {
@@ -238,7 +284,8 @@ export default function CapsuleBuilderFlow() {
               <Step4Suggestions
                 email={email}
                 brand={brand}
-                onNext={() => setStep(7)}
+                userPlan={userPlan}
+                onNext={handleNavigateToMarketAnalysis}
                 onBack={() => setStep(5)}
               />
             )}

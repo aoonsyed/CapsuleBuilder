@@ -103,7 +103,7 @@ export default function AdminDashboard() {
     });
   };
 
-  const renderPlanBadge = (plan, remainingUses) => {
+  const renderPlanBadge = (plan) => {
     const raw = (plan || "").trim();
     const normalized = raw.toLowerCase();
 
@@ -111,7 +111,6 @@ export default function AdminDashboard() {
     let label = "None";
     if (normalized === "tier1") label = "Tier 1";
     else if (normalized === "tier2") label = "Tier 2";
-    else if (normalized === "pro") label = "Pro";
     else if (normalized === "admin") label = "Admin";
 
     // Admin should stay visually distinct
@@ -138,20 +137,7 @@ export default function AdminDashboard() {
       );
     }
 
-    // Tier1 low-uses warning – softer amber pill
-    const isTier1 = normalized === "tier1";
-    if (isTier1 && typeof remainingUses === "number" && remainingUses < 3) {
-      return (
-        <Badge
-          colorClass="bg-amber-50 text-amber-800 border border-amber-200"
-          extra="min-w-[110px]"
-        >
-          {label} – Low uses
-        </Badge>
-      );
-    }
-
-    // Regular plans (Tier 1, Tier 2, Pro) – slim black pill for strong emphasis
+    // Regular plans (Tier 1, Tier 2) – slim black pill for strong emphasis
     return (
       <Badge
         colorClass="bg-black text-white"
@@ -316,9 +302,6 @@ export default function AdminDashboard() {
                     Subscription Status
                   </th>
                   <th className="px-4 py-3 font-medium whitespace-nowrap">Expiry Date</th>
-                  <th className="px-4 py-3 font-medium text-center whitespace-nowrap">
-                    Remaining Uses
-                  </th>
                   <th className="px-4 py-3 font-medium whitespace-nowrap">Created Date</th>
                 </tr>
               </thead>
@@ -326,7 +309,7 @@ export default function AdminDashboard() {
                 {filteredUsers.length === 0 && (
                   <tr>
                     <td
-                      colSpan={9}
+                      colSpan={8}
                       className="px-4 py-6 text-center text-[13px] text-[#777]"
                     >
                       {loading
@@ -383,28 +366,13 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td className="px-4 py-3 align-middle text-center">
-                      {renderPlanBadge(user.plan, user.remaining_uses)}
+                      {renderPlanBadge(user.plan)}
                     </td>
                     <td className="px-4 py-3 align-middle text-center">
                       {renderStatusBadge(user)}
                     </td>
                     <td className="px-4 py-3 align-middle">
                       {formatDate(user.expiry)}
-                    </td>
-                    <td className="px-4 py-3 align-middle text-center">
-                      {typeof user.remaining_uses === "number" ? (
-                        <span
-                          className={
-                            user.remaining_uses > 0 && user.remaining_uses < 3
-                              ? "inline-flex items-center justify-center rounded-full px-2.5 py-1 text-[12px] bg-amber-50 text-amber-800 border border-amber-200"
-                              : "inline-flex items-center justify-center rounded-full px-2.5 py-1 text-[12px] bg-gray-100 text-gray-800"
-                          }
-                        >
-                          {user.remaining_uses}
-                        </span>
-                      ) : (
-                        "-"
-                      )}
                     </td>
                     <td className="px-4 py-3 align-middle">
                       {formatDate(user.created_at)}

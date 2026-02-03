@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
@@ -7,6 +7,67 @@ import emailjs from '@emailjs/browser';
 export default function Step4bMarketFinancials({ onNext, onBack }) {
   const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers'));
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [accessChecked, setAccessChecked] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
+
+  // Check page access on mount
+  useEffect(() => {
+    const checkAccess = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const cid = params.get("customer_id");
+      
+      if (!cid) {
+        window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+        return;
+      }
+      
+      try {
+        const response = await fetch(
+          `https://backend-capsule-builder.onrender.com/proxy/check-page-access?customer_id=${cid}&page=market-analysis`
+        );
+        const data = await response.json();
+        
+        if (data.ok && data.allowed) {
+          setHasAccess(true);
+          setAccessChecked(true);
+        } else {
+          // Redirect to subscription page or show error
+          if (data.redirect) {
+            window.location.href = data.redirect;
+          } else {
+            toast.error(data.message || "This page requires Tier 2 subscription. Please upgrade.", {
+              style: { backgroundColor: '#3A3A3D', color: '#fff' },
+            });
+            setTimeout(() => {
+              window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+            }, 2000);
+          }
+        }
+      } catch (err) {
+        console.error("Access check error:", err);
+        toast.error("Unable to verify access. Please try again.", {
+          style: { backgroundColor: '#3A3A3D', color: '#fff' },
+        });
+        setTimeout(() => {
+          window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+        }, 2000);
+      }
+    };
+
+    checkAccess();
+  }, []);
+
+  // Show loading while checking access
+  if (!accessChecked || !hasAccess) {
+    return (
+      <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
 
   const formData = useSelector((state) => state.form);
   const {
