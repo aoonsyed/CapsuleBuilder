@@ -194,6 +194,124 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
     return hexColors;
   };
 
+  // Remove prompt instructions that the AI sometimes includes in responses
+  const removePromptInstructions = (text, sectionLabel) => {
+    if (!text || typeof text !== 'string') return text;
+    
+    // Check if the text contains actual content indicators (not just instructions)
+    const hasActualContent = (content) => {
+      // Look for indicators of actual results vs instructions
+      const contentIndicators = [
+        /\$\d+/,  // Dollar amounts
+        /\d+%/,   // Percentages
+        /\d+\s*(GSM|yards?|lbs?|weeks?|months?)/i,  // Measurements
+        /[A-Z][a-z]+\s+(Blend|Cotton|Wool|Leather|Silk|Polyester)/i,  // Material names
+        /#[0-9A-Fa-f]{6}/,  // Hex colors
+        /^\s*[-*•]\s+[A-Z]/,  // Bullet points with capitalized items (actual suggestions)
+        /\d+-\d+/,  // Ranges
+      ];
+      
+      return contentIndicators.some(pattern => pattern.test(content));
+    };
+    
+    // If the text doesn't have actual content indicators, it might be all instructions
+    // But we'll still try to clean it
+    
+    // Define complete prompt instruction patterns for each section (full sentences/phrases)
+    const instructionPatterns = {
+      'Materials': [
+        /^Suggest appropriate materials for the product based on the design requirements and target price point\.?\s*/im,
+        /^Include fabric types, weights \(GSM\), texture, special properties \(stretch, breathability, etc\.\), and any special considerations for sustainability or performance\.?\s*/im,
+      ],
+      'Sales Price': [
+        /^Provide a detailed suggested retail price analysis:\s*/im,
+        /^Recommended retail price range\s*\(provide a specific range, e\.g\., \$80-\$100\)\s*/im,
+        /^Justify the pricing based on materials, market positioning, and target audience\s*/im,
+        /^Mention competitive pricing context if relevant\.?\s*/im,
+        /^Include any seasonal or promotional pricing considerations\.?\s*/im,
+      ],
+      'Cost Production': [
+        /^Provide a detailed production cost breakdown:\s*/im,
+        /^Cost per unit\s*\(specific number\)\s*/im,
+        /^Brief breakdown of major cost components\s*\(materials %, labor %, overhead %\)\s*/im,
+        /^Mention any economies of scale considerations\.?\s*/im,
+        /^Note factors that could affect cost\s*\(complexity, special finishes, etc\.\)\s*/im,
+        /^Include comparison between domestic vs overseas production costs if relevant\.?\s*/im,
+      ],
+      'Companion Items': [
+        /^Suggest 4-6 complementary pieces that would work well with this product in a capsule collection\.?\s*/im,
+        /^Be specific with item names and briefly explain why each piece complements the main product\.?\s*/im,
+      ],
+      'Color Palette': [
+        /^Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format\s*\(one per line\):\s*/im,
+        /^DO NOT include any descriptions or additional text, ONLY the format above\.?\s*/im,
+      ],
+      'Yield & Consumption Estimates': [
+        /^Provide a comprehensive fabric consumption analysis:\s*/im,
+        /^Fabric yardage per unit with justification\s*\(e\.g\., "2\.5 yards per hoodie to account for body, sleeves, hood, and ribbing"\)\s*/im,
+        /^Total yardage for the full production run\s*/im,
+        /^Mention fabric width assumptions\s*\(typically 58-60 inches\)\s*/im,
+        /^Include waste factor percentage\s*\(typically 10-15%\)\s*/im,
+        /^Note any special cutting or pattern considerations\.?\s*/im,
+        /^Provide weight estimates if relevant\s*\(e\.g\., "Approximately 0\.8 lbs per unit"\)\.?\s*/im,
+      ],
+      'Production Lead Time Estimate': [
+        /^Provide detailed production timeline estimates:\s*/im,
+        /^Domestic production:\s*specific week range\s*\(e\.g\., 10-14 weeks\)\s*with breakdown of phases if possible\s*\(sampling, production, finishing, shipping\)\s*/im,
+        /^Overseas production:\s*specific week range\s*\(e\.g\., 14-18 weeks\)\s*with breakdown of phases\s*/im,
+        /^Explain key factors affecting timeline\s*\(complexity, MOQ, quality checks, customs, etc\.\)\s*/im,
+        /^Note rush production options if available\.?\s*/im,
+        /^Mention seasonal considerations\s*\(Chinese New Year, holiday rushes, etc\.\)\s*/im,
+        /^All ranges should be realistic:\s*minimum 8 weeks, maximum 24 weeks\.?\s*/im,
+      ],
+      'Comparable Market Examples': [
+        /^List 2–3 comparable market references\.?\s*/im,
+        /^Select brands at similar quality and price points to the user's concept\.?\s*/im,
+      ],
+      'Target Consumer Insight': [
+        /^Suggest target consumer demographics and psychographics\.?\s*/im,
+        /^Include age range, lifestyle, values, and buying motivations that align with the product direction described\.?\s*/im,
+      ],
+      'Margin Analysis': [
+        /^Calculate suggested retail price vs\. production cost to show the gross margin percentage\.?\s*/im,
+        /^Display calculations clearly\.?\s*/im,
+      ],
+      'Wholesale vs. DTC Pricing': [
+        /^Automatically generate a suggested wholesale price and direct-to-consumer\s*\(DTC\)\s*price range\.?\s*/im,
+        /^Base calculations on standard fashion industry markups, and present both ranges clearly\.?\s*/im,
+      ],
+    };
+    
+    let cleaned = text;
+    const patterns = instructionPatterns[sectionLabel] || [];
+    
+    // Remove each instruction pattern (only at the start of lines)
+    for (const pattern of patterns) {
+      cleaned = cleaned.replace(pattern, '');
+    }
+    
+    // Remove bullet points that are just instructions (lines starting with "-" followed by instruction text)
+    cleaned = cleaned.replace(/^-\s*(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief|Mention|Note|Include)[^\n]*$/gim, '');
+    
+    // Clean up multiple consecutive newlines that might result from removals
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+    
+    cleaned = cleaned.trim();
+    
+    // If after cleaning, the text doesn't contain actual content indicators, return empty
+    // This prevents showing instructions when there are no actual results
+    if (cleaned && !hasActualContent(cleaned)) {
+      // Check if it's just instruction-like text
+      const instructionKeywords = /^(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief)/im;
+      if (instructionKeywords.test(cleaned)) {
+        console.log(`Section "${sectionLabel}" appears to contain only instructions, returning empty`);
+        return '';
+      }
+    }
+    
+    return cleaned;
+  };
+
   // Remove trailing dashes and similar AI artifacts from section text
   const sanitizeSectionText = (text) => {
     if (!text || typeof text !== 'string') return text;
@@ -312,7 +430,11 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
     for (const pattern of patterns) {
       const match = text.match(pattern);
       if (match && match[1] && match[1].trim()) {
-        return sanitizeSectionText(match[1].trim());
+        let sectionContent = match[1].trim();
+        // Remove prompt instructions from the section content
+        sectionContent = removePromptInstructions(sectionContent, label);
+        // Then sanitize (remove dashes, etc.)
+        return sanitizeSectionText(sectionContent);
       }
     }
     return '';
@@ -435,10 +557,41 @@ const generatePrompt = () => {
       const cached = loadCachedSuggestions();
       if (cached) {
         console.log("Loading Product Breakdown from cache");
+        
+        // Clean cached parsed suggestions to remove any prompt instructions
+        // (handles old cached data that might contain instructions)
+        const cleanedSuggestions = {};
+        if (cached.parsedSuggestions) {
+          Object.keys(cached.parsedSuggestions).forEach(key => {
+            const sectionLabel = {
+              materials: 'Materials',
+              saleprices: 'Sales Price',
+              productionCosts: 'Cost Production',
+              companionItems: 'Companion Items',
+              colors: 'Color Palette',
+              yieldConsumption: 'Yield & Consumption Estimates',
+              leadTime: 'Production Lead Time Estimate',
+              marketExamples: 'Comparable Market Examples',
+              targetInsight: 'Target Consumer Insight',
+              marginAnalysis: 'Margin Analysis',
+              pricing: 'Wholesale vs. DTC Pricing',
+            }[key] || key;
+            
+            const sectionContent = cached.parsedSuggestions[key];
+            if (sectionContent) {
+              cleanedSuggestions[key] = sanitizeSectionText(
+                removePromptInstructions(sectionContent, sectionLabel)
+              );
+            } else {
+              cleanedSuggestions[key] = sectionContent;
+            }
+          });
+        }
+        
         // Also save to legacy keys for backward compatibility
         localStorage.setItem('answer', cached.rawAnswer);
-        localStorage.setItem('parsedSuggestions', JSON.stringify(cached.parsedSuggestions));
-        setSuggestions(cached.parsedSuggestions);
+        localStorage.setItem('parsedSuggestions', JSON.stringify(cleanedSuggestions));
+        setSuggestions(cleanedSuggestions);
         setLoading(false);
         toast.success('Product Breakdown loaded from cache', {
           style: { backgroundColor: '#3A3A3D', color: '#fff' },
