@@ -198,115 +198,188 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
   const removePromptInstructions = (text, sectionLabel) => {
     if (!text || typeof text !== 'string') return text;
     
+    // First, remove markdown bold formatting from instruction text
+    // Instructions often come as **instruction text** which we need to detect
+    let cleaned = text;
+    
     // Check if the text contains actual content indicators (not just instructions)
     const hasActualContent = (content) => {
+      // Remove markdown formatting for content detection
+      const contentWithoutMarkdown = content.replace(/\*\*/g, '').replace(/`/g, '').trim();
+      
+      // If content is empty, no actual content
+      if (!contentWithoutMarkdown || contentWithoutMarkdown.length === 0) {
+        return false;
+      }
+      
       // Look for indicators of actual results vs instructions
       const contentIndicators = [
         /\$\d+/,  // Dollar amounts
         /\d+%/,   // Percentages
-        /\d+\s*(GSM|yards?|lbs?|weeks?|months?)/i,  // Measurements
-        /[A-Z][a-z]+\s+(Blend|Cotton|Wool|Leather|Silk|Polyester)/i,  // Material names
+        /\d+\s*(GSM|yards?|lbs?|weeks?|months?|inches?)/i,  // Measurements
+        /[A-Z][a-z]+\s+(Blend|Cotton|Wool|Leather|Silk|Polyester|Twill|Denim|Linen|Cashmere|Nylon|Spandex)/i,  // Material names
         /#[0-9A-Fa-f]{6}/,  // Hex colors
-        /^\s*[-*•]\s+[A-Z]/,  // Bullet points with capitalized items (actual suggestions)
-        /\d+-\d+/,  // Ranges
+        /^\s*[-*•]\s+[A-Z][a-z]+/,  // Bullet points with capitalized items
+        /\d+-\d+/,  // Ranges (e.g., 10-14, $80-$100)
+        /[A-Z][a-z]+\s+[A-Z][a-z]+.*\$\d+/,  // Product names with prices
+        /\d+\s*(weeks?|days?|months?)\s*(for|to|of|with)/i,  // Timeframes
+        /[A-Z][a-z]+.*\$\d+.*\$\d+/,  // Multiple prices mentioned
+        /(Fabric|Material|Weight|Texture|Property|Cost|Price|Production|Lead time|Timeline|Yardage|Consumption|Waste|Factor)/i,  // Content keywords
+        /[A-Z][a-z]+\s+(Blazer|Turtleneck|Boots|Overcoat|Belt|Bag|Jacket|Pants|Shirt|Dress)/i,  // Product names
+        /(domestic|overseas|production|manufacturing|wholesale|retail|DTC|margin|gross|net)/i,  // Business terms
+        /\d+\s*(units?|pieces?|items?)/i,  // Quantities
+        /[A-Z][a-z]+.*:\s*[A-Z]/,  // Colon followed by capitalized text (structured content)
+        /(approximately|about|around|roughly|typically|usually|generally)\s+\d+/i,  // Approximations with numbers
       ];
       
-      return contentIndicators.some(pattern => pattern.test(content));
+      // Check if any content indicator is present
+      const hasIndicator = contentIndicators.some(pattern => pattern.test(contentWithoutMarkdown));
+      
+      // Also check if content is substantial (more than just a few words)
+      // If it's longer than 50 characters and doesn't look like pure instructions, it might have content
+      const isSubstantial = contentWithoutMarkdown.length > 50;
+      
+      // Check if it contains sentences (has periods, colons, or structured formatting)
+      const hasStructure = /[.:]\s+[A-Z]/.test(contentWithoutMarkdown) || 
+                          /^\s*[-*•]\s+/.test(contentWithoutMarkdown) ||
+                          /\n/.test(contentWithoutMarkdown);
+      
+      return hasIndicator || (isSubstantial && hasStructure);
     };
     
-    // If the text doesn't have actual content indicators, it might be all instructions
-    // But we'll still try to clean it
-    
-    // Define complete prompt instruction patterns for each section (full sentences/phrases)
+    // Define instruction patterns that can appear with or without markdown formatting
     const instructionPatterns = {
       'Materials': [
-        /^Suggest appropriate materials for the product based on the design requirements and target price point\.?\s*/im,
-        /^Include fabric types, weights \(GSM\), texture, special properties \(stretch, breathability, etc\.\), and any special considerations for sustainability or performance\.?\s*/im,
+        /(\*\*)?Suggest appropriate materials for the product based on the design requirements and target price point\.?(\*\*)?\s*/gi,
+        /(\*\*)?Include fabric types, weights \(GSM\), texture, special properties \(stretch, breathability, etc\.\), and any special considerations for sustainability or performance\.?(\*\*)?\s*/gi,
       ],
       'Sales Price': [
-        /^Provide a detailed suggested retail price analysis:\s*/im,
-        /^Recommended retail price range\s*\(provide a specific range, e\.g\., \$80-\$100\)\s*/im,
-        /^Justify the pricing based on materials, market positioning, and target audience\s*/im,
-        /^Mention competitive pricing context if relevant\.?\s*/im,
-        /^Include any seasonal or promotional pricing considerations\.?\s*/im,
+        /(\*\*)?Provide a detailed suggested retail price analysis:(\*\*)?\s*/gi,
+        /(\*\*)?Recommended retail price range\s*\(provide a specific range, e\.g\., \$80-\$100\)(\*\*)?\s*/gi,
+        /(\*\*)?Justify the pricing based on materials, market positioning, and target audience(\*\*)?\s*/gi,
+        /(\*\*)?Mention competitive pricing context if relevant\.?(\*\*)?\s*/gi,
+        /(\*\*)?Include any seasonal or promotional pricing considerations\.?(\*\*)?\s*/gi,
+        /(\*\*)?- Recommended retail price range\s*\(provide a specific range, e\.g\., \$80-\$100\)(\*\*)?\s*/gi,
+        /(\*\*)?- Justify the pricing based on materials, market positioning, and target audience(\*\*)?\s*/gi,
+        /(\*\*)?- Mention competitive pricing context if relevant(\*\*)?\s*/gi,
+        /(\*\*)?- Include any seasonal or promotional pricing considerations(\*\*)?\s*/gi,
       ],
       'Cost Production': [
-        /^Provide a detailed production cost breakdown:\s*/im,
-        /^Cost per unit\s*\(specific number\)\s*/im,
-        /^Brief breakdown of major cost components\s*\(materials %, labor %, overhead %\)\s*/im,
-        /^Mention any economies of scale considerations\.?\s*/im,
-        /^Note factors that could affect cost\s*\(complexity, special finishes, etc\.\)\s*/im,
-        /^Include comparison between domestic vs overseas production costs if relevant\.?\s*/im,
+        /(\*\*)?Provide a detailed production cost breakdown:(\*\*)?\s*/gi,
+        /(\*\*)?Cost per unit\s*\(specific number\)(\*\*)?\s*/gi,
+        /(\*\*)?Brief breakdown of major cost components\s*\(materials %, labor %, overhead %\)(\*\*)?\s*/gi,
+        /(\*\*)?Mention any economies of scale considerations\.?(\*\*)?\s*/gi,
+        /(\*\*)?Note factors that could affect cost\s*\(complexity, special finishes, etc\.\)(\*\*)?\s*/gi,
+        /(\*\*)?Include comparison between domestic vs overseas production costs if relevant\.?(\*\*)?\s*/gi,
+        /(\*\*)?- Cost per unit\s*\(specific number\)(\*\*)?\s*/gi,
+        /(\*\*)?- Brief breakdown of major cost components\s*\(materials %, labor %, overhead %\)(\*\*)?\s*/gi,
+        /(\*\*)?- Mention any economies of scale considerations(\*\*)?\s*/gi,
+        /(\*\*)?- Note factors that could affect cost\s*\(complexity, special finishes, etc\.\)(\*\*)?\s*/gi,
+        /(\*\*)?- Include comparison between domestic vs overseas production costs if relevant(\*\*)?\s*/gi,
       ],
       'Companion Items': [
-        /^Suggest 4-6 complementary pieces that would work well with this product in a capsule collection\.?\s*/im,
-        /^Be specific with item names and briefly explain why each piece complements the main product\.?\s*/im,
+        /(\*\*)?Suggest 4-6 complementary pieces that would work well with this product in a capsule collection\.?(\*\*)?\s*/gi,
+        /(\*\*)?Be specific with item names and briefly explain why each piece complements the main product\.?(\*\*)?\s*/gi,
       ],
       'Color Palette': [
-        /^Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format\s*\(one per line\):\s*/im,
-        /^DO NOT include any descriptions or additional text, ONLY the format above\.?\s*/im,
+        /(\*\*)?Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format\s*\(one per line\):(\*\*)?\s*/gi,
+        /(\*\*)?DO NOT include any descriptions or additional text, ONLY the format above\.?(\*\*)?\s*/gi,
       ],
       'Yield & Consumption Estimates': [
-        /^Provide a comprehensive fabric consumption analysis:\s*/im,
-        /^Fabric yardage per unit with justification\s*\(e\.g\., "2\.5 yards per hoodie to account for body, sleeves, hood, and ribbing"\)\s*/im,
-        /^Total yardage for the full production run\s*/im,
-        /^Mention fabric width assumptions\s*\(typically 58-60 inches\)\s*/im,
-        /^Include waste factor percentage\s*\(typically 10-15%\)\s*/im,
-        /^Note any special cutting or pattern considerations\.?\s*/im,
-        /^Provide weight estimates if relevant\s*\(e\.g\., "Approximately 0\.8 lbs per unit"\)\.?\s*/im,
+        /(\*\*)?Provide a comprehensive fabric consumption analysis:(\*\*)?\s*/gi,
+        /(\*\*)?Fabric yardage per unit with justification\s*\(e\.g\., "2\.5 yards per hoodie to account for body, sleeves, hood, and ribbing"\)(\*\*)?\s*/gi,
+        /(\*\*)?Total yardage for the full production run(\*\*)?\s*/gi,
+        /(\*\*)?Mention fabric width assumptions\s*\(typically 58-60 inches\)(\*\*)?\s*/gi,
+        /(\*\*)?Include waste factor percentage\s*\(typically 10-15%\)(\*\*)?\s*/gi,
+        /(\*\*)?Note any special cutting or pattern considerations\.?(\*\*)?\s*/gi,
+        /(\*\*)?Provide weight estimates if relevant\s*\(e\.g\., "Approximately 0\.8 lbs per unit"\)\.?(\*\*)?\s*/gi,
       ],
       'Production Lead Time Estimate': [
-        /^Provide detailed production timeline estimates:\s*/im,
-        /^Domestic production:\s*specific week range\s*\(e\.g\., 10-14 weeks\)\s*with breakdown of phases if possible\s*\(sampling, production, finishing, shipping\)\s*/im,
-        /^Overseas production:\s*specific week range\s*\(e\.g\., 14-18 weeks\)\s*with breakdown of phases\s*/im,
-        /^Explain key factors affecting timeline\s*\(complexity, MOQ, quality checks, customs, etc\.\)\s*/im,
-        /^Note rush production options if available\.?\s*/im,
-        /^Mention seasonal considerations\s*\(Chinese New Year, holiday rushes, etc\.\)\s*/im,
-        /^All ranges should be realistic:\s*minimum 8 weeks, maximum 24 weeks\.?\s*/im,
+        /(\*\*)?Provide detailed production timeline estimates:(\*\*)?\s*/gi,
+        /(\*\*)?Domestic production:\s*specific week range\s*\(e\.g\., 10-14 weeks\)\s*with breakdown of phases if possible\s*\(sampling, production, finishing, shipping\)(\*\*)?\s*/gi,
+        /(\*\*)?Overseas production:\s*specific week range\s*\(e\.g\., 14-18 weeks\)\s*with breakdown of phases(\*\*)?\s*/gi,
+        /(\*\*)?Explain key factors affecting timeline\s*\(complexity, MOQ, quality checks, customs, etc\.\)(\*\*)?\s*/gi,
+        /(\*\*)?Note rush production options if available\.?(\*\*)?\s*/gi,
+        /(\*\*)?Mention seasonal considerations\s*\(Chinese New Year, holiday rushes, etc\.\)(\*\*)?\s*/gi,
+        /(\*\*)?All ranges should be realistic:\s*minimum 8 weeks, maximum 24 weeks\.?(\*\*)?\s*/gi,
       ],
       'Comparable Market Examples': [
-        /^List 2–3 comparable market references\.?\s*/im,
-        /^Select brands at similar quality and price points to the user's concept\.?\s*/im,
+        /(\*\*)?List 2–3 comparable market references\.?(\*\*)?\s*/gi,
+        /(\*\*)?Select brands at similar quality and price points to the user's concept\.?(\*\*)?\s*/gi,
       ],
       'Target Consumer Insight': [
-        /^Suggest target consumer demographics and psychographics\.?\s*/im,
-        /^Include age range, lifestyle, values, and buying motivations that align with the product direction described\.?\s*/im,
+        /(\*\*)?Suggest target consumer demographics and psychographics\.?(\*\*)?\s*/gi,
+        /(\*\*)?Include age range, lifestyle, values, and buying motivations that align with the product direction described\.?(\*\*)?\s*/gi,
       ],
       'Margin Analysis': [
-        /^Calculate suggested retail price vs\. production cost to show the gross margin percentage\.?\s*/im,
-        /^Display calculations clearly\.?\s*/im,
+        /(\*\*)?Calculate suggested retail price vs\. production cost to show the gross margin percentage\.?(\*\*)?\s*/gi,
+        /(\*\*)?Display calculations clearly\.?(\*\*)?\s*/gi,
       ],
       'Wholesale vs. DTC Pricing': [
-        /^Automatically generate a suggested wholesale price and direct-to-consumer\s*\(DTC\)\s*price range\.?\s*/im,
-        /^Base calculations on standard fashion industry markups, and present both ranges clearly\.?\s*/im,
+        /(\*\*)?Automatically generate a suggested wholesale price and direct-to-consumer\s*\(DTC\)\s*price range\.?(\*\*)?\s*/gi,
+        /(\*\*)?Base calculations on standard fashion industry markups, and present both ranges clearly\.?(\*\*)?\s*/gi,
       ],
     };
     
-    let cleaned = text;
     const patterns = instructionPatterns[sectionLabel] || [];
     
-    // Remove each instruction pattern (only at the start of lines)
+    // Remove each instruction pattern (with or without markdown formatting)
     for (const pattern of patterns) {
       cleaned = cleaned.replace(pattern, '');
     }
     
-    // Remove bullet points that are just instructions (lines starting with "-" followed by instruction text)
-    cleaned = cleaned.replace(/^-\s*(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief|Mention|Note|Include)[^\n]*$/gim, '');
+    // Remove standalone markdown bold instruction text (e.g., **instruction**)
+    cleaned = cleaned.replace(/\*\*([^*]+(?:Justify|Cost per unit|Recommended|Brief|Mention|Note|Include|Suggest|Provide|List|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate)[^*]*)\*\*/gi, '');
+    
+    // Remove bullet points that are just instructions (lines starting with "-" or "*" followed by instruction text)
+    cleaned = cleaned.replace(/^[-*]\s*(\*\*)?(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief|Justify|Cost per unit)[^\n]*(\*\*)?$/gim, '');
+    
+    // Remove lines that are only markdown bold instructions
+    cleaned = cleaned.replace(/^\*\*[^*]*(?:Justify|Cost per unit|Recommended|Brief|Mention|Note|Include|Suggest|Provide|List|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate)[^*]*\*\*\s*$/gim, '');
     
     // Clean up multiple consecutive newlines that might result from removals
     cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
     
     cleaned = cleaned.trim();
     
-    // If after cleaning, the text doesn't contain actual content indicators, return empty
-    // This prevents showing instructions when there are no actual results
+    // Only return empty if we're CERTAIN it's ONLY instructions with NO actual content
+    // Be conservative - if there's any doubt, show the content
     if (cleaned && !hasActualContent(cleaned)) {
-      // Check if it's just instruction-like text
-      const instructionKeywords = /^(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief)/im;
-      if (instructionKeywords.test(cleaned)) {
-        console.log(`Section "${sectionLabel}" appears to contain only instructions, returning empty`);
+      const cleanedForCheck = cleaned.replace(/\*\*/g, '').trim();
+      
+      // If content is very short (less than 15 chars), it's likely just leftover instruction fragments
+      if (cleanedForCheck.length < 15) {
+        console.log(`Section "${sectionLabel}" is too short after cleaning, returning empty. Content: "${cleanedForCheck}"`);
         return '';
       }
+      
+      // Check for EXACT instruction phrases (must match exactly, not just contain the words)
+      const exactInstructionPhrases = [
+        /^justify the pricing based on materials, market positioning, and target audience\.?$/i,
+        /^cost per unit\s*\(specific number\)\.?$/i,
+        /^recommended retail price range\s*\(provide a specific range/i,
+        /^brief breakdown of major cost components\s*\(materials %, labor %, overhead %\)\.?$/i,
+        /^suggest appropriate materials for the product based on the design requirements/i,
+        /^include fabric types, weights \(GSM\), texture/i,
+        /^suggest 4-6 complementary pieces that would work well/i,
+        /^be specific with item names and briefly explain/i,
+      ];
+      
+      const isExactInstruction = exactInstructionPhrases.some(phrase => phrase.test(cleanedForCheck));
+      
+      // Check if it starts with instruction keywords AND is very short (likely just instructions)
+      const instructionKeywords = /^(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief|Justify|Cost per unit)/im;
+      const startsWithInstruction = instructionKeywords.test(cleanedForCheck);
+      const isVeryShort = cleanedForCheck.length < 30;
+      
+      // Only return empty if it's an exact instruction match OR (starts with instruction keyword AND is very short)
+      if (isExactInstruction || (startsWithInstruction && isVeryShort)) {
+        console.log(`Section "${sectionLabel}" appears to contain only instructions, returning empty. Content: "${cleanedForCheck.substring(0, 100)}"`);
+        return '';
+      }
+      
+      // If we're not certain, return the cleaned content (better to show something than nothing)
+      console.log(`Section "${sectionLabel}" has no clear content indicators but might contain results. Showing content. Length: ${cleanedForCheck.length}`);
     }
     
     return cleaned;
@@ -431,10 +504,33 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
       const match = text.match(pattern);
       if (match && match[1] && match[1].trim()) {
         let sectionContent = match[1].trim();
-        // Remove prompt instructions from the section content
+        
+        // Remove prompt instructions from the section content first
         sectionContent = removePromptInstructions(sectionContent, label);
+        
+        // If after cleaning, content is completely empty, return empty
+        if (!sectionContent || sectionContent.trim().length === 0) {
+          console.log(`Section "${label}" is empty after cleaning instructions`);
+          return '';
+        }
+        
         // Then sanitize (remove dashes, etc.)
-        return sanitizeSectionText(sectionContent);
+        const sanitized = sanitizeSectionText(sectionContent);
+        
+        // Only reject if sanitized content is extremely short (less than 10 chars) 
+        // AND starts with instruction keywords - this catches obvious instruction-only cases
+        const finalCheck = sanitized.replace(/\*\*/g, '').trim();
+        if (finalCheck.length < 10) {
+          const instructionStarters = /^(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief|Justify|Cost per unit)/i;
+          if (instructionStarters.test(finalCheck)) {
+            console.log(`Section "${label}" final content is too short and appears to be only instructions: "${finalCheck}"`);
+            return '';
+          }
+        }
+        
+        // Return the sanitized content - let removePromptInstructions handle the filtering
+        // If it passed that function, it likely has some content worth showing
+        return sanitized;
       }
     }
     return '';
