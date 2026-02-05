@@ -222,7 +222,85 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
     return s.trim();
   };
 
+  // Remove prompt text if it's accidentally included in the response
+  const removePromptFromResponse = (text) => {
+    if (!text || typeof text !== 'string') return text;
+    
+    // Look for common prompt markers that indicate the prompt is included
+    const promptMarkers = [
+      /Act as a fashion design assistant\. Based on the following details:/i,
+      /Please provide your response in EXACTLY this format/i,
+      /DO NOT include any descriptions or additional text/i,
+      /Act as a fashion design assistant/i,
+    ];
+    
+    // Also check for prompt structure patterns (user input fields)
+    const promptStructurePatterns = [
+      /- Idea:\s*\S+/i,
+      /- Brand:\s*\S+/i,
+      /- Product Type:\s*\S+/i,
+      /- Target Price:\s*\S+/i,
+    ];
+    
+    // Check if any prompt markers exist
+    let hasPrompt = false;
+    for (const marker of promptMarkers) {
+      if (marker.test(text)) {
+        hasPrompt = true;
+        break;
+      }
+    }
+    
+    // Also check if prompt structure patterns appear before section headers
+    // (which would indicate the prompt is included)
+    if (!hasPrompt) {
+      const firstSectionMatch = text.search(/\*\*Materials\*\*/i);
+      if (firstSectionMatch > 0) {
+        const textBeforeSection = text.substring(0, firstSectionMatch);
+        for (const pattern of promptStructurePatterns) {
+          if (pattern.test(textBeforeSection)) {
+            hasPrompt = true;
+            break;
+          }
+        }
+      }
+    }
+    
+    if (!hasPrompt) {
+      return text; // No prompt detected, return as-is
+    }
+    
+    // Find the first occurrence of a section header (the actual response starts here)
+    const firstSectionPattern = /\*\*Materials\*\*/i;
+    const firstSectionMatch = text.search(firstSectionPattern);
+    
+    if (firstSectionMatch > 0) {
+      // Remove everything before the first section
+      const cleaned = text.substring(firstSectionMatch);
+      console.log('Removed prompt text from response. Original length:', text.length, 'Cleaned length:', cleaned.length);
+      return cleaned;
+    }
+    
+    // Fallback: try to find any section header
+    const anySectionPattern = /\*\*[A-Z][a-zA-Z\s]+\*\*/;
+    const anySectionMatch = text.search(anySectionPattern);
+    
+    if (anySectionMatch > 0) {
+      const cleaned = text.substring(anySectionMatch);
+      console.log('Removed prompt text from response (fallback). Original length:', text.length, 'Cleaned length:', cleaned.length);
+      return cleaned;
+    }
+    
+    // If we can't find a section header, return the text as-is
+    // (better to show something than nothing)
+    console.warn('Could not detect section headers to remove prompt. Returning text as-is.');
+    return text;
+  };
+
   const parseAIResponse = (text) => {
+    // Note: text should already be cleaned by removePromptFromResponse before calling this function
+    // But we'll use the text as-is here since it's already cleaned
+    
   const getSection = (label) => {
     // Try multiple patterns to catch different formatting
     const patterns = [
@@ -379,7 +457,10 @@ const generatePrompt = () => {
           throw new Error(`OpenAI API error: ${response.data.error}`);
         }
 
-        const answer = response?.data?.choices?.[0]?.message?.content ?? response?.data?.choices?.[0]?.text ?? '';
+        let answer = response?.data?.choices?.[0]?.message?.content ?? response?.data?.choices?.[0]?.text ?? '';
+        
+        // Clean the response to remove any prompt text that might be included
+        answer = removePromptFromResponse(answer);
         
         console.log("Parsed Answer:", answer); // Log parsed answer
 
