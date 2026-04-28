@@ -194,17 +194,14 @@ export default function CapsuleBuilderFlow() {
   return (
     <div className="bg-[#E8E8E8] min-h-screen bg-cover bg-center font-sans text-white relative">
       <div className="absolute inset-0 bg-[#E8E8E8] z-0" />
-      {/* Free Trial Banner */}
-      {isTrial && (
-        <div className="relative z-20 bg-black text-white text-center py-2 px-4 font-semibold">
-          You are currently using a FREE TRIAL. Upgrade to unlock full features!
-        </div>
-      )}
+      <div className="relative z-20 bg-[#25221D] text-[#EBDCC5] text-center py-2 px-4 font-sans text-[11px] tracking-[0.24em] uppercase">
+        You are currently using a free trial. Upgrade to unlock all features
+      </div>
       <div className="relative z-10">
-        <Navbar />
+        {step !== 1 && <Navbar />}
       </div>
 
-      <div className={`relative z-10 pt-16 ${step === 1 ? "bg-[#E8E8E8]" : ""}`}>
+      <div className={`relative z-10 ${step === 1 ? "bg-[#E8E8E8]" : ""}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={step}

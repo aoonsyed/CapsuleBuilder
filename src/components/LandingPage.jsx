@@ -38,7 +38,7 @@ export default function LandingPage({ onNext }) {
           <button className="bg-black text-white px-6 py-2 rounded hover:opacity-80">Get Started</button>
         </div>
         <img
-          src="/mnt/data/Outwear.png"
+          src="/assets/7.png"
           alt="Bomber Jacket"
           className="w-64 md:w-80 object-contain"
         />
@@ -70,7 +70,7 @@ export default function LandingPage({ onNext }) {
           {/* Product Image */}
           <div className="col-span-1 flex flex-col items-center">
             <img
-              src="/mnt/data/Outwear.png"
+              src="/assets/7.png"
               alt="Curated Capsule"
               className="w-full max-w-xs"
             />
@@ -82,7 +82,7 @@ export default function LandingPage({ onNext }) {
           <div className="col-span-1 space-y-4">
             <p className="font-semibold text-sm">Suggested Product</p>
             <div className="flex items-center gap-4">
-              <img src="/mnt/data/Outwear.png" alt="Jacket Thumb" className="w-16 h-16 object-cover" />
+              <img src="/assets/7.png" alt="Jacket Thumb" className="w-16 h-16 object-cover" />
               <div className="flex flex-wrap gap-2 text-xs">
                 <span className="px-3 py-1 border rounded-full">Jacket</span>
                 <span className="px-3 py-1 border rounded-full">Top</span>

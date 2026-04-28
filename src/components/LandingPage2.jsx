@@ -3,17 +3,37 @@ import Step1Vision from "./Step1Vision";
 import Step2Inspiration from "./Step2Inspiration";
 import Step3ProductFocus from "./Step3ProductFocus";
 
-// Prefer CRA-style env var, but fall back to Vite-style if present
 const ADMIN_DASHBOARD_TOKEN =
   process.env.REACT_APP_ADMIN_DASHBOARD_TOKEN ||
   (typeof import.meta !== "undefined" &&
     import.meta.env &&
     import.meta.env.VITE_ADMIN_DASHBOARD_TOKEN);
 
+// Hero image framing controls (easy custom placement)
+const HERO_IMAGE_PLACEMENT = {
+    x: "50%",   // horizontal anchor: 0% (left) -> 100% (right)
+    y: "70%",    // vertical anchor: 0% (top) -> 100% (bottom)
+    size: "cover", // cover | contain | custom size like "110%"
+};
+
 export default function LandingPage2({ onNext, onContinue, startInGrid = false, isAdmin = false }) {
+    const receiveHeadingStyle = {
+        fontFamily: '"Montserrat", "Futura", "Gotham", "Avenir Next", "Segoe UI", sans-serif',
+        fontWeight: 600,
+        fontStyle: "normal",
+        letterSpacing: "0.01em",
+    };
+    const receiveBodyStyle = {
+        fontFamily: '"Montserrat", "Futura", "Gotham", "Avenir Next", "Segoe UI", sans-serif',
+        fontWeight: 400,
+        fontStyle: "normal",
+        letterSpacing: "0.01em",
+    };
+
     const colors = { black: "#000000", white: "#F8F8F8", darkGray: "#7B6240", charcoal: "#F4EBDC" };
     const categories = ["Outerwear", "Tee Shirt", "Pants", "Dresses"];
     const name = ["Jacket", "Tee Shirt", "Pants", "Outerwear"];
+    const heroImage = "/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg";
 
     const [selectedCategory, setSelectedCategory] = useState("Outerwear");
     const [showAllForms, setShowAllForms] = useState(startInGrid);
@@ -25,6 +45,15 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
         Pants: "/assets/13.png",
         Dresses: "/assets/12.png",
     };
+    const carouselItems = [
+        { label: "Outerwear", value: "Outerwear", image: "/assets/laura-chouette-9_KGtIF-hUk-unsplash.jpg" },
+        { label: "Tee Shirt", value: "Tee Shirt", image: "/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg" },
+        { label: "Pants", value: "Pants", image: "/assets/armin-rastgar-06jxXFyuJhc-unsplash.jpg" },
+        { label: "Dresses", value: "Dresses", image: "/assets/eve-maier-u1OuYQa0WtQ-unsplash.jpg" },
+        { label: "Outerwear", value: "Outerwear", image: "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg" },
+    ];
+    const previewImage = "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg";
+    const [activeSlide, setActiveSlide] = useState(0);
 
     const categoryMap = {
         Outerwear: ['Jacket', 'Pants', 'Outerwear'],
@@ -37,9 +66,21 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
         if (startInGrid) setShowAllForms(true);
     }, [startInGrid]);
 
+    useEffect(() => {
+        setSelectedCategory(carouselItems[activeSlide]?.value || "Outerwear");
+    }, [activeSlide]);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setActiveSlide((prev) => (prev + 1) % carouselItems.length);
+        }, 3500);
+        return () => clearInterval(timer);
+    }, []);
+
     const handleCategorySelect = (category) => {
-        // Only change the selected category; keep the step indicator static
         setSelectedCategory(category);
+        const idx = carouselItems.findIndex((item) => item.value === category);
+        if (idx >= 0) setActiveSlide(idx);
     };
     // Customer validation is now handled at the CapsuleBuilderFlow level
     // No need to validate here anymore
@@ -70,6 +111,23 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
     };
 
     const handleContinue = async () => {
+        // DEV BYPASS:
+        // When running locally, skip subscription validation and continue in the flow.
+        const hostname =
+            typeof window !== "undefined" ? window.location.hostname : "";
+        const isLocalhost =
+            hostname === "localhost" ||
+            hostname === "127.0.0.1" ||
+            hostname === "0.0.0.0";
+        if (isLocalhost) {
+            if (typeof onContinue === "function") {
+                onContinue();
+            } else if (onNext) {
+                onNext();
+            }
+            return;
+        }
+
         // Get customer_id from URL
         const params = new URLSearchParams(window.location.search);
         const customerId = params.get("customer_id");
@@ -179,299 +237,300 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
 
     /* ================= DEFAULT LANDING ================= */
     return (
-        <div className="min-h-screen font-sans overflow-x-hidden w-full" style={{ backgroundColor: "#E8E8E8" }}>
+        <div className="min-h-screen w-full font-sans overflow-x-hidden bg-[#EAE7E1] text-black">
             {/* HERO */}
-            <div className="w-full grid grid-cols-1 lg:grid-cols-2 px-4 pt-0 pb-16 sm:px-6 lg:px-12 xl:px-20 2xl:px-32 items-center">
-                <div>
-                    <h2 className="font-heading font-semibold text-[32px] sm:text-[32px] md:text-[32px] text-black leading-[1.2] text-center lg:text-left">
-                        START YOUR
-                        <br />
-                        <span className="whitespace-normal">CAPSULE COLLECTION</span>
-                    </h2>
-                    <p className="text-black font-sans text-[16px] font-normal leading-[1.2] mt-6 text-center lg:text-left">
-                        Tell us your vision, and we'll help you shape it into a
-                        <br />
-                        <span>sellable, production-ready line.</span>
-                    </p>
-                    <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                        <button
-                            onClick={handleGetStarted}
-                            className="
-                inline-flex items-center justify-center
-                px-6 py-3
-                rounded-[20px]
-                bg-black text-white
-                hover:bg-[#3A3A3D]
-                font-sans font-medium
-                text-[14px] leading-[1.2]
-                shadow transition duration-200
-                focus:outline-none focus:ring-2 focus:ring-black/30 active:scale-[0.99]
-              "
-                        >
-                            Get Started
-                        </button>
-                        {isAdmin && (
-                            <button
-                                type="button"
-                                onClick={handleAdminDashboardClick}
-                                className="
-                  inline-flex items-center justify-center
-                  px-6 py-3
-                  rounded-[20px]
-                  bg-white text-black
-                  border border-black
-                  hover:bg-black hover:text-white
-                  font-sans font-medium
-                  text-[14px] leading-[1.2]
-                  shadow transition duration-200
-                  focus:outline-none focus:ring-2 focus:ring-black/30 active:scale-[0.99]
-                "
-                            >
-                                Admin Dashboard
-                            </button>
-                        )}
-                    </div>
+            <section
+                className="relative w-full min-h-[640px] flex flex-col items-center justify-end pb-10 px-6 text-center"
+                style={{
+                    backgroundImage:
+                        `linear-gradient(180deg, rgba(0,0,0,0.007) 0%, rgba(0,0,0,0.027) 55%, rgba(0,0,0,0.053) 100%), url("${heroImage}")`,
+                    backgroundSize: HERO_IMAGE_PLACEMENT.size,
+                    backgroundPosition: `${HERO_IMAGE_PLACEMENT.x} ${HERO_IMAGE_PLACEMENT.y}`,
+                }}
+            >
+                <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
+                    <img
+                        src="/assets/form-logo-white-transparent.png"
+                        alt="Form Department logo"
+                        className="w-[210px] sm:w-[260px] md:w-[300px] h-auto"
+                    />
                 </div>
 
-                <div className="flex justify-center lg:justify-end">
-                    <div
-                        className="
-              w-[370px] h-[442px] min-w-[370px] min-h-[442px] max-w-[370px] max-h-[442px]
-              rounded-2xl border border-[#EDEDED]
-              overflow-hidden flex items-center justify-center
-            "
+                <h1 className="font-heading font-medium text-[34px] leading-[1.15] text-[#E7D4BF] max-w-[24ch]">
+                    Refine your ideas and move forward with purpose
+                </h1>
+
+                <button
+                    type="button"
+                    onClick={handleGetStarted}
+                    className="mt-8 inline-flex items-center justify-center w-full max-w-[360px] h-[56px] rounded-full bg-[#3A3A3A]/70 text-white text-[12px] tracking-[0.18em] uppercase"
+                >
+                    Start your capsule collection
+                </button>
+
+                {isAdmin && (
+                    <button
+                        type="button"
+                        onClick={handleAdminDashboardClick}
+                        className="mt-3 inline-flex items-center justify-center w-full max-w-[360px] h-[48px] rounded-full bg-white/90 text-black text-[12px] tracking-[0.14em] uppercase"
                     >
-                        {/* Image exactly 15px smaller each side: 355x427 */}
-                        <img src="/assets/7.png" alt="Capsule Preview" className="w-[355px] h-[427px] object-cover rounded-2xl" />
-                    </div>
-                </div>
-            </div>
+                        Admin dashboard
+                    </button>
+                )}
+            </section>
 
-            {/* CURATED CAPSULE */}
-            <div className="w-full bg-white px-4 sm:px-6 py-10 md:py-14 overflow-x-hidden">
-                <div className="mx-auto max-w-7xl">
-                    <div className="mb-4">
-                        <h1 className="text-black text-[14px] font-sans font-medium leading-[1.2]">
-                            Step <span className="font-sans font-medium">1</span> Of <span className="font-sans font-medium">4</span>
-                        </h1>
-                    </div>
+            {/* WHAT YOU'LL RECEIVE (icon grid, directly below hero) */}
+            <section className="bg-white py-14 px-6">
+                <div className="mx-auto max-w-[920px]">
+                    <h2 className="text-center font-heading font-medium text-[34px] leading-[1.2] text-black">
+                        What you&apos;ll receive
+                    </h2>
 
-                    <h1 className="text-black text-[32px] font-heading font-semibold leading-[1.2] mb-8">
-                        WHAT CATEGORY ARE YOU DESIGNING?
-                    </h1>
-
-                    <div className="flex justify-start gap-3 sm:gap-4 flex-wrap mb-10">
-                        {categories.map((category) => (
-                            <button
-                                key={category}
-                                onClick={() => handleCategorySelect(category)}
-                                className={`px-5 sm:px-6 py-3 rounded-full font-sans font-medium text-[14px] leading-[1.2] transition-all flex items-center gap-3 ${selectedCategory === category ? "bg-black text-white hover:bg-[#3A3A3D]" : "bg-black text-white hover:bg-[#3A3A3D]"
-                                    }`}
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={selectedCategory === category}
-                                    onChange={() => handleCategorySelect(category)}
-                                    className={`w-4 h-4 rounded-full border-2 appearance-none relative transition-all ${selectedCategory === category
-                                        ? 'border-white bg-white checked:after:content-["✔"] checked:after:absolute checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 checked:after:text-black checked:after:text-[10px] checked:after:font-bold'
-                                        : "border-white bg-transparent"
-                                        }`}
-                                />
-                                {category}
-                            </button>
+                    <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-y-16 gap-x-16 place-items-center">
+                        {[
+                            {
+                                title: "Curated Materials",
+                                body:
+                                    "Thoughtfully selected fabrics tailored to your aesthetic, function and brand goals",
+                                icon: (
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55">
+                                        <path d="M4 7l3-3 3 3 3-3 3 3 3-3 2 2-3 3 3 3-3 3 3 3-2 2-3-3-3 3-3-3-3 3-3-3 3-3-3-3 3-3-3-3z" />
+                                        <path d="M7 4l10 10M17 4L7 14M4 10l10 10M14 10l6 6" />
+                                    </svg>
+                                ),
+                            },
+                            {
+                                title: "Color Direction",
+                                body:
+                                    "A colour palette shaped by your feedback and market position",
+                                icon: (
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55">
+                                        <path d="M12 3a9 9 0 109 9c0 3-2 3-3.5 3H15c-1.1 0-2 .9-2 2s.9 2 2 2h1" />
+                                        <path d="M7.5 11.5h0M10 8.5h0M14 8.5h0M16.5 11.5h0" strokeLinecap="round" />
+                                    </svg>
+                                ),
+                            },
+                            {
+                                title: "Design Framework",
+                                body:
+                                    "A strategic breakdown of categories and silhouettes aligned with your vision",
+                                icon: (
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55">
+                                        <path d="M12 3l-4.5 7L10 15h4l2.5-5L12 3z" />
+                                        <path d="M12 3v16" />
+                                        <rect x="8" y="19" width="8" height="2.5" rx="0.8" />
+                                    </svg>
+                                ),
+                            },
+                            {
+                                title: "Cost Transparency",
+                                body:
+                                    "Real-time production estimates to guide planning and investment",
+                                icon: (
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55">
+                                        <path d="M12 2v20" />
+                                        <path d="M17 7.5c0-2-2.2-3.5-5-3.5s-5 1.5-5 3.5S9.2 11 12 11s5 1.5 5 3.5S14.8 18 12 18s-5-1.5-5-3.5" />
+                                    </svg>
+                                ),
+                            },
+                        ].map((card) => (
+                            <div key={card.title} className="w-full max-w-[340px] text-center">
+                                <div className="mx-auto w-[94px] h-[94px] rounded-full bg-[#E9E8E5] flex items-center justify-center text-[#1B1B1B]">
+                                    {card.icon}
+                                </div>
+                                <div className="mt-5 text-[14px] leading-[1.2] text-black" style={receiveHeadingStyle}>
+                                    {card.title}
+                                </div>
+                                <div className="mt-2 text-[13px] leading-[1.45] text-[#2F2F2F]" style={receiveBodyStyle}>
+                                    {card.body}
+                                </div>
+                            </div>
                         ))}
                     </div>
+                </div>
+            </section>
 
-                    <div className="flex justify-between items-center mt-12 mb-6">
-                        <h2 className="text-black text-[24px] font-heading font-semibold leading-[1.2]">YOUR CURATED CAPSULE</h2>
+            {/* SINGLE EXTENDED CREAM CONTAINER */}
+            <section className="bg-white pt-12 pb-14 px-6">
+                <div className="mx-auto max-w-[1120px] rounded-[34px] bg-[#E8E6E2] px-8 sm:px-12 pt-14 pb-12 shadow-[18px_18px_36px_rgba(0,0,0,0.10)]">
+                    <div className="text-center text-[12px] tracking-[0.32em] uppercase text-[#6F6A61] font-sans">
+                        Selection
+                    </div>
+                    <h2 className="mt-6 text-center font-heading font-medium text-[56px] leading-[1.08] text-[#171614]">
+                        What Category Are You Designing?
+                    </h2>
+
+                    <div className="mt-14 mx-auto max-w-[620px]">
+                        <div className="relative overflow-hidden rounded-[22px] bg-[#F5F3EF] border border-[#E2DFDA]">
+                            <div className="relative aspect-[4/5] w-full">
+                                {carouselItems.map((item, idx) => (
+                                    <div
+                                        key={`${item.value}-${idx}`}
+                                        className={`absolute inset-0 bg-center bg-cover transition-opacity duration-700 ${idx === activeSlide ? "opacity-100" : "opacity-0"}`}
+                                        style={{ backgroundImage: `url("${item.image}")` }}
+                                    />
+                                ))}
+                            </div>
+                            <div className="absolute inset-x-0 bottom-5 flex justify-center">
+                                <span className="px-8 h-[42px] inline-flex items-center justify-center rounded-full text-[11px] tracking-[0.2em] uppercase border bg-[#1B1B1B] text-white border-[#1B1B1B]">
+                                    {carouselItems[activeSlide].label}
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-8 justify-start items-start">
-                        {/* Large Preview */}
-                        <div className="bg-[#E8E8E8] ml-0 w-[593px] h-[518px] rounded-2xl shadow-lg border border-[#E4E4E4] flex flex-col">
-                            <div className="flex-1 overflow-hidden">
-                                <img src={categoryImages[selectedCategory]} alt="Bomber Jacket" className="w-full h-full object-contain mb-2" />
-                            </div>
-                            <div className="p-4">
-                                <h2 className="text-black font-sans text-[14px] ml-6 font-medium leading-[1.2]">
-                                    Bomber {name[categories.indexOf(selectedCategory)]}
-                                </h2>
-                                <p className="text-[#000000] font-sans text-[16px] ml-6 font-normal leading-[1.2]">Suggested Fabrics: Nylon, Cotton Blend</p>
-                            </div>
+                    <div className="mt-14 flex justify-center">
+                        <div className="w-full max-w-[760px] h-px bg-[#BEBBB5] relative">
+                            <div
+                                className="absolute top-0 h-px w-[82px] bg-[#4A4741] transition-all duration-500"
+                                style={{
+                                    left: `${(activeSlide / (carouselItems.length - 1)) * 100}%`,
+                                    transform: `translateX(-${(activeSlide / (carouselItems.length - 1)) * 100}%)`,
+                                }}
+                            />
                         </div>
+                    </div>
 
-                        {/* Suggested Products & Colors */}
-                        <div className="flex flex-col sm:h-[518px] sm:w-[535px] w-full h-auto justify-between">
-                            {/* Suggested Product */}
-                            <div className="bg-[#E8E8E8] rounded-2xl shadow-md border border-[#E4E4E4] p-4 sm:p-5 w-full sm:w-[535px] h-auto sm:h-[233px]">
-                                <h2 className="text-black text-[14px] font-sans font-medium leading-[1.2] ml-1 sm:ml-3 mt-1 sm:mt-3 mb-4 sm:mb-5">
-                                    Suggested Product
-                                </h2>
+                    <div className="mt-14 text-center text-[12px] tracking-[0.32em] uppercase text-[#6B645C] font-sans">
+                        Live preview
+                    </div>
+                    <h2 className="mt-4 text-center font-heading font-medium text-[62px] leading-[1.12] text-[#171614]">
+                        Your Curated Capsule
+                    </h2>
 
-                                {/* MOBILE: centered; DESKTOP: spaced row */}
-                                <div className="w-full flex flex-row items-center sm:items-center justify-center sm:justify-between gap-5 sm:gap-6">
-                                    <div className="w-[136px] h-[100px] sm:w-[163px] sm:h-[120px] bg-white rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center">
-                                        <img
-                                            alt="Product Mini"
-                                            src={categoryImages[selectedCategory]}
-                                            className="object-contain w-[calc(100%-10px)] h-[calc(100%-10px)]"
-                                        />
+                    <div className="mt-10 rounded-[34px] bg-[#F7F7F6] border border-[#E8E4DE] p-8 sm:p-10">
+                        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 items-start">
+                            <div className="rounded-2xl bg-[#F1EFEB] aspect-[4/3] overflow-hidden flex items-center justify-center">
+                                <img src={previewImage} alt="Curated capsule preview" className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                                <div className="text-[11px] tracking-[0.24em] uppercase text-[#6B645C] font-sans">Fabric selection</div>
+                                <div className="mt-5 space-y-6 text-[#2B2B2B] leading-[1.3]">
+                                    <div>
+                                        <div className="font-sans font-semibold text-[16px] leading-[1.2]">Organic Cotton</div>
+                                        <div className="text-[#6B645C] text-[12px] leading-[1.35]">Share a quick overview of your ideal</div>
                                     </div>
-
-                                    <div
-  className="
-    w-[132px] sm:w-auto
-    flex flex-col items-center space-y-2.5
-    sm:flex-1 sm:space-y-0
-    sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-6 sm:justify-items-center
-  "
->
-  {categoryMap[selectedCategory]?.map((item, index) => (
-    <div key={index} className="flex items-center justify-center bg-white text-black rounded-2xl font-sans font-medium text-[14px] leading-[1.2] w-[105px] h-[42px] sm:w-[120px] sm:h-[49px] border cursor-pointer">
-      {item}
-    </div>
-  ))}
-  {categoryMap[selectedCategory]?.length === 1 && <div className="hidden sm:block" />}
-  {categoryMap[selectedCategory]?.length === 1 && <div className="hidden sm:block" />}
-</div>
-
-                                </div>
-                            </div>
-
-                            {/* Suggested Color Palette */}
-                            <div className="bg-[#E8E8E8] rounded-2xl shadow-md border border-[#E4E4E4] p-4 sm:p-5 w-full sm:w-[535px] h-auto sm:h-[233px] mt-4 sm:mt-0">
-                                <h2 className="text-black text-[14px] font-sans font-medium leading-[1.2] mb-4 sm:mb-6 mt-1 sm:mt-3">
-                                    Suggested Color Palette
-                                </h2>
-                                <div className="flex gap-4 sm:gap-6 px-2 sm:px-3 py-3 flex-wrap">
-                                    {Object.entries(colors).map(([n, hex]) => (
-                                        <div key={n} title={n} className="w-10 h-12 sm:w-14 sm:h-16 rounded-2xl" style={{ backgroundColor: hex }} />
-                                    ))}
+                                    <div>
+                                        <div className="font-sans font-semibold uppercase text-[16px] leading-[1.2]">Recycled Poly</div>
+                                        <div className="text-[#6B645C] text-[12px] leading-[1.35]">Share a quick overview of your ideal</div>
+                                    </div>
+                                    <div>
+                                        <div className="font-sans font-semibold uppercase text-[16px] leading-[1.2]">Recycled Poly</div>
+                                        <div className="text-[#6B645C] text-[12px] leading-[1.35]">Share a quick overview of your ideal</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div className="mt-10">
+                            <div className="text-[11px] tracking-[0.28em] uppercase text-[#6B645C] font-sans">Seasonal palette</div>
+                            <div className="mt-5 flex items-center gap-4">
+                                {["#151515", "#F1EFEA", "#D9D5CE", "#6F6E6A"].map((c) => (
+                                    <div key={c} className="w-[54px] h-[78px] rounded-[18px] border border-black/5" style={{ backgroundColor: c }} />
+                                ))}
+                                <button
+                                    type="button"
+                                    className="w-[54px] h-[78px] rounded-[18px] border border-dashed border-[#6B645C] text-[#6B645C] flex items-center justify-center"
+                                    aria-label="Add palette color"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div className="mt-12 rounded-[34px] bg-[#2C2A27] px-8 sm:px-10 py-10 sm:py-12 text-white">
+                            <div className="text-center text-[12px] tracking-[0.32em] uppercase text-white/90 font-sans">
+                                Estimated cost breakdown
+                            </div>
+
+                            <div className="mt-10 space-y-8 text-[12px] tracking-[0.08em] uppercase font-sans">
+                                {[{ label: "Materials", value: "$40.00" }, { label: "Materials", value: "$40.00" }, { label: "Materials", value: "$40.00" }].map((row, idx) => (
+                                    <div key={idx}>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-white/95">{row.label}</span>
+                                            <span className="text-white text-[20px] font-medium normal-case tracking-normal">{row.value}</span>
+                                        </div>
+                                        <div className="mt-5 h-px bg-white/70" />
+                                    </div>
+                                ))}
+                                <div className="pt-2">
+                                    <div className="flex items-end justify-between">
+                                        <span className="text-white/95">Total est. production</span>
+                                        <span className="text-white text-[44px] leading-none font-semibold normal-case tracking-normal">$120.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" className="mt-12 mx-auto block w-full max-w-[560px] h-[84px] rounded-full bg-white text-[#1B1B1B] text-[20px] tracking-[0.12em] uppercase font-sans font-semibold">
+                                Schedule call
+                            </button>
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* WHAT YOU'LL RECEIVE */}
-            <div className="w-full bg-[#333333] text-white py-12 px-4 text-center">
-                <h1 className="font-heading font-semibold text-[32px] leading-[1.2] mb-8">WHAT YOU'LL RECEIVE</h1>
-                <div className="text-[16px] font-sans font-normal leading-[1.2] space-y-6 max-w-4xl mx-auto">
-                    <div>
-                        <h2 className="font-heading font-semibold">Curated Materials</h2>
-                        <p>Thoughtfully selected fabrics tailored to your aesthetic, function and brand goals.</p>
-                    </div>
-                    <div>
-                        <h2 className="font-heading font-semibold">Color Direction</h2>
-                        <p>A color palette shaped by your feedback and market position.</p>
-                    </div>
-                    <div>
-                        <h2 className="font-heading font-semibold">Design Framework</h2>
-                        <p>A strategic breakdown of categories and silhouettes aligned with your vision.</p>
-                    </div>
-                    <div>
-                        <h2 className="font-heading font-semibold">Cost Transparency</h2>
-                        <p>Real-time production estimates to guide planning and investment.</p>
+            <section className="bg-white py-14 px-6">
+                <div className="mx-auto max-w-[1120px]">
+                    <h2 className="text-center font-heading font-medium text-[44px] leading-[1.12] text-[#171614]">
+                        What you&apos;ll receive
+                    </h2>
+
+                    <div className="mt-10 relative rounded-[42px] overflow-hidden px-8 sm:px-12 py-12 text-white">
+                        <div
+                            className="absolute inset-0"
+                            style={{
+                                backgroundImage: 'url("/assets/pesce-huang-k7DQy4YaVXk-unsplash_DARK.jpg")',
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                            }}
+                        />
+                        <div
+                            className="absolute inset-0"
+                            style={{
+                                background:
+                                    "linear-gradient(90deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.00) 50%, rgba(0,0,0,0.05) 100%)",
+                            }}
+                        />
+
+                        <div className="relative z-10 max-w-[760px] pl-4 sm:pl-8 space-y-8">
+                            <div>
+                                <h3 className="text-[20px] leading-[1.2]" style={receiveHeadingStyle}>Curated Materials</h3>
+                                <p className="mt-1 text-[14px] leading-[1.45] tracking-[0.01em] text-white/95" style={receiveBodyStyle}>Thoughtfully selected fabrics tailored to your aesthetic, function and brand goals</p>
+                            </div>
+                            <div>
+                                <h3 className="text-[20px] leading-[1.2]" style={receiveHeadingStyle}>Color Direction</h3>
+                                <p className="mt-1 text-[14px] leading-[1.45] tracking-[0.01em] text-white/95" style={receiveBodyStyle}>A colour palette shaped by your feedback and market position</p>
+                            </div>
+                            <div>
+                                <h3 className="text-[20px] leading-[1.2]" style={receiveHeadingStyle}>Design Framework</h3>
+                                <p className="mt-1 text-[14px] leading-[1.45] tracking-[0.01em] text-white/95" style={receiveBodyStyle}>A strategic breakdown of categories and silhouettes aligned with your vision</p>
+                            </div>
+                            <div>
+                                <h3 className="text-[20px] leading-[1.2]" style={receiveHeadingStyle}>Cost Transparency</h3>
+                                <p className="mt-1 text-[14px] leading-[1.45] tracking-[0.01em] text-white/95" style={receiveBodyStyle}>Real-time production estimates to guide planning and investment</p>
+                            </div>
+                        </div>
+
+                        <div className="relative z-10 mt-10 mx-auto w-full max-w-[700px] rounded-none bg-white overflow-hidden">
+                            <img
+                                src="/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg"
+                                alt="Creative studio"
+                                className="block w-full h-[760px] object-cover rounded-none"
+                            />
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleGetStarted}
+                            className="relative z-10 mt-10 mx-auto block w-full max-w-[820px] h-[68px] rounded-full border border-white/90 text-white text-[14px] tracking-[0.12em] uppercase font-sans"
+                        >
+                            Start your capsule collection
+                        </button>
                     </div>
                 </div>
-            </div>
-
-            {/* WHO IT'S FOR */}
-            <div className="w-full background-color:rgb(var(--color-background)) py-14 px-4 text-center">
-                <h1 className="font-heading font-semibold text-[32px] leading-[1.2] text-black mb-6">WHO IT'S FOR</h1>
-                <p className="text-[#000000] text-[16px] font-sans font-normal leading-[1.2] max-w-4xl mx-auto">
-                    Capsule Builder is designed for founders, creators, and brands ready to refine an idea without needing technical expertise.
-                    <br />
-                    Gain clarity on design, fabrication, color, and cost so you can move forward with purpose, whether into production or deeper development.
-                </p>
-            </div>
-
-            {/* FOOTER */}
-            <footer className="w-full background-color:rgb(var(--color-background)) font-sans py-16 px-12 text-[#22211C] text-[17px] leading-[1.2]">
-                <div className="footer__top-wrapper flex flex-col md:flex-row justify-between gap-8 md:gap-14 px-4 md:px-10">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-2">
-                            <svg width="20" height="20" fill="none" stroke="currentColor">
-                                <path d="M2.5 4.375H17.5V15C17.5 15.1658 17.4342 15.3247 17.3169 15.4419C17.1997 15.5592 17.0408 15.625 16.875 15.625H3.125C2.95924 15.625 2.80027 15.5592 2.68306 15.4419C2.56585 15.3247 2.5 15.1658 2.5 15V4.375Z" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M17.5 4.375L10 11.25L2.5 4.375" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            <span>info@formdepartment.com</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <svg width="20" height="20" fill="none" stroke="currentColor">
-                                <path d="M15 16.875L15 3.125C15 2.464 14.4404 1.875 13.75 1.875H6.25C5.55964 1.875 5 2.464 5 3.125L5 16.875C5 17.5654 5.55964 18.125 6.25 18.125H13.75C14.4404 18.125 15 17.5654 15 16.875Z" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M10 5.625C10.5178 5.625 10.9375 5.20527 10.9375 4.6875C10.9375 4.16973 10.5178 3.75 10 3.75C9.48223 3.75 9.0625 4.16973 9.0625 4.6875C9.0625 5.20527 9.48223 5.625 10 5.625Z" fill="currentColor" />
-                            </svg>
-                            <span>+1 213 265 7977</span>
-                        </div>
-                    </div>
-                </div>
-
-                <br />
-                <br />
-
-                <div className="footer__bottom page-width mt-10 px-4 md:px-10 text-[#22211C] font-sans text-[17px] flex flex-col gap-6 leading-[1.2]">
-                    <div className="flex gap-4">
-                        <a href="https://www.facebook.com/formdepartment" aria-label="Facebook" className="text-black hover:opacity-70 transition">
-                            <i className="fab fa-facebook-f text-lg"></i>
-                        </a>
-                        <a href="https://www.instagram.com/formdepartment/" aria-label="Instagram" className="text-black hover:opacity-70 transition">
-                            <i className="fab fa-instagram text-lg"></i>
-                        </a>
-                    </div>
-
-                    <div className="footer__bottom-row flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 w-full">
-                        <p className="whitespace-nowrap text-left w-full md:w-auto">© 2025 <a href="/">Form Department</a></p>
-
-                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-[17px] w-full md:justify-end md:w-auto">
-                            {[
-                                { label: "Policies", href: "/pages/policies" },
-                                { label: "Client Form", href: "/pages/client-form" },
-                                { label: "Item Form", href: "/pages/item-form-1" },
-                                { label: "Adjustment Form", href: "/pages/adjustment-form-1" },
-                                { label: "Labels & Packaging", href: "/pages/labels-packaging-1" },
-                                { label: "Printing & Embroidery", href: "/pages/printing-embroidery-1" },
-                                { label: "FAQ", href: "/pages/faq" },
-                            ].map(({ label, href }, idx) => (
-                                <a key={idx} href={href} className="relative group transition inline-block">
-                                    <span className="pb-1 hover-line">{label}</span>
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-
-                    <style>{`
-            .hover-line {
-              position: relative;
-              display: inline-block;
-            }
-            .hover-line::after {
-              content: "";
-              position: absolute;
-              left: 0;
-              bottom: -2px;
-              width: 100%;
-              height: 1px;
-              background-color: black;
-              transform: scaleX(0);
-              transform-origin: left;
-              transition: transform 0.3s ease;
-            }
-            .hover-line:hover::after {
-              transform: scaleX(1);
-              transform-origin: left;
-            }
-            .no-scrollbar { 
-                -ms-overflow-style: none;  /* IE & Edge */
-                scrollbar-width: none;     /* Firefox */
-            }
-            .no-scrollbar::-webkit-scrollbar { 
-                display: none;             /* Chrome, Safari, Opera */
-  }
-          `}</style>
-                </div>
-            </footer>
+            </section>
         </div>
     );
 }

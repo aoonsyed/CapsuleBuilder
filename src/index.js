@@ -7,12 +7,18 @@ import "./index.css";
 import CapsuleBuilderFlow from "./components/CapsuleBuilderFlow";
 import LandingPage2 from "./components/LandingPage2";
 import AdminDashboard from "./components/AdminDashboard";
+import Navbar from "./components/Navbar";
 import store from "./store";
 
 // Small wrapper so /landing can navigate into the flow when "Continue →" is pressed
 function LandingStandalone() {
   const navigate = useNavigate();
-  return <LandingPage2 onNext={() => navigate("/capsule-builder")} />;
+  return (
+    <>
+      <Navbar showTrialBanner />
+      <LandingPage2 onNext={() => navigate("/capsule-builder")} />
+    </>
+  );
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
