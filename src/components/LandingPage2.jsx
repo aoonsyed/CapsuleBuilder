@@ -9,6 +9,14 @@ const ADMIN_DASHBOARD_TOKEN =
     import.meta.env &&
     import.meta.env.VITE_ADMIN_DASHBOARD_TOKEN);
 
+const CAROUSEL_ITEMS = [
+    { label: "Outerwear", value: "Outerwear", image: "/assets/laura-chouette-9_KGtIF-hUk-unsplash.jpg" },
+    { label: "Tee Shirt", value: "Tee Shirt", image: "/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg" },
+    { label: "Pants", value: "Pants", image: "/assets/armin-rastgar-06jxXFyuJhc-unsplash.jpg" },
+    { label: "Dresses", value: "Dresses", image: "/assets/eve-maier-u1OuYQa0WtQ-unsplash.jpg" },
+    { label: "Outerwear", value: "Outerwear", image: "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg" },
+];
+
 // Hero image framing controls (easy custom placement)
 const HERO_IMAGE_PLACEMENT = {
     x: "50%",   // horizontal anchor: 0% (left) -> 100% (right)
@@ -30,58 +38,24 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
         letterSpacing: "0.01em",
     };
 
-    const colors = { black: "#000000", white: "#F8F8F8", darkGray: "#7B6240", charcoal: "#F4EBDC" };
-    const categories = ["Outerwear", "Tee Shirt", "Pants", "Dresses"];
-    const name = ["Jacket", "Tee Shirt", "Pants", "Outerwear"];
     const heroImage = "/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg";
 
-    const [selectedCategory, setSelectedCategory] = useState("Outerwear");
     const [showAllForms, setShowAllForms] = useState(startInGrid);
     const [validating, setValidating] = useState(false);
 
-    const categoryImages = {
-        Outerwear: "/assets/7.png",
-        "Tee Shirt": "/assets/8.png",
-        Pants: "/assets/13.png",
-        Dresses: "/assets/12.png",
-    };
-    const carouselItems = [
-        { label: "Outerwear", value: "Outerwear", image: "/assets/laura-chouette-9_KGtIF-hUk-unsplash.jpg" },
-        { label: "Tee Shirt", value: "Tee Shirt", image: "/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg" },
-        { label: "Pants", value: "Pants", image: "/assets/armin-rastgar-06jxXFyuJhc-unsplash.jpg" },
-        { label: "Dresses", value: "Dresses", image: "/assets/eve-maier-u1OuYQa0WtQ-unsplash.jpg" },
-        { label: "Outerwear", value: "Outerwear", image: "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg" },
-    ];
     const previewImage = "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg";
     const [activeSlide, setActiveSlide] = useState(0);
-
-    const categoryMap = {
-        Outerwear: ['Jacket', 'Pants', 'Outerwear'],
-        "Tee Shirt": ['Jacket', 'Pants', 'Outerwear'],
-        Pants:  ['Jacket', 'Pants', 'Outerwear'],
-        Dresses: ['Jacket', 'Pants', 'Outerwear']
-    };
 
     useEffect(() => {
         if (startInGrid) setShowAllForms(true);
     }, [startInGrid]);
 
     useEffect(() => {
-        setSelectedCategory(carouselItems[activeSlide]?.value || "Outerwear");
-    }, [activeSlide]);
-
-    useEffect(() => {
         const timer = setInterval(() => {
-            setActiveSlide((prev) => (prev + 1) % carouselItems.length);
+            setActiveSlide((prev) => (prev + 1) % CAROUSEL_ITEMS.length);
         }, 3500);
         return () => clearInterval(timer);
     }, []);
-
-    const handleCategorySelect = (category) => {
-        setSelectedCategory(category);
-        const idx = carouselItems.findIndex((item) => item.value === category);
-        if (idx >= 0) setActiveSlide(idx);
-    };
     // Customer validation is now handled at the CapsuleBuilderFlow level
     // No need to validate here anymore
 
@@ -363,7 +337,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
                     <div className="mt-14 mx-auto max-w-[620px]">
                         <div className="relative overflow-hidden rounded-[22px] bg-[#F5F3EF] border border-[#E2DFDA]">
                             <div className="relative aspect-[4/5] w-full">
-                                {carouselItems.map((item, idx) => (
+                                {CAROUSEL_ITEMS.map((item, idx) => (
                                     <div
                                         key={`${item.value}-${idx}`}
                                         className={`absolute inset-0 bg-center bg-cover transition-opacity duration-700 ${idx === activeSlide ? "opacity-100" : "opacity-0"}`}
@@ -373,7 +347,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
                             </div>
                             <div className="absolute inset-x-0 bottom-5 flex justify-center">
                                 <span className="px-8 h-[42px] inline-flex items-center justify-center rounded-full text-[11px] tracking-[0.2em] uppercase border bg-[#1B1B1B] text-white border-[#1B1B1B]">
-                                    {carouselItems[activeSlide].label}
+                                    {CAROUSEL_ITEMS[activeSlide].label}
                                 </span>
                             </div>
                         </div>
@@ -384,8 +358,8 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
                             <div
                                 className="absolute top-0 h-px w-[82px] bg-[#4A4741] transition-all duration-500"
                                 style={{
-                                    left: `${(activeSlide / (carouselItems.length - 1)) * 100}%`,
-                                    transform: `translateX(-${(activeSlide / (carouselItems.length - 1)) * 100}%)`,
+                                    left: `${(activeSlide / (CAROUSEL_ITEMS.length - 1)) * 100}%`,
+                                    transform: `translateX(-${(activeSlide / (CAROUSEL_ITEMS.length - 1)) * 100}%)`,
                                 }}
                             />
                         </div>
