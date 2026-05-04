@@ -13,6 +13,218 @@ const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
  */
 const TEMP_BYPASS_MARKET_ACCESS_FOR_TESTING = true;
 
+function stripMdLight(s) {
+  if (!s || typeof s !== "string") return "";
+  return s.replace(/\*\*/g, "").trim();
+}
+
+function parseLabelValueLines(text) {
+  const rows = [];
+  for (const line of stripMdLight(text)
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)) {
+    const cleaned = line.replace(/^[-*•\d.]+\s*/, "");
+    const m = cleaned.match(/^([^:]{2,92}):\s*(.+)$/);
+    if (m) rows.push({ label: m[1].trim(), value: m[2].trim() });
+  }
+  return rows;
+}
+
+function splitLeadTimeSections(markdownText) {
+  if (!markdownText?.trim()) return { main: "", summary: "" };
+  const rawLines = markdownText.split(/\r?\n/);
+  let cut = rawLines.length;
+  for (let i = 0; i < rawLines.length; i++) {
+    const L = stripMdLight(rawLines[i]);
+    if (/^(?:Key factors|Rush production|Seasonal considerations)\s*:/i.test(L)) {
+      cut = i;
+      break;
+    }
+  }
+  if (cut === rawLines.length) return { main: markdownText.trim(), summary: "" };
+  return {
+    main: rawLines.slice(0, cut).join("\n").trim(),
+    summary: rawLines.slice(cut).join("\n").trim(),
+  };
+}
+
+function parseLeadTimelineRows(text) {
+  const lines = stripMdLight(text)
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const temp = [];
+  let maxWeeks = 20;
+  for (const line of lines) {
+    const cleaned = line.replace(/^[-*•\d.]+\s*/, "");
+    const m = cleaned.match(/^([^:]{2,100}):\s*(.+)$/);
+    if (!m) continue;
+    const label = m[1].trim();
+    const value = m[2].trim();
+    const wr = value.match(/(\d+)\s*[-–]\s*(\d+)\s*weeks?/i);
+    const wo = value.match(/(\d+)\s*weeks?/i);
+    let w = 12;
+    if (wr)
+      w = (parseInt(wr[1], 10) + parseInt(wr[2], 10)) / 2;
+    else if (wo) w = parseInt(wo[1], 10);
+    temp.push({ label, value, w });
+    maxWeeks = Math.max(maxWeeks, w);
+  }
+  return temp.map((r) => ({
+    label: r.label,
+    value: r.value,
+    pct: Math.min(100, Math.round((r.w / maxWeeks) * 100)),
+  }));
+}
+
+function parseLeadSummaryLines(text) {
+  const rows = [];
+  for (const line of stripMdLight(text)
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)) {
+    const cleaned = line.replace(/^[-*•]\s*/, "");
+    const m = cleaned.match(/^([^:]{2,80}):\s*(.+)$/);
+    if (m) rows.push({ label: m[1].trim(), value: m[2].trim() });
+  }
+  return rows;
+}
+
+function parseComparableBrandsList(text) {
+  const t = stripMdLight(text);
+  const lines = t.split(/\r?\n/).map((l) => l.replace(/^[-*•\d.]+\s*/, "").trim()).filter(Boolean);
+  if (lines.length >= 1) return lines;
+  const comma = t.split(/(?:,|•|\/)\s*/).map((s) => s.trim()).filter(Boolean);
+  return comma.length ? comma : t ? [t] : [];
+}
+
+function parseConsumerInsightTiles(text) {
+  const tiles = [];
+  const lines = stripMdLight(text)
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^[-*•\d.]+\s*/, "").trim())
+    .filter(Boolean);
+  for (const line of lines) {
+    const m = line.match(
+      /^(Age\s*range|Lifestyle|Values|Buying\s*motivations?)\s*:?\s*(.+)$/i
+    );
+    if (!m) continue;
+    const label = m[1].trim();
+    const normalized =
+      /^buying/i.test(label) ? "Buying motivations" : /^age/i.test(label)
+        ? "Age Range"
+        : /^lifestyle/i.test(label)
+          ? "Lifestyle"
+          : "Values";
+    tiles.push({ key: normalized, value: m[2].trim() });
+  }
+  return tiles;
+}
+
+function parseFinancialDarkCard(text) {
+  const raw = stripMdLight(text);
+  const highlight =
+    raw.match(/=\s*([\d.]+%)/)?.[1] ||
+    raw.match(/\b([\d.]+%)\s*$/m)?.[1] ||
+    "";
+  const lines = [];
+  for (const part of text.split(/\n+/).map((l) => l.trim()).filter(Boolean)) {
+    const t = stripMdLight(part).replace(/^[-*•\d.]+\s*/, "");
+    const m = t.match(/^([^:]{2,55}):\s*(.+)$/);
+    if (m) {
+      let val = m[2].trim();
+      let sub = "";
+      const paren = val.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+      let mainVal = val;
+      if (paren) {
+        mainVal = paren[1].trim();
+        sub = paren[2].trim();
+      }
+      lines.push({ label: m[1].trim(), value: mainVal, sub });
+    }
+  }
+  return { lines, highlight };
+}
+
+function MarketMdBody({ children }) {
+  return (
+    <div className="text-[13px] sm:text-[14px] leading-relaxed text-[#232220] [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_strong]:font-semibold">
+      <ReactMarkdown
+        components={{
+          hr: () => null,
+        }}
+      >
+        {children || ""}
+      </ReactMarkdown>
+    </div>
+  );
+}
+
+function NumberedMarketCard({ index, title, children }) {
+  return (
+    <div className="rounded-[26px] bg-white shadow-[0_14px_44px_rgba(0,0,0,0.07)] border border-black/[0.06] p-6 sm:p-8">
+      <div className="flex items-start gap-4 mb-5">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black text-[15px] font-bold text-white font-sans">
+          {index}
+        </div>
+        <h3 className="font-heading text-xl sm:text-2xl text-[#1E1D1B] leading-tight pt-1">{title}</h3>
+      </div>
+      <div className="rounded-2xl bg-[#E8E8E8] p-5 sm:p-6">{children}</div>
+    </div>
+  );
+}
+
+function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
+  const { lines, highlight } = parsed;
+  const showHL = Boolean(showHighlight && highlight && lines.length > 0);
+
+  return (
+    <div className="rounded-[28px] bg-[#1A1A1A] px-6 sm:px-8 py-8 text-white shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
+      <h3 className="font-heading text-[1.5rem] sm:text-[1.65rem] tracking-tight mb-6">{title}</h3>
+      {lines.length > 0 ? (
+        <>
+          {lines.map((row, i) => (
+            <div
+              key={`${row.label}-${i}`}
+              className={i > 0 ? "mt-5 pt-5 border-t border-white/15" : ""}
+            >
+              <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 items-baseline font-sans">
+                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.16em] text-white/90">
+                  {row.label}
+                </span>
+                <span className="text-right text-[15px] sm:text-base italic font-medium text-white tabular-nums">
+                  {row.value}
+                </span>
+              </div>
+              {row.sub ? (
+                <p className="mt-2 text-right text-[11px] sm:text-[12px] italic text-white/50">
+                  ({row.sub})
+                </p>
+              ) : null}
+            </div>
+          ))}
+          {showHL ? (
+            <div className="mt-8 pt-2 text-right font-heading text-[clamp(1.35rem,3.5vw,1.95rem)] font-semibold text-white tracking-tight">
+              = {highlight}
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <div className="text-white/92 text-sm [&_p]:mb-3 [&_strong]:font-semibold">
+          <ReactMarkdown
+            components={{
+              hr: () => null,
+            }}
+          >
+            {fallbackText || "No data available."}
+          </ReactMarkdown>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Step4bMarketFinancials({ onNext, onBack }) {
   const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -466,6 +678,22 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const yieldConsumption = sections?.yieldConsumption || '';
   const leadTime = sections?.leadTime || '';
 
+  const yieldRows = parseLabelValueLines(yieldConsumption);
+  const leadParts = splitLeadTimeSections(leadTime);
+  const leadRows = parseLeadTimelineRows(leadParts.main || leadTime || "");
+  const leadSummaryRows = parseLeadSummaryLines(leadParts.summary || "");
+  const comparableBrands = parseComparableBrandsList(marketExamples);
+  const consumerTiles = parseConsumerInsightTiles(targetInsight);
+  const marginParsed = parseFinancialDarkCard(marginAnalysis);
+  const wholesaleParsed = parseFinancialDarkCard(pricing);
+
+  const categoryLabel = (category || "Capsule").trim().toUpperCase() + " CATEGORY";
+  const productTitle =
+    productType?.trim() || category?.trim() || "Your product";
+
+  const marketBlurb =
+    "A technical deep-dive into the construction, sourcing, positioning, and economics for this capsule concept—based on your inputs and questionnaire.";
+
   // Build email params
   const buildEmailParams = () => {
     const recipient = process.env.REACT_APP_TEAM_RECEIVER_EMAIL;
@@ -523,206 +751,212 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   return (
     <>
       <Toaster position="top-right" richColors />
-      <div className="bg-[#E8E8E8] min-h-screen">
-        {/* Header with Back Button */}
-        <div className="bg-[#E8E8E8]">
-          <div className="container mx-auto px-4 py-6">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
-            >
-              ← Back
-            </button>
-          </div>
-        </div>
+      <div
+        className="bg-[#E5E5E5] min-h-screen w-full overflow-x-hidden pb-8"
+        data-capsule-step="market-analysis"
+      >
+        {/* Hero */}
+        <section
+          className="relative w-full min-h-[min(48vh,400px)] h-[min(52vh,480px)] sm:min-h-[460px] sm:h-[min(56vh,520px)] flex flex-col items-center justify-end pb-10 sm:pb-14 px-4 text-center"
+          style={{
+            backgroundImage:
+              'linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.62) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
+            backgroundSize: "cover",
+            backgroundPosition: "center 32%",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onBack}
+            className="absolute top-5 left-4 sm:left-8 z-20 rounded-lg bg-black px-3 py-2 text-[13px] font-semibold text-white hover:bg-neutral-900 transition-colors font-sans"
+          >
+            ← Back
+          </button>
 
-        {/* Title Section */}
-        <div className="w-full px-6 py-8">
-        <h2 className="text-[#333333] text-[32px] font-heading font-semibold leading-[1.2] text-center mb-12">
-            Production & Market Analysis
-          </h2>
-        </div>
+          <img
+            src="/assets/form-logo-white-transparent.png"
+            alt="Form Department"
+            className="relative z-10 mx-auto mt-16 sm:mt-14 w-[min(46vw,200px)] sm:w-[220px] h-auto"
+          />
 
-        {/* Main Content - Full Width Layout */}
-        <div className="w-full px-6 pb-12">
-          
-          {/* Production Timeline Section */}
-          <div className="mb-10">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              {/* Yield Card - Takes 2 columns on large screens */}
-              <div className="xl:col-span-2 bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                    <span className="text-white font-bold">1</span>
+          <h1 className="relative z-10 mt-10 sm:mt-12 mb-4 font-heading text-[clamp(1.5rem,4.5vw,2.125rem)] text-white tracking-tight">
+            Market Analysis
+          </h1>
+
+          <p className="sr-only">
+            Production and market positioning for your capsule concept
+          </p>
+        </section>
+
+        <div className="relative z-10 mx-auto max-w-[1100px] -mt-16 sm:-mt-24 px-3 sm:px-5 lg:px-6">
+          <div className="rounded-t-[32px] sm:rounded-t-[36px] bg-[#F2EFEA] shadow-[0_24px_60px_rgba(0,0,0,0.12)] px-5 pt-10 pb-8 sm:px-10 sm:pt-11 sm:pb-10">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
+              {categoryLabel}
+            </p>
+            <h2 className="mt-4 font-heading text-[clamp(1.875rem,5vw,2.625rem)] text-[#1E1D1B] leading-[1.05]">
+              {productTitle}
+            </h2>
+            <p className="mt-4 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2D2A25]/88 font-sans">
+              {marketBlurb}
+            </p>
+
+            <h2 className="mt-10 sm:mt-12 mb-6 sm:mb-8 text-center font-heading text-xl sm:text-2xl text-[#292724] tracking-tight">
+              Production &amp; Market Analysis
+            </h2>
+
+            {/* 1 · Yield · 2 · Lead */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+              <NumberedMarketCard index={1} title="Yield & Consumption Estimates">
+                {yieldRows.length ? (
+                  <div className="space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
+                    {yieldRows.map((r) => (
+                      <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0">
+                        <span className="font-semibold text-[#1a1a1a]">{r.label}: </span>
+                        <span>{r.value}</span>
+                      </p>
+                    ))}
                   </div>
-                  <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Yield & Consumption Estimates</h3>
-                </div>
-                <div className="text-[16px] leading-[1.2] text-black font-sans font-normal pl-13">
-                  {yieldConsumption ? (
-                    <div className="bg-[#E8E8E8] rounded-md p-6">
-                      <ReactMarkdown
-                        components={{
-                          hr: () => null,
-                        }}
-                      >
-                        {yieldConsumption}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
-              </div>
+                ) : yieldConsumption ? (
+                  <MarketMdBody>{yieldConsumption}</MarketMdBody>
+                ) : (
+                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </NumberedMarketCard>
 
-              {/* Lead Time Card - Takes 1 column */}
-              <div className="xl:col-span-1 bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                    <span className="text-white font-bold">2</span>
+              <NumberedMarketCard index={2} title="Lead Time">
+                {leadRows.length ? (
+                  <div className="space-y-5">
+                    {leadRows.map((r, i) => (
+                      <div key={`${r.label}-${i}`}>
+                        <div className="flex justify-between gap-3 items-baseline text-[13px] sm:text-[14px] font-sans text-[#1a1a1a]">
+                          <span className="font-semibold">{r.label}</span>
+                          <span className="text-[#45423e]">{r.value}</span>
+                        </div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <div className="relative h-[5px] flex-1 overflow-hidden rounded-full bg-black/[0.1]">
+                            <div
+                              className="h-full rounded-full bg-[#2c2c2c]"
+                              style={{ width: `${r.pct}%` }}
+                            />
+                          </div>
+                          {i === leadRows.length - 1 ? (
+                            <span
+                              className="h-2 w-2 shrink-0 rounded-full bg-[#16924a]"
+                              aria-hidden
+                            />
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                    {leadSummaryRows.length > 0 ? (
+                      <div className="mt-6 rounded-xl bg-[#DFDCD6] px-4 py-4 font-sans text-[13px] leading-relaxed text-[#292724] space-y-2">
+                        {leadSummaryRows.map((row) => (
+                          <p key={row.label} className="m-0">
+                            <span className="font-semibold">{row.label}: </span>
+                            {row.value}
+                          </p>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
-                  <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Lead Time</h3>
-                </div>
-                <div className="text-[16px] leading-[1.2] text-black font-sans font-normal pl-13">
-                  {leadTime ? (
-                    <div className="bg-[#E8E8E8] rounded-md p-6">
-                      <ReactMarkdown
-                        components={{
-                          hr: () => null,
-                        }}
-                      >
-                        {leadTime}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
-              </div>
+                ) : leadTime ? (
+                  <MarketMdBody>{leadTime}</MarketMdBody>
+                ) : (
+                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </NumberedMarketCard>
             </div>
-          </div>
 
-          {/* Market Positioning Section */}
-          <div className="mb-10">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Comparable Market Examples */}
-              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                    <span className="text-white font-bold">3</span>
+            {/* 3 · Market examples · 4 · Target */}
+            <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+              <NumberedMarketCard index={3} title="Comparable Market Examples">
+                {comparableBrands.length ? (
+                  <div className="flex flex-col gap-2 font-sans text-[14px] sm:text-[15px] text-[#232220]">
+                    {comparableBrands.map((b, i) => (
+                      <div key={`${i}-${b}`}>{b}</div>
+                    ))}
                   </div>
-                  <h4 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Comparable Market Examples</h4>
-                </div>
-                <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                  {marketExamples ? (
-                    <div className="bg-[#E8E8E8] rounded-md p-6">
-                      <ReactMarkdown
-                        components={{
-                          hr: () => null,
-                        }}
-                      >
-                        {marketExamples}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
-              </div>
+                ) : marketExamples ? (
+                  <MarketMdBody>{marketExamples}</MarketMdBody>
+                ) : (
+                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </NumberedMarketCard>
 
-              {/* Target Consumer */}
-              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                    <span className="text-white font-bold">4</span>
-                  </div>
-                  <h4 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Target Consumer Insight</h4>
-                </div>
-                <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                  {targetInsight ? (
-                    <div className="bg-[#E8E8E8] rounded-md p-6">
-                      <ReactMarkdown
-                        components={{
-                          hr: () => null,
-                        }}
+              <NumberedMarketCard index={4} title="Target Consumer Insight">
+                {consumerTiles.length >= 2 ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {consumerTiles.slice(0, 4).map((t, i) => (
+                      <div
+                        key={t.key}
+                        className={`relative flex min-h-[6.75rem] flex-col justify-center rounded-2xl bg-[#DFDCD6]/90 py-3 text-center ${
+                          i === 0 ? "pl-9 pr-3" : "px-3"
+                        }`}
                       >
-                        {targetInsight}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
-              </div>
+                        {i === 0 ? (
+                          <span
+                            className="absolute left-3 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#16924a]"
+                            aria-hidden
+                          />
+                        ) : null}
+                        <span className="text-[11px] font-bold uppercase tracking-wide text-[#4a463f]">
+                          {t.key}
+                        </span>
+                        <span className="mt-2 block text-[12px] sm:text-[13px] leading-snug text-[#1E1D1B]">
+                          {t.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : targetInsight ? (
+                  <MarketMdBody>{targetInsight}</MarketMdBody>
+                ) : (
+                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </NumberedMarketCard>
             </div>
-          </div>
 
-          {/* Financial Analysis Section */}
-          <div className="mb-10">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Margin Analysis */}
-              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                    <span className="text-white font-bold">5</span>
-                  </div>
-                  <h4 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Margin Analysis</h4>
-                </div>
-                <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                  {marginAnalysis ? (
-                    <div className="bg-[#E8E8E8] rounded-md p-6">
-                      <ReactMarkdown
-                        components={{
-                          hr: () => null,
-                        }}
-                      >
-                        {marginAnalysis}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Pricing Strategy */}
-              <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                    <span className="text-white font-bold">6</span>
-                  </div>
-                  <h4 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Wholesale vs DTC Pricing</h4>
-                </div>
-                <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                  {pricing ? (
-                    <div className="bg-[#E8E8E8] rounded-md p-6">
-                      <ReactMarkdown
-                        components={{
-                          hr: () => null,
-                        }}
-                      >
-                        {pricing}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">No data available</p>
-                  )}
-                </div>
-              </div>
+            {/* 5 · 6 dark financial cards */}
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-stretch">
+              <DarkFinancialCard
+                title="Margin Analysis"
+                parsed={marginParsed}
+                fallbackText={marginAnalysis}
+                showHighlight
+              />
+              <DarkFinancialCard
+                title="Wholesale vs DTC Pricing"
+                parsed={wholesaleParsed}
+                fallbackText={pricing}
+                showHighlight={false}
+              />
             </div>
-          </div>
 
-          {/* Schedule Call Button */}
-          <div className="text-center mt-16 mb-8">
-            <button
-              onClick={handleScheduleClick}
-              disabled={sendingEmail}
-              className={`px-10 py-4 text-lg font-bold text-white rounded-lg shadow-lg transition-all ${
-                sendingEmail ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-[#3A3A3D] hover:shadow-xl transform hover:scale-105'
-              }`}
-            >
-              {sendingEmail ? 'Sending details…' : 'Schedule Call →'}
-            </button>
+            {/* Footer actions */}
+            <div className="mt-11 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 border-t border-black/[0.08] pt-9">
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex items-center gap-3 text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.2em] text-[#282522] hover:opacity-80 transition-opacity font-sans"
+              >
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#282522]/80 text-base">
+                  ←
+                </span>
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={handleScheduleClick}
+                disabled={sendingEmail}
+                className={`inline-flex min-h-[46px] w-full sm:w-auto sm:min-w-[220px] items-center justify-center rounded-full px-8 text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.16em] text-white transition-colors sm:ml-auto ${
+                  sendingEmail
+                    ? "bg-neutral-400 cursor-not-allowed"
+                    : "bg-[#1a1918] hover:bg-black"
+                }`}
+              >
+                {sendingEmail ? "Sending details…" : "Schedule Call →"}
+              </button>
+            </div>
           </div>
         </div>
       </div>

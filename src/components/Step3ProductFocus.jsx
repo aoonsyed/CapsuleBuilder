@@ -64,7 +64,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
 
     return (
         <div className="w-full bg-white">
-            <section className="relative w-full h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center" style={{ backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.65) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")', backgroundSize: "cover", backgroundPosition: "center" }}>
+            <section className="relative w-full min-h-[420px] h-[min(52vh,500px)] sm:min-h-[460px] sm:h-[min(56vh,560px)] flex flex-col items-center justify-end pb-10 sm:pb-12 px-6 text-center" style={{ backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.65) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")', backgroundSize: "cover", backgroundPosition: "center" }}>
                 <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
                     <img src="/assets/form-logo-white-transparent.png" alt="Form Department logo" className="w-[210px] h-auto" />
                 </div>

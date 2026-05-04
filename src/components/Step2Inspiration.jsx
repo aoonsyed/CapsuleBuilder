@@ -90,7 +90,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
   return (
     <div className="w-full bg-white">
       <section
-        className="relative w-full h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
+        className="relative w-full min-h-[420px] h-[min(52vh,500px)] sm:min-h-[460px] sm:h-[min(56vh,560px)] flex flex-col items-center justify-end pb-10 sm:pb-12 px-6 text-center"
         style={{
           backgroundImage:
             'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.65) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',

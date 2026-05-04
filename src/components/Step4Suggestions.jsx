@@ -552,8 +552,6 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
       'Materials': [
         /(\*\*)?Suggest appropriate materials for the product based on the design requirements and target price point\.?(\*\*)?\s*/gi,
         /(\*\*)?Include fabric types, weights \(GSM\), texture, special properties \(stretch, breathability, etc\.\), and any special considerations for sustainability or performance\.?(\*\*)?\s*/gi,
-        /(\*\*)?Provide exactly 3[–-]4 distinct fabric\/material options\.?(\*\*)?\s*/gi,
-        /(\*\*)?For EACH material use this structure with NO bullet characters[^.]*\.?(\*\*)?\s*/gi,
       ],
       'Sales Price': [
         /(\*\*)?You MUST include one explicit retail range[^\n]*\n?/gi,
@@ -586,12 +584,6 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
         /(\*\*)?Be specific with item names and briefly explain why each piece complements the main product\.?(\*\*)?\s*/gi,
         /(\*\*)?Use ONLY this format[^\n]*(\*\*)?\s*/gi,
         /(\*\*)?Optional: you may add one short category line[^\n]*(\*\*)?\s*/gi,
-        /^\s*MANDATORY for every response:[^\n]*$/gim,
-        /^\s*Each piece MUST use this format[^\n]*$/gim,
-        /^\s*Then write 2[–-]3 lines of description[^\n]*$/gim,
-        /^\s*Cover how it complements the main product[^\n]*$/gim,
-        /^\s*Do not use "-" or "\*" at the start of lines[^\n]*$/gim,
-        /^\s*Do not write only one sentence per piece\.?\s*$/gim,
       ],
       'Color Palette': [
         /(\*\*)?Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format\s*\(one per line\):(\*\*)?\s*/gi,
@@ -890,9 +882,7 @@ const generatePrompt = () => {
     Please provide your response in EXACTLY this format with these exact headings:
 
     **Materials**
-    Provide exactly 3–4 distinct fabric/material options. For EACH material use this structure with NO bullet characters (- or *) at the start of lines:
-    **Material name (weight/spec, e.g. 240 GSM)**
-    One or two sentences on hand feel, performance, breathability, sustainability, or durability. Do not prefix lines with hyphens.
+    Suggest appropriate materials for this product. Use a clear **bold heading** for each material, then a short description. Do not prefix lines with hyphens or asterisks.
 
     **Sales Price**
     You MUST include one explicit retail range on its own line near the top, in exactly this pattern (use real numbers for this product):
@@ -917,9 +907,7 @@ const generatePrompt = () => {
     - Include comparison between domestic vs overseas production costs if relevant
 
     **Companion Items**
-    MANDATORY for every response: include exactly 4 or 5 complementary pieces (never fewer than 4, never more than 5). Each piece MUST use this format with NO leading hyphens or bullets:
-    **Piece name**
-    Then write 2–3 lines of description (at least two complete sentences, ideally three). Cover how it complements the main product, styling or layering context, and the target wearer. Do not use "-" or "*" at the start of lines. Do not write only one sentence per piece.
+    Suggest complementary pieces for a capsule with this product. For each piece use **Piece name** on its own line followed by a descriptive paragraph. Do not use leading hyphens or asterisks before lines.
 
     **Yield & Consumption Estimates**
     Provide a comprehensive fabric consumption analysis:
