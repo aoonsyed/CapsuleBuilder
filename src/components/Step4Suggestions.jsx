@@ -7,6 +7,143 @@ import { useSelector } from 'react-redux';
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
+/** e.g. "Materials 50%" or "Materials: 50%" or one line "Materials 50%, Labour 30%" */
+function parseCostProductionRows(text) {
+  if (!text || typeof text !== "string") return [];
+  const raw = text.replace(/\*\*/g, "");
+  const rows = [];
+  const seen = new Set();
+
+  const tryLine = (line) => {
+    const t = line.replace(/^[\s\-*•\d.]+\s*/, "").trim();
+    if (!t || !/%/.test(t)) return;
+    const m =
+      t.match(/^(.+?)[\s:–—-]+\s*(\d{1,3})\s*%/) ||
+      t.match(/^(.+?)\s+(\d{1,3})\s*%$/);
+    if (m) {
+      const label = m[1].replace(/^[\d.)]+\s*/, "").trim();
+      const pct = Math.min(100, Math.max(0, parseInt(m[2], 10)));
+      if (label.length > 1 && label.length < 56) {
+        const key = label.toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
+          rows.push({ label, pct });
+        }
+      }
+    }
+  };
+
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (/,/.test(trimmed) && (trimmed.match(/%/g) || []).length > 1) {
+      trimmed.split(/,(?=\s*[A-Za-zÀ-ÿ])/).forEach((chunk) => tryLine(chunk));
+    } else {
+      tryLine(trimmed);
+    }
+  }
+  return rows;
+}
+
+function parseBoldLeadBlocks(md) {
+  if (!md?.trim()) return [];
+  const blocks = [];
+  const re = /\*\*([^*]+)\*\*\s*([\s\S]*?)(?=\n*\*\*|$)/g;
+  let m;
+  while ((m = re.exec(md)) !== null) {
+    const title = m[1].trim();
+    const body = m[2].trim();
+    if (title.length && title.length < 100) blocks.push({ title, body });
+  }
+  return blocks;
+}
+
+function parseMaterialsForDisplay(md) {
+  const fromBold = parseBoldLeadBlocks(md);
+  if (fromBold.length > 0) return { mode: "blocks", blocks: fromBold };
+  const colonBlocks = [];
+  for (const para of md.split(/\n\n+/)) {
+    const line = para.replace(/\*\*/g, "").split("\n")[0]?.trim();
+    if (!line) continue;
+    const cm =
+      line.match(/^([^:–—-]{2,80})[:–—-]\s*(.+)$/) ||
+      line.match(/^([^:–—-]{2,80}):\s*(.+)$/);
+    if (cm) {
+      colonBlocks.push({
+        title: cm[1].replace(/^[-*•\s]+/, "").trim(),
+        body: (cm[2] + para.slice(line.length)).trim(),
+      });
+    }
+  }
+  if (colonBlocks.length >= 1) return { mode: "blocks", blocks: colonBlocks };
+  return { mode: "markdown", text: md };
+}
+
+function parseSalesPriceForDisplay(text) {
+  if (!text?.trim()) return { body: "", retailValue: null };
+  let retailValue = null;
+  const rangeMatch = text.match(
+    /(?:Recommended\s+retail|Retail\s+price|Retail)\s*:?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/i
+  );
+  if (rangeMatch) retailValue = rangeMatch[1];
+  if (!retailValue) {
+    const all = text.match(/\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?/g);
+    if (all?.length) retailValue = all[all.length - 1];
+  }
+  let body = text;
+  if (retailValue) {
+    const escaped = retailValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    body = body
+      .replace(
+        new RegExp(
+          `(?:\\*\\*)?(?:Recommended\\s+retail[^\\n]*|Retail\\s+price[^\\n]*|Retail[^\\n]*)\\s*:?\\s*${escaped}\\s*(?:\\*\\*)?`,
+          "i"
+        ),
+        ""
+      )
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+  return { body: body || text, retailValue };
+}
+
+function parseCompanionForDisplay(text) {
+  const fromBold = parseBoldLeadBlocks(text);
+  if (fromBold.length > 0) return { mode: "blocks", blocks: fromBold };
+  const out = [];
+  for (const block of text.split(/\n\n+/)) {
+    const raw = block.trim();
+    if (!raw) continue;
+    const firstLine = raw.split(/\r?\n/)[0];
+    const plain = firstLine.replace(/\*\*/g, "");
+    const mc = plain.match(/^([^:–—]{2,100})[:–—]\s*(.*)$/);
+    if (mc) {
+      const restOfBlock = raw.slice(firstLine.length).trim();
+      const bodyPart = mc[2].trim()
+        ? `${mc[2].trim()}${restOfBlock ? `\n${restOfBlock}` : ""}`
+        : restOfBlock;
+      out.push({
+        title: mc[1].replace(/^[-*•\d.]+\s*/, "").trim(),
+        body: bodyPart || mc[2].trim(),
+      });
+    }
+  }
+  if (out.length > 0) return { mode: "blocks", blocks: out };
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    const plain = line.replace(/\*\*/g, "");
+    const mc = plain.match(/^([^:–—]{2,100})[:–—]\s*(.+)$/);
+    if (mc) {
+      out.push({
+        title: mc[1].replace(/^[-*•\d.]+\s*/, "").trim(),
+        body: mc[2].trim(),
+      });
+    }
+  }
+  if (out.length > 0) return { mode: "blocks", blocks: out };
+  return { mode: "markdown", text: text };
+}
+
 export default function Step4Suggestions({ onNext, onBack, userPlan }) {
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -819,18 +956,26 @@ const generatePrompt = () => {
               A technical overview of construction, sourcing, positioning, and economics for this capsule concept—generated from your inputs and questionnaire.
             </p>
 
-            {/* Shared prose block for markdown body */}
             {(() => {
-              const proseLight =
-                "mt-4 text-sm sm:text-[15px] leading-relaxed text-[#232220] break-words [&_*]:max-w-full [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1.5 [&_strong]:font-semibold [&_a]:underline [&_hr]:border-[#ccc]";
-              const proseLightTight =
-                "mt-4 text-sm sm:text-[15px] leading-relaxed text-[#232220] break-words [&_*]:max-w-full [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1.5 [&_strong]:font-semibold";
-              const sectionTitle =
-                "font-heading text-lg sm:text-xl md:text-2xl text-[#1C1C1A] tracking-tight";
-              const sectionTitleLight =
-                "font-heading text-lg sm:text-xl md:text-2xl text-white tracking-tight";
-              const proseDark =
-                "mt-4 text-sm sm:text-[15px] leading-relaxed text-white/93 break-words [&_*]:max-w-full [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1.5 [&_strong]:font-semibold [&_hr]:border-white/20";
+              const titleSerif =
+                "font-heading text-2xl sm:text-3xl md:text-[2rem] text-[#1E1D1B] tracking-tight";
+              const titleSerifOnDark =
+                "font-heading text-2xl sm:text-3xl md:text-[2rem] text-white tracking-tight";
+              const mdBody =
+                "text-sm sm:text-[15px] leading-relaxed text-[#232220] break-words [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 [&_strong]:font-semibold";
+              const mdBodyDark =
+                "text-sm sm:text-[15px] leading-relaxed text-white/90 break-words [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 [&_strong]:font-semibold";
+
+              const materials = parseMaterialsForDisplay(
+                suggestions.materials || ""
+              );
+              const costRows = parseCostProductionRows(
+                suggestions.productionCosts || ""
+              );
+              const sales = parseSalesPriceForDisplay(suggestions.saleprices || "");
+              const companion = parseCompanionForDisplay(
+                suggestions.companionItems || ""
+              );
 
               const colorLines = (suggestions.colors || "")
                 .split(/\r?\n/)
@@ -844,72 +989,129 @@ const generatePrompt = () => {
 
               return (
                 <>
-                  <div className="mt-6 sm:mt-8 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
-                    <h4 className={sectionTitle}>Materials</h4>
-                    <div className={proseLight}>
-                      <ReactMarkdown>
-                        {suggestions.materials || "No data available."}
-                      </ReactMarkdown>
-                    </div>
+                  {/* Materials — bold sub-headings + body (reference layout) */}
+                  <div className="mt-6 sm:mt-8 rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-sm">
+                    <h4 className={`${titleSerif}`}>Materials</h4>
+                    {materials.mode === "blocks" &&
+                    materials.blocks.length > 0 ? (
+                      <div className="mt-6 space-y-8">
+                        {materials.blocks.map((b, i) => (
+                          <div key={`${b.title}-${i}`}>
+                            <div className="font-sans font-semibold text-[15px] text-[#1a1a1a]">
+                              {b.title}
+                            </div>
+                            <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">
+                              {b.body}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={`mt-5 ${mdBody}`}>
+                        <ReactMarkdown>
+                          {suggestions.materials || "No data available."}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#2A2623] p-4 sm:p-6 text-white shadow-md">
-                    <h4 className={sectionTitleLight}>Sales Price</h4>
-                    <div className={proseDark}>
+                  {/* Sales Price — dark card, body + optional retail callout */}
+                  <div className="mt-4 sm:mt-5 rounded-[24px] sm:rounded-[28px] bg-[#262624] p-6 sm:p-10 text-white shadow-md">
+                    <h4 className={titleSerifOnDark}>Sales Price</h4>
+                    <div className={`mt-5 font-sans ${mdBodyDark}`}>
                       <ReactMarkdown>
-                        {suggestions.saleprices || "No data available."}
+                        {(sales.body && sales.body.trim()) ||
+                          suggestions.saleprices ||
+                          "No data available."}
                       </ReactMarkdown>
                     </div>
+                    {sales.retailValue && (
+                      <div className="mt-8 text-left">
+                        <div className="text-[13px] font-bold text-white font-sans">
+                          Retail Price:
+                        </div>
+                        <div className="mt-1 font-sans text-[clamp(2rem,7vw,3.25rem)] font-medium italic text-white leading-[1.1] tracking-tight">
+                          {sales.retailValue}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
-                    <h4 className={sectionTitle}>Cost Production</h4>
-                    <div className={proseLight}>
-                      <ReactMarkdown>
-                        {suggestions.productionCosts || "No data available."}
-                      </ReactMarkdown>
-                    </div>
+                  {/* Cost Production — label / % / bar rows */}
+                  <div className="mt-4 sm:mt-5 rounded-[24px] sm:rounded-[28px] bg-[#F2F0E9] p-6 sm:p-8 border border-black/[0.05]">
+                    <h4 className={titleSerif}>Cost Production</h4>
+                    {costRows.length >= 1 ? (
+                      <div className="mt-7 space-y-7">
+                        {costRows.map((row) => (
+                          <div key={row.label}>
+                            <div className="flex justify-between items-baseline gap-4 text-left">
+                              <span className="text-[13px] font-semibold text-[#1E1D1B] font-sans">
+                                {row.label}
+                              </span>
+                              <span className="text-[13px] font-semibold text-[#1E1D1B] font-sans shrink-0 tabular-nums">
+                                {row.pct}%
+                              </span>
+                            </div>
+                            <div className="mt-3 h-[4px] w-full rounded-full bg-black/10 overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-[#1E1D1B] transition-[width] duration-300"
+                                style={{ width: `${row.pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={`mt-5 ${mdBody}`}>
+                        <ReactMarkdown>
+                          {suggestions.productionCosts || "No data available."}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
-                    <h4 className={sectionTitle}>Color Palette</h4>
+                  {/* Color palette — 2-col grid, pill + label grouped left */}
+                  <div className="mt-4 sm:mt-5 rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-sm">
+                    <h4 className={titleSerif}>Color Palette</h4>
                     {extractHexColors(suggestions.colors).length > 0 ? (
-                      <div className="mt-4 space-y-3 sm:space-y-4">
+                      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
                         {extractHexColors(suggestions.colors)
                           .slice(0, 8)
                           .map(([name, hex], idx) => (
                             <div
                               key={`${hex}-${idx}`}
-                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3"
+                              className="flex items-center gap-3 min-w-0"
                             >
                               <div
-                                className="h-10 w-full sm:w-[5.5rem] max-w-[7rem] rounded-full shrink-0 border border-black/10 mx-auto sm:mx-0"
+                                className="h-9 w-[5.25rem] shrink-0 rounded-full border border-black/10"
                                 style={{ backgroundColor: hex }}
                                 aria-label={name}
                               />
-                              <span className="text-sm sm:text-base text-[#232220] text-center sm:text-right font-medium break-words flex-1 min-w-0">
-                                {name}
+                              <span className="text-left text-[11px] sm:text-[12px] font-mono tracking-wide text-[#232220] uppercase truncate">
+                                {name.trim() || hex}
                               </span>
                             </div>
                           ))}
                       </div>
                     ) : colorLines.length > 0 ? (
-                      <ul className="mt-4 space-y-2.5">
-                        {colorLines.map((line, idx) => (
-                          <li
-                            key={`${idx}-${line.slice(0, 24)}`}
-                            className="flex items-start gap-3 text-sm sm:text-[15px] text-[#232220]"
+                      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                        {colorLines.slice(0, 8).map((line, idx) => (
+                          <div
+                            key={`${idx}-${line.slice(0, 20)}`}
+                            className="flex items-center gap-3 min-w-0"
                           >
-                            <span
-                              className="mt-1.5 h-2.5 w-2.5 rounded-full shrink-0 bg-[#8C7152]/70"
+                            <div
+                              className="h-9 w-[5.25rem] shrink-0 rounded-full border border-black/10 bg-gradient-to-br from-[#e8e6e1] to-[#c4c2bd]"
                               aria-hidden
                             />
-                            <span className="leading-relaxed break-words">{line}</span>
-                          </li>
+                            <span className="text-left text-[12px] sm:text-[13px] text-[#232220] font-sans leading-snug">
+                              {line}
+                            </span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     ) : (
-                      <div className={proseLightTight}>
+                      <div className={`mt-5 ${mdBody}`}>
                         <ReactMarkdown>
                           {suggestions.colors || "No color direction generated."}
                         </ReactMarkdown>
@@ -917,20 +1119,31 @@ const generatePrompt = () => {
                     )}
                   </div>
 
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
-                    <h4 className={sectionTitle}>Companion Pieces</h4>
-                    <div className={proseLight}>
-                      <ReactMarkdown>
-                        {suggestions.companionItems || "No data available."}
-                      </ReactMarkdown>
-                    </div>
+                  {/* Companion Pieces — same hierarchy as Materials */}
+                  <div className="mt-4 sm:mt-5 rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-sm">
+                    <h4 className={titleSerif}>Companion Pieces</h4>
+                    {companion.mode === "blocks" &&
+                    companion.blocks.length > 0 ? (
+                      <div className="mt-6 space-y-8">
+                        {companion.blocks.map((b, i) => (
+                          <div key={`${b.title}-${i}`}>
+                            <div className="font-sans font-semibold text-[15px] text-[#1a1a1a]">
+                              {b.title}
+                            </div>
+                            <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">
+                              {b.body}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={`mt-5 ${mdBody}`}>
+                        <ReactMarkdown>
+                          {suggestions.companionItems || "No data available."}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </div>
-
-                  <p className="mt-6 sm:mt-7 text-sm sm:text-[15px] text-[#2D2A25]/75 leading-relaxed text-center max-w-md mx-auto">
-                    Yield, lead times, market comps, consumer insight, and wholesale vs DTC
-                    pricing are on the next screen—
-                    <span className="font-medium text-[#2D2A25]"> Market Analysis</span>.
-                  </p>
 
                   <div className="mt-8 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                     <button
