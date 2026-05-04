@@ -90,11 +90,85 @@ function mergeBlocksUnique(blocks) {
   return Array.from(m.values());
 }
 
+/**
+ * "Organic Cotton (180 GSM): blend... Brushed Fleece (240 GSM): ..." → titled blocks.
+ * Also accepts en dash/em dash after the weight: "... (220 GSM) — text".
+ */
+export function splitInlineFabricSpecBlocks(text) {
+  const t = (text || "")
+    .replace(/\*\*/g, "")
+    .replace(/\uFEFF|[\u200B-\u200D\u2060]/g, "")
+    .trim();
+  if (!t) return [];
+
+  const headRe =
+    /\b(([A-Za-z0-9][A-Za-z0-9%/,.\-'’\s]{0,86}?)\(\s*\d{2,4}\s*gsm\s*\))\s*[:\u2014\u2013\-–]\s*/gi;
+
+  const matches = [...t.matchAll(headRe)];
+  if (!matches.length) return [];
+
+  const blocks = [];
+  for (let i = 0; i < matches.length; i++) {
+    const title = matches[i][1].replace(/\s+/g, " ").trim();
+    const start = matches[i].index + matches[i][0].length;
+    const end =
+      i + 1 < matches.length ? matches[i + 1].index : t.length;
+    let body = t.slice(start, end).trim().replace(/\s+/g, " ");
+    body = body
+      .replace(/\*\*\s*\d{1,2}\s*\*\*/g, "")
+      .replace(/\[\d+\]/g, "")
+      .trim();
+    if (title.length >= 3 && body.length >= 8) blocks.push({ title, body });
+  }
+
+  if (matches[0].index > 15) {
+    const lead = t.slice(0, matches[0].index).trim();
+    if (lead && blocks[0]) blocks[0].body = `${lead} ${blocks[0].body}`.trim();
+  }
+
+  return blocks.length >= 2 ||
+    (blocks.length === 1 && blocks[0].body.length >= 100)
+    ? blocks
+    : [];
+}
+
 export function parseMaterialsForDisplay(md) {
   if (!md?.trim()) return { mode: "markdown", text: md || "" };
   const fromBold = parseBoldLeadBlocks(md);
   const fromList = parseListColonBlocks(md);
-  const merged = mergeBlocksUnique([...fromBold, ...fromList]);
+  let merged = mergeBlocksUnique([...fromBold, ...fromList]);
+
+  if (merged.length === 1) {
+    const b = merged[0];
+    let chunk = (b.body || "").trim();
+    if (/^materials$/i.test(b.title.trim())) {
+      chunk = chunk || md.replace(/\*\*/g, "").trim();
+    }
+    chunk = stripOuterMaterialsHeading(
+      chunk.replace(/^\*\*materials\*\*:?\s*/i, "")
+    );
+
+    let sliced = splitInlineFabricSpecBlocks(chunk);
+    if (
+      sliced.length < 2 &&
+      !/^materials$/i.test(b.title.trim()) &&
+      `${b.title} ${b.body || ""}`.trim().length > 80
+    ) {
+      sliced = splitInlineFabricSpecBlocks(
+        stripOuterMaterialsHeading(`${b.title}: ${b.body || ""}`.trim())
+      );
+    }
+    if (sliced.length >= 2) merged = sliced;
+    else if (sliced.length === 1 && sliced[0].body.length >= 90) merged = sliced;
+  }
+
+  if (!merged.length) {
+    const flat = stripOuterMaterialsHeading(md.replace(/\*\*/g, "").trim());
+    let sliced = splitInlineFabricSpecBlocks(flat);
+    if (sliced.length >= 2) merged = sliced;
+    else if (sliced.length === 1 && sliced[0].body.length >= 90) merged = sliced;
+  }
+
   if (merged.length >= 1) {
     return { mode: "blocks", blocks: merged };
   }
@@ -118,6 +192,10 @@ export function parseMaterialsForDisplay(md) {
     mode: "markdown",
     text: normalizeListMarkdownToParagraphs(md),
   };
+}
+
+function stripOuterMaterialsHeading(s) {
+  return s.replace(/^\s*materials\s*:?\s*/i, "").trim();
 }
 
 export function parseSalesPriceForDisplay(text) {

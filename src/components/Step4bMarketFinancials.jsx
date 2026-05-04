@@ -77,6 +77,49 @@ function parseLeadTimelineRows(text) {
   }));
 }
 
+/** Short cue for timeline row header (week range sits above filled bar). */
+function extractLeadWeekCue(rawValue) {
+  const v = stripMdLight(rawValue || "");
+  const range = v.match(/(\d+\s*[-–]\s*\d+)\s*(?:weeks?|wk\.?)?/i);
+  if (range) return `${range[1].replace(/\s*-\s*/, "–")} weeks`;
+  const wo = v.match(/(\d+)\s*(?:weeks?|wk\.?)/i);
+  if (wo) return `${wo[1]} weeks`;
+  return "";
+}
+
+/** Body copy after the opening week-span fragment (shown above filled bar without repeating cue). */
+function leadDetailSansLeadingCue(fullValue) {
+  const v = stripMdLight(fullValue || "").trim();
+  if (!v) return "";
+  return v
+    .replace(/^(\d+\s*[-–]\s*\d+|\d+)\s*weeks?\b\s*(?:[\.,;:]\s*)?/i, "")
+    .replace(/^[\s.:;,\-–]+/, "")
+    .trim();
+}
+
+/** Cream halo + rounded white inset (pairs with Yield’s nested oval). */
+function MarketShellInset({ children, className = "" }) {
+  return (
+    <div
+      className={`rounded-[30px] sm:rounded-[36px] bg-[#F2F1ED] border border-black/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.08)] px-4 py-5 sm:px-7 sm:py-8 ${className}`}
+    >
+      <div className="rounded-[17px] sm:rounded-[22px] bg-white border border-black/[0.065] shadow-[0_12px_40px_rgba(0,0,0,0.055)] px-5 py-7 sm:px-9 sm:py-10">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MarketShellLooseInset({ children, className = "" }) {
+  return (
+    <div
+      className={`rounded-[30px] sm:rounded-[36px] bg-[#F2F1ED] border border-black/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.08)] px-4 py-5 sm:px-7 sm:py-8 ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
 function parseLeadSummaryLines(text) {
   const rows = [];
   for (const line of stripMdLight(text)
@@ -241,24 +284,6 @@ function MarketMdBody({ children }) {
         {children || ""}
       </ReactMarkdown>
     </div>
-  );
-}
-
-/** Light section cards — Market Analysis PDF: white cards use soft float shadow; serif titles. */
-function MarketSectionCard({ title, children, tone = "white", bodyClassName = "" }) {
-  const shells = {
-    white:
-      "rounded-[18px] sm:rounded-[20px] bg-white border border-black/[0.06] shadow-[0_18px_48px_rgba(0,0,0,0.072)]",
-    muted:
-      "rounded-[18px] sm:rounded-[20px] bg-[#E8E6E1] border border-[#D5D1CA] shadow-[0_12px_36px_rgba(0,0,0,0.045)]",
-  };
-  return (
-    <article className={`${shells[tone]} p-8 sm:p-9 lg:p-10`}>
-      <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug">
-        {title}
-      </h3>
-      <div className={`mt-6 sm:mt-8 ${bodyClassName}`}>{children}</div>
-    </article>
   );
 }
 
@@ -559,15 +584,19 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const patterns = [
         new RegExp(
+          `\\*\\*${escaped}\\*\\*\\s*:?\\s*\\n*([\\s\\S]*?)(?=\\n\\s*\\*\\*|\\n⸻|$)`,
+          "i"
+        ),
+        new RegExp(
           `\\*\\*${escaped}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`,
           "i"
         ),
         new RegExp(
-          `\\*\\*${escaped}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`,
+          `\\*\\*${escaped}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\s*\\*\\*|\\n⸻|$)`,
           "i"
         ),
         new RegExp(
-          `${escaped}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`,
+          `${escaped}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\s*\\*\\*|\\n⸻|$)`,
           "i"
         ),
       ];
@@ -622,6 +651,23 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       ),
     };
   }, []);
+
+  /** Re-merge financial / analysis sections from canonical LS keys — fixes stale/empty caches. */
+  const lsMergedSections = useMemo(() => {
+    let raw = "";
+    try {
+      raw = localStorage.getItem("answer") || "";
+    } catch (_) {
+      raw = "";
+    }
+    let parsed = {};
+    try {
+      parsed = JSON.parse(localStorage.getItem("parsedSuggestions") || "{}");
+    } catch (_) {
+      parsed = {};
+    }
+    return buildMarketSections(raw, parsed);
+  }, [paramsKey, buildMarketSections]);
 
   // Check page access on mount (no hard redirect — use in-app states)
   useEffect(() => {
@@ -827,12 +873,26 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     );
   }
 
-  const marketExamples = sections?.marketExamples || '';
-  const targetInsight = sections?.targetInsight || '';
-  const marginAnalysis = sections?.marginAnalysis || '';
-  const pricing = sections?.pricing || '';
-  const yieldConsumption = sections?.yieldConsumption || '';
-  const leadTime = sections?.leadTime || '';
+  const marketExamples =
+    sections?.marketExamples?.trim() ||
+    lsMergedSections.marketExamples?.trim() ||
+    "";
+  const targetInsight =
+    sections?.targetInsight?.trim() ||
+    lsMergedSections.targetInsight?.trim() ||
+    "";
+  const marginAnalysis =
+    sections?.marginAnalysis?.trim() ||
+    lsMergedSections.marginAnalysis?.trim() ||
+    "";
+  const pricing =
+    sections?.pricing?.trim() || lsMergedSections.pricing?.trim() || "";
+  const yieldConsumption =
+    sections?.yieldConsumption?.trim() ||
+    lsMergedSections.yieldConsumption?.trim() ||
+    "";
+  const leadTime =
+    sections?.leadTime?.trim() || lsMergedSections.leadTime?.trim() || "";
 
   const yieldRows = parseLabelValueLines(yieldConsumption);
   const leadParts = splitLeadTimeSections(leadTime);
@@ -915,7 +975,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       >
         {/* Hero — full-bleed image + overlay (Market Analysis screen) */}
         <section
-          className="relative flex w-full flex-col items-center justify-end min-h-[min(52vh,420px)] sm:min-h-[min(52vh,480px)] pt-14 pb-12 sm:pt-16 sm:pb-14 px-4 text-center text-white"
+          className="relative flex w-full flex-col items-center justify-end min-h-[min(52vh,420px)] sm:min-h-[min(52vh,480px)] pt-14 pb-[4.75rem] sm:pt-16 sm:pb-[5.5rem] lg:pb-24 px-4 text-center text-white"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.66) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
@@ -929,7 +989,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             className="absolute top-8 sm:top-10 left-1/2 z-10 w-[min(40vw,200px)] sm:w-[208px] md:w-[220px] h-auto -translate-x-1/2"
           />
 
-          <h1 className="relative z-10 mt-28 sm:mt-32 mb-2 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)]">
+          <h1 className="relative z-10 mt-28 sm:mt-32 mb-4 sm:mb-6 pb-2 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)]">
             Market Analysis
           </h1>
 
@@ -938,7 +998,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           </p>
         </section>
 
-        <div className="relative z-10 mx-auto max-w-[1100px] -mt-14 sm:-mt-20 lg:-mt-[5.25rem] px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-6">
+        <div className="relative z-10 mx-auto max-w-[1100px] -mt-8 sm:-mt-10 lg:-mt-12 px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-6">
           {/* Market summary — cream shell (PDF): category, hero title, blurb + nested white Yield */}
           <div className="rounded-t-[36px] sm:rounded-t-[40px] rounded-b-[36px] sm:rounded-b-[40px] bg-[#F2F1ED] shadow-[0_32px_80px_rgba(0,0,0,0.14)] px-6 pt-9 pb-8 sm:px-10 sm:pt-11 sm:pb-10 border border-black/[0.06]">
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
@@ -972,78 +1032,115 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             </div>
           </div>
 
-            {/* Lead Time — label + detail rows, subtle dividers, regular-weight body */}
-            <section className="rounded-[20px] sm:rounded-[22px] bg-[#F9F8F3] px-6 py-8 sm:px-10 sm:py-11 shadow-[0_14px_40px_rgba(0,0,0,0.055)] border border-black/[0.05]">
-              <h3 className="font-heading text-[1.625rem] sm:text-[1.875rem] text-[#1E1D1B] tracking-tight leading-tight mb-7 sm:mb-8">
-                Lead Time
-              </h3>
-              {leadRows.length ? (
-                <div className="space-y-0">
-                  {leadRows.map((r, i) => (
-                    <div
-                      key={`${r.label}-${i}`}
-                      className="border-b border-[#bfb8ae] pb-5 mb-5 last:border-b-0 last:pb-0 last:mb-0"
-                    >
-                      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-6 text-[13px] sm:text-[14px] font-sans font-normal text-[#2a2825]">
-                        <span className="text-[#353330] shrink-0 sm:max-w-[42%]">
-                          {r.label}:
-                        </span>
-                        <span className="sm:text-right sm:flex-1 sm:min-w-0">{r.value}</span>
+            <MarketShellInset>
+              <>
+                <h3 className="font-heading text-[1.625rem] sm:text-[1.875rem] text-[#1E1D1B] tracking-tight leading-tight mb-6 sm:mb-8">
+                  Lead Time
+                </h3>
+                {leadRows.length ? (
+                  <div className="space-y-7 sm:space-y-8">
+                    {leadRows.map((r, i) => {
+                      const cue = extractLeadWeekCue(r.value);
+                      const detail = leadDetailSansLeadingCue(r.value);
+                      const showPara =
+                        detail.length >= 16 ||
+                        (!cue && (r.value || "").trim().length > 24);
+                      return (
+                        <div key={`${r.label}-${i}`}>
+                          <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 items-baseline text-[13px] sm:text-[14px] font-sans font-normal text-[#2a2825]">
+                            <span className="text-[#353330]">{r.label}</span>
+                            {cue ? (
+                              <span className="text-[#1a1816] tabular-nums shrink-0">
+                                {cue}
+                              </span>
+                            ) : null}
+                          </div>
+                          {showPara ? (
+                            <p className="mt-2.5 text-[12px] sm:text-[13px] font-normal leading-relaxed text-[#5c584f]">
+                              {cue && detail.length >= 16
+                                ? detail
+                                : stripMdLight(r.value)}
+                            </p>
+                          ) : null}
+                          <div className="relative h-[7px] w-full overflow-hidden rounded-full bg-[#E3DFD8] mt-4 sm:mt-5 mb-px">
+                            <div
+                              className="absolute left-0 top-0 h-full rounded-full bg-[#2a2825]"
+                              style={{
+                                width: `${Math.min(100, Math.max(8, r.pct || 18))}%`,
+                              }}
+                              aria-hidden
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {leadSummaryRows.length > 0 ? (
+                      <div className="rounded-[14px] sm:rounded-2xl bg-[#EFEDE8] px-5 py-5 sm:px-6 sm:py-6 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-2.5 font-normal border border-black/[0.05] mt-10">
+                        {leadSummaryRows.map((row) => (
+                          <p key={row.label} className="m-0">
+                            <span className="text-[#1a1816]">{row.label}: </span>
+                            {row.value}
+                          </p>
+                        ))}
                       </div>
-                    </div>
-                  ))}
-                  {leadSummaryRows.length > 0 ? (
-                    <div className="mt-8 rounded-[14px] sm:rounded-2xl bg-[#D9D6D0] px-5 py-5 sm:px-6 sm:py-6 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-2.5 font-normal">
-                      {leadSummaryRows.map((row) => (
-                        <p key={row.label} className="m-0">
-                          <span className="text-[#1a1816]">{row.label}: </span>
-                          {row.value}
-                        </p>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              ) : leadTime ? (
-                <div className="text-[#232220]">
-                  <MarketMdBody>{leadTime}</MarketMdBody>
-                </div>
-              ) : (
-                <p className="text-sm text-[#756F68] font-sans">No data available</p>
-              )}
-            </section>
+                    ) : null}
+                  </div>
+                ) : leadTime ? (
+                  <div className="text-[#232220]">
+                    <MarketMdBody>{leadTime}</MarketMdBody>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </>
+            </MarketShellInset>
 
-            <MarketSectionCard tone="white" title="Comparable Market Examples">
-              {comparableBrands.length ? (
-                <div className="-mt-6 sm:-mt-8 flex flex-col gap-3 sm:gap-3.5 font-sans text-[14px] sm:text-[15px] text-[#3a3834] text-left">
-                  {comparableBrands.map((b, i) => (
-                    <div key={`${i}-${b.slice(0, 24)}`}>{b}</div>
-                  ))}
-                </div>
-              ) : marketExamples ? (
-                <div className="-mt-6 sm:-mt-8 [&_.font-heading]:text-[#3a3834]">
-                  <MarketMdBody>{marketExamples}</MarketMdBody>
-                </div>
-              ) : (
-                <p className="-mt-6 sm:-mt-8 text-sm text-[#756F68] font-sans">No data available</p>
-              )}
-            </MarketSectionCard>
+            <MarketShellInset>
+              <>
+                <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug mb-6 sm:mb-8">
+                  Comparable Market Examples
+                </h3>
+                {comparableBrands.length ? (
+                  <div className="flex flex-col gap-3 sm:gap-3.5 font-sans text-[14px] sm:text-[15px] text-[#3a3834] text-left">
+                    {comparableBrands.map((b, i) => (
+                      <div key={`${i}-${b.slice(0, 24)}`}>{b}</div>
+                    ))}
+                  </div>
+                ) : marketExamples ? (
+                  <div className="[&_.font-heading]:text-[#3a3834]">
+                    <MarketMdBody>{marketExamples}</MarketMdBody>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </>
+            </MarketShellInset>
 
-            <AudienceDashboardFourGrid audienceByKey={audienceByKey} />
+            <MarketShellInset>
+              <>
+                <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug mb-6 sm:mb-8">
+                  Target Audience
+                </h3>
+                <AudienceDashboardFourGrid audienceByKey={audienceByKey} />
+              </>
+            </MarketShellInset>
 
-            <div className="flex flex-col gap-5 pt-2">
-              <DarkFinancialCard
-                title="Margin Analysis"
-                parsed={marginParsed}
-                fallbackText={marginAnalysis}
-                showHighlight
-              />
-              <DarkFinancialCard
-                title="Wholesale vs DTC Pricing"
-                parsed={wholesaleParsed}
-                fallbackText={pricing}
-                showHighlight={false}
-              />
-            </div>
+            <MarketShellLooseInset>
+              <div className="flex flex-col gap-5">
+                <DarkFinancialCard
+                  title="Margin Analysis"
+                  parsed={marginParsed}
+                  fallbackText={marginAnalysis}
+                  showHighlight
+                />
+                <DarkFinancialCard
+                  title="Wholesale vs DTC Pricing"
+                  parsed={wholesaleParsed}
+                  fallbackText={pricing}
+                  showHighlight={false}
+                />
+              </div>
+            </MarketShellLooseInset>
 
             {/* Footer actions */}
             <div className="mt-11 flex w-full flex-row flex-nowrap items-center justify-between gap-2 border-t border-black/[0.08] pt-9 sm:gap-6">

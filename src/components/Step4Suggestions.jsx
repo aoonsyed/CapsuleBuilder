@@ -662,9 +662,10 @@ const generatePrompt = () => {
     Please provide your response in EXACTLY this format with these exact headings:
 
     **Materials**
-    You MUST output exactly four (4) different materials or fabrics. Repeat this block four times — no fewer than four:
-    **Material name (include GSM or weight)**
-    Two or three sentences on fiber content, hand feel, durability, breathability, sustainability, or relevant performance. Do not prefix lines with hyphens.
+    You MUST output exactly four (4) different materials or fabrics. Repeat this block four times — no fewer than four.
+    For EACH material use a bold sub-heading on its own line in this exact shape (then a blank line, then the copy):
+    **Full fabric name (NNN GSM)**
+    Two or three sentences on fiber content, hand feel, durability, breathability, sustainability, or performance. Do not run all four fabrics in one paragraph. Do not prefix body lines with hyphens.
 
     **Sales Price**
     Put the price range on its own line first, exactly:
@@ -964,7 +965,7 @@ const generatePrompt = () => {
                       <div className="mt-6 space-y-8">
                         {materials.blocks.map((b, i) => (
                           <div key={`${b.title}-${i}`}>
-                            <div className="font-heading text-[17px] sm:text-[19px] text-[#1E1D1B] tracking-tight">
+                            <div className="font-sans text-[15px] sm:text-[16px] font-semibold text-[#1E1D1B] tracking-tight">
                               {b.title}
                             </div>
                             <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">
