@@ -97,13 +97,19 @@ function leadDetailSansLeadingCue(fullValue) {
     .trim();
 }
 
-/** Cream halo + rounded white inset (pairs with Yield’s nested oval). */
-function MarketShellInset({ children, className = "" }) {
+/** Cream halo + rounded inner panel — same behind every oval on this screen. */
+function MarketShellInset({ children, className = "", innerTone = "white" }) {
+  const inner =
+    innerTone === "warm"
+      ? "bg-[#F9F8F5] border-[#eae6df]"
+      : "bg-white border-black/[0.065]";
   return (
     <div
       className={`rounded-[30px] sm:rounded-[36px] bg-[#F2F1ED] border border-black/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.08)] px-4 py-5 sm:px-7 sm:py-8 ${className}`}
     >
-      <div className="rounded-[17px] sm:rounded-[22px] bg-white border border-black/[0.065] shadow-[0_12px_40px_rgba(0,0,0,0.055)] px-5 py-7 sm:px-9 sm:py-10">
+      <div
+        className={`rounded-[22px] sm:rounded-[28px] ${inner} border shadow-[0_12px_40px_rgba(0,0,0,0.055)] px-5 py-7 sm:px-9 sm:py-10`}
+      >
         {children}
       </div>
     </div>
@@ -116,6 +122,21 @@ function MarketShellLooseInset({ children, className = "" }) {
       className={`rounded-[30px] sm:rounded-[36px] bg-[#F2F1ED] border border-black/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.08)] px-4 py-5 sm:px-7 sm:py-8 ${className}`}
     >
       {children}
+    </div>
+  );
+}
+
+/** PDF ref: full-width hairline + thick dark segment duration bar. */
+function LeadDurationBar({ pct }) {
+  const w = Math.min(100, Math.max(5, pct ?? 14));
+  return (
+    <div className="relative mt-4 mb-1 w-full h-[6px] shrink-0">
+      <div className="absolute inset-x-0 bottom-0 h-px bg-[#C4BDB4]" aria-hidden />
+      <div
+        className="absolute left-0 bottom-0 h-[5px] rounded-[1px] bg-[#231f1f]"
+        style={{ width: `${w}%`, maxWidth: "100%" }}
+        aria-hidden
+      />
     </div>
   );
 }
@@ -975,7 +996,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       >
         {/* Hero — full-bleed image + overlay (Market Analysis screen) */}
         <section
-          className="relative flex w-full flex-col items-center justify-end min-h-[min(52vh,420px)] sm:min-h-[min(52vh,480px)] pt-14 pb-[4.75rem] sm:pt-16 sm:pb-[5.5rem] lg:pb-24 px-4 text-center text-white"
+          className="relative flex w-full flex-col items-center justify-end min-h-[min(52vh,420px)] sm:min-h-[min(52vh,480px)] pt-14 pb-[6.25rem] sm:pt-16 sm:pb-28 lg:pb-32 px-4 text-center text-white"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.66) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
@@ -989,7 +1010,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             className="absolute top-8 sm:top-10 left-1/2 z-10 w-[min(40vw,200px)] sm:w-[208px] md:w-[220px] h-auto -translate-x-1/2"
           />
 
-          <h1 className="relative z-10 mt-28 sm:mt-32 mb-4 sm:mb-6 pb-2 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)]">
+          <h1 className="relative z-10 mt-28 sm:mt-32 mb-8 sm:mb-10 lg:mb-14 pb-4 sm:pb-6 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)]">
             Market Analysis
           </h1>
 
@@ -998,20 +1019,23 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           </p>
         </section>
 
-        <div className="relative z-10 mx-auto max-w-[1100px] -mt-8 sm:-mt-10 lg:-mt-12 px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-6">
-          {/* Market summary — cream shell (PDF): category, hero title, blurb + nested white Yield */}
-          <div className="rounded-t-[36px] sm:rounded-t-[40px] rounded-b-[36px] sm:rounded-b-[40px] bg-[#F2F1ED] shadow-[0_32px_80px_rgba(0,0,0,0.14)] px-6 pt-9 pb-8 sm:px-10 sm:pt-11 sm:pb-10 border border-black/[0.06]">
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
-              {categoryLabel}
-            </p>
-            <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
-              {productTitle}
-            </h2>
-            <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2a2825] font-sans">
-              {marketBlurb}
-            </p>
+        <div className="relative z-10 mx-auto max-w-[1100px] -mt-5 sm:-mt-7 lg:-mt-9 px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-6">
+          <MarketShellInset>
+            <>
+              <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
+                {categoryLabel}
+              </p>
+              <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
+                {productTitle}
+              </h2>
+              <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2a2825] font-sans font-normal">
+                {marketBlurb}
+              </p>
+            </>
+          </MarketShellInset>
 
-            <div className="mt-9 sm:mt-10 rounded-[16px] sm:rounded-[20px] bg-white border border-black/[0.06] shadow-[0_14px_44px_rgba(0,0,0,0.07)] px-7 py-8 sm:px-9 sm:py-10">
+          <MarketShellInset>
+            <>
               <h3 className="font-heading text-[1.3125rem] sm:text-xl text-[#1E1D1B] tracking-tight leading-snug">
                 Yield &amp; Consumption Estimates
               </h3>
@@ -1029,64 +1053,75 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                   <p className="text-sm text-[#756F68] font-sans">No data available</p>
                 )}
               </div>
-            </div>
-          </div>
+            </>
+          </MarketShellInset>
 
-            <MarketShellInset>
+            <MarketShellInset innerTone="warm">
               <>
-                <h3 className="font-heading text-[1.625rem] sm:text-[1.875rem] text-[#1E1D1B] tracking-tight leading-tight mb-6 sm:mb-8">
+                <h3 className="font-heading text-[1.625rem] sm:text-[1.875rem] md:text-[2rem] text-[#1E1D1B] font-medium tracking-tight leading-tight mb-7 sm:mb-9">
                   Lead Time
                 </h3>
                 {leadRows.length ? (
-                  <div className="space-y-7 sm:space-y-8">
-                    {leadRows.map((r, i) => {
-                      const cue = extractLeadWeekCue(r.value);
-                      const detail = leadDetailSansLeadingCue(r.value);
-                      const showPara =
-                        detail.length >= 16 ||
-                        (!cue && (r.value || "").trim().length > 24);
-                      return (
-                        <div key={`${r.label}-${i}`}>
-                          <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 items-baseline text-[13px] sm:text-[14px] font-sans font-normal text-[#2a2825]">
-                            <span className="text-[#353330]">{r.label}</span>
-                            {cue ? (
-                              <span className="text-[#1a1816] tabular-nums shrink-0">
-                                {cue}
+                  <div className="space-y-0">
+                    {(() => {
+                      let samplingSeen = 0;
+                      return leadRows.map((r, i) => {
+                        const cue = extractLeadWeekCue(r.value);
+                        const detail = leadDetailSansLeadingCue(r.value);
+                        const showDetail =
+                          detail.length >= 24 &&
+                          cue &&
+                          stripMdLight(r.value).length > cue.length + 20;
+                        const isSampling = /^sampling/i.test(r.label.trim());
+                        if (isSampling) samplingSeen += 1;
+                        const showSamplingDot =
+                          isSampling && samplingSeen === 2;
+                        return (
+                          <div
+                            key={`${r.label}-${i}`}
+                            className="pb-9 sm:pb-10 mb-2 sm:mb-1 last:pb-4 last:mb-0"
+                          >
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816]">
+                              <span>{r.label.replace(/:+\s*$/, "")}:</span>
+                              <span className="shrink-0 text-right font-bold max-w-[min(100%,20rem)] sm:max-w-[55%]">
+                                {cue ? (
+                                  <span className="tabular-nums">{cue}</span>
+                                ) : (
+                                  stripMdLight(r.value)
+                                )}
                               </span>
+                            </div>
+                            {showDetail ? (
+                              <p className="mt-3 text-[12px] sm:text-[13px] font-normal leading-relaxed text-[#4a463e]">
+                                {detail}
+                              </p>
                             ) : null}
+                            <div className="relative mt-5">
+                              {showSamplingDot ? (
+                                <span
+                                  className="absolute left-[42%] -top-3 z-[1] inline-block h-2 w-2 rounded-full bg-emerald-600 shadow-sm ring-2 ring-emerald-500/35"
+                                  aria-hidden
+                                />
+                              ) : null}
+                              <LeadDurationBar pct={r.pct} />
+                            </div>
                           </div>
-                          {showPara ? (
-                            <p className="mt-2.5 text-[12px] sm:text-[13px] font-normal leading-relaxed text-[#5c584f]">
-                              {cue && detail.length >= 16
-                                ? detail
-                                : stripMdLight(r.value)}
-                            </p>
-                          ) : null}
-                          <div className="relative h-[7px] w-full overflow-hidden rounded-full bg-[#E3DFD8] mt-4 sm:mt-5 mb-px">
-                            <div
-                              className="absolute left-0 top-0 h-full rounded-full bg-[#2a2825]"
-                              style={{
-                                width: `${Math.min(100, Math.max(8, r.pct || 18))}%`,
-                              }}
-                              aria-hidden
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      });
+                    })()}
                     {leadSummaryRows.length > 0 ? (
-                      <div className="rounded-[14px] sm:rounded-2xl bg-[#EFEDE8] px-5 py-5 sm:px-6 sm:py-6 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-2.5 font-normal border border-black/[0.05] mt-10">
+                      <div className="mt-6 sm:mt-8 rounded-[16px] sm:rounded-[18px] bg-[#DAD6D0] px-5 py-6 sm:px-7 sm:py-7 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-3 border border-black/[0.06]">
                         {leadSummaryRows.map((row) => (
                           <p key={row.label} className="m-0">
-                            <span className="text-[#1a1816]">{row.label}: </span>
-                            {row.value}
+                            <span className="font-bold text-[#1a1816]">{row.label}: </span>
+                            <span className="font-normal">{row.value}</span>
                           </p>
                         ))}
                       </div>
                     ) : null}
                   </div>
                 ) : leadTime ? (
-                  <div className="text-[#232220]">
+                  <div className="text-[#232220] text-[14px] sm:text-[15px] font-normal leading-relaxed whitespace-pre-wrap">
                     <MarketMdBody>{leadTime}</MarketMdBody>
                   </div>
                 ) : (
@@ -1126,7 +1161,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             </MarketShellInset>
 
             <MarketShellLooseInset>
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4 sm:gap-5">
                 <DarkFinancialCard
                   title="Margin Analysis"
                   parsed={marginParsed}

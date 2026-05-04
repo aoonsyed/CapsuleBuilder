@@ -387,30 +387,45 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
 
                     </div>
 
-                    <div className="mt-12 rounded-[34px] bg-[#2C2A27] px-8 sm:px-10 py-10 sm:py-12 text-white">
-                            <div className="text-center text-[12px] tracking-[0.32em] uppercase text-white/90 font-sans">
+                    <div className="mt-12 rounded-[34px] bg-[#2C2A27] px-5 py-8 sm:px-10 sm:py-12 text-white overflow-hidden">
+                            <div className="text-center text-[11px] sm:text-[12px] tracking-[0.22em] sm:tracking-[0.32em] uppercase text-white/90 font-sans px-1">
                                 Estimated cost breakdown
                             </div>
 
-                            <div className="mt-10 space-y-8 text-[12px] tracking-[0.08em] uppercase font-sans">
-                                {[{ label: "Materials", value: "$40.00" }, { label: "Materials", value: "$40.00" }, { label: "Materials", value: "$40.00" }].map((row, idx) => (
+                            <div className="mt-8 sm:mt-10 space-y-6 sm:space-y-8 text-[11px] sm:text-[12px] tracking-[0.08em] uppercase font-sans">
+                                {[
+                                    { label: "Materials", value: "$40.00" },
+                                    { label: "Labor & manufacturing", value: "$40.00" },
+                                    { label: "Finishing & logistics", value: "$40.00" },
+                                ].map((row, idx) => (
                                     <div key={idx}>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-white/95">{row.label}</span>
-                                            <span className="text-white text-[20px] font-medium normal-case tracking-normal">{row.value}</span>
+                                        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 min-w-0">
+                                            <span className="text-white/95 min-w-0 flex-1 sm:flex-none pr-2 leading-snug">
+                                                {row.label}
+                                            </span>
+                                            <span className="text-white text-[clamp(1rem,4.2vw,1.25rem)] font-medium normal-case tracking-normal tabular-nums shrink-0 text-right">
+                                                {row.value}
+                                            </span>
                                         </div>
-                                        <div className="mt-5 h-px bg-white/70" />
+                                        <div className="mt-4 sm:mt-5 h-px bg-white/70" />
                                     </div>
                                 ))}
-                                <div className="pt-2">
-                                    <div className="flex items-end justify-between">
-                                        <span className="text-white/95">Total est. production</span>
-                                        <span className="text-white text-[44px] leading-none font-semibold normal-case tracking-normal">$120.00</span>
+                                <div className="pt-4 sm:pt-2 border-t border-white/15 sm:border-0">
+                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4 min-w-0">
+                                        <span className="text-white/95 text-[11px] sm:text-[12px] tracking-[0.06em] sm:tracking-[0.08em] uppercase leading-snug shrink-0 max-w-[14rem] sm:max-w-none">
+                                            Total est. production
+                                        </span>
+                                        <span className="text-white text-[clamp(1.85rem,9.5vw,2.75rem)] sm:text-[44px] leading-[1.05] font-semibold normal-case tracking-tight tabular-nums text-right sm:text-right w-full sm:w-auto break-words">
+                                            $120.00
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <button type="button" className="mt-12 mx-auto block w-full max-w-[560px] h-[84px] rounded-full bg-white text-[#1B1B1B] text-[20px] tracking-[0.12em] uppercase font-sans font-semibold">
+                            <button
+                                type="button"
+                                className="mt-8 sm:mt-12 mx-auto flex w-full max-w-[560px] min-h-[52px] sm:min-h-[60px] items-center justify-center rounded-full bg-white text-[#1B1B1B] px-5 sm:px-8 py-3.5 sm:py-4 text-[12px] sm:text-[15px] md:text-[17px] tracking-[0.08em] sm:tracking-[0.1em] md:tracking-[0.12em] uppercase font-sans font-semibold leading-tight text-center whitespace-normal"
+                            >
                                 Schedule call
                             </button>
                     </div>
