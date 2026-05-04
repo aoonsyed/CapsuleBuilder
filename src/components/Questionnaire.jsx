@@ -488,29 +488,29 @@ Only return the JSON. No markdown. No explanation.
                 {error}
               </p>
             </div>
-            <div className="mt-10 flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="mt-10 flex w-full flex-row flex-nowrap items-center justify-between gap-2 sm:gap-4">
               <button
                 type="button"
                 onClick={onBack}
-                className="flex shrink-0 touch-manipulation items-center gap-3 self-start hover:opacity-90 active:opacity-80 transition-opacity"
+                className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 hover:opacity-90 active:opacity-80 transition-opacity sm:gap-3"
                 aria-label="Back"
               >
-                <span className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#2B2A25] text-[18px] leading-none text-[#2B2A25]">
+                <span className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#2B2A25] text-[16px] leading-none text-[#2B2A25] sm:h-11 sm:w-11 sm:text-[18px]">
                   ←
                 </span>
-                <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium text-[#2B2A25]">
+                <span className="text-[11px] tracking-[0.18em] uppercase font-sans font-medium text-[#2B2A25] sm:text-[12px] sm:tracking-[0.2em]">
                   BACK
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => setReloadTick((t) => t + 1)}
-                className="flex min-h-[52px] w-full shrink-0 touch-manipulation items-center justify-center gap-3 rounded-full bg-[#2B2A25] px-6 py-3 text-white sm:w-auto sm:min-w-[220px] sm:max-w-md hover:bg-[#1f1d1a] active:bg-[#181716] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2B2A25]"
+                className="flex min-h-[44px] shrink touch-manipulation items-center justify-center gap-2 rounded-full bg-[#2B2A25] px-4 py-2 text-white hover:bg-[#1f1d1a] active:bg-[#181716] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2B2A25] sm:min-h-[46px] sm:gap-2.5 sm:px-5"
               >
-                <span className="font-sans text-[11px] sm:text-[12px] tracking-[0.22em] uppercase text-center px-1">
+                <span className="font-sans text-[10px] tracking-[0.18em] uppercase sm:text-[12px] sm:tracking-[0.22em]">
                   TRY AGAIN
                 </span>
-                <span className="text-[16px] leading-none shrink-0" aria-hidden>
+                <span className="shrink-0 text-[14px] leading-none sm:text-[16px]" aria-hidden>
                   →
                 </span>
               </button>
@@ -619,29 +619,29 @@ Only return the JSON. No markdown. No explanation.
               </div>
             ))}
 
-            <div className="mt-10 flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="mt-10 flex w-full flex-row flex-nowrap items-center justify-between gap-2 sm:gap-4">
               <button
                 type="button"
                 onClick={onBack}
-                className="flex shrink-0 touch-manipulation items-center gap-3 self-start hover:opacity-90 active:opacity-80 transition-opacity"
+                className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 hover:opacity-90 active:opacity-80 transition-opacity sm:gap-3"
                 aria-label="Back"
               >
-                <span className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#2B2A25] text-[18px] leading-none text-[#2B2A25]">
+                <span className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#2B2A25] text-[16px] leading-none text-[#2B2A25] sm:h-11 sm:w-11 sm:text-[18px]">
                   ←
                 </span>
-                <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium text-[#2B2A25]">
+                <span className="text-[11px] tracking-[0.18em] uppercase font-sans font-medium text-[#2B2A25] sm:text-[12px] sm:tracking-[0.2em]">
                   BACK
                 </span>
               </button>
 
               <button
                 type="submit"
-                className="flex min-h-[52px] w-full shrink-0 touch-manipulation items-center justify-center gap-3 rounded-full bg-[#2B2A25] px-6 py-3 text-white sm:w-auto sm:min-w-[220px] sm:max-w-md hover:bg-[#1f1d1a] active:bg-[#181716] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2B2A25]"
+                className="flex min-h-[44px] max-w-[min(9rem,calc(100%-7rem))] shrink touch-manipulation items-center justify-center gap-2 rounded-full bg-[#2B2A25] px-4 py-2 text-white hover:bg-[#1f1d1a] active:bg-[#181716] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2B2A25] sm:max-w-none sm:min-h-[46px] sm:gap-2.5 sm:px-6"
               >
-                <span className="font-sans text-[11px] sm:text-[12px] tracking-[0.22em] uppercase text-center px-1">
+                <span className="font-sans text-[10px] tracking-[0.2em] uppercase sm:text-[12px]">
                   CONTINUE
                 </span>
-                <span className="text-[16px] leading-none shrink-0" aria-hidden>
+                <span className="shrink-0 text-[14px] leading-none sm:text-[16px]" aria-hidden>
                   →
                 </span>
               </button>

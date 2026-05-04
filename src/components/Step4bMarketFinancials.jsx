@@ -3,6 +3,11 @@ import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import emailjs from '@emailjs/browser';
+import {
+  parseMaterialsForDisplay,
+  parseCompanionForDisplay,
+  parseSalesPriceForDisplay,
+} from "./capsuleResponseParsers";
 
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
@@ -300,7 +305,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     const hash = hashParamsKey(paramsKey);
     return {
       rawAnswer: `productBreakdownRawAnswer_${hash}`, // Same as Step4Suggestions
-      parsedSections: `marketAnalysisParsed_${hash}`, // Separate cache for Market Analysis sections
+      parsedSections: `marketAnalysisParsed_v2_${hash}`, // bump when section shape changes
     };
   }, [paramsKey, hashParamsKey]);
 
@@ -446,6 +451,9 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     };
 
     return {
+      materials: merge("materials", "Materials"),
+      companionItems: merge("companionItems", "Companion Items"),
+      saleprices: merge("saleprices", "Sales Price"),
       marketExamples: merge(
         "marketExamples",
         "Comparable Market Examples"
@@ -550,6 +558,9 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     const built = buildMarketSections(rawText, parsed);
     setSections(built);
     if (
+      built.materials ||
+      built.companionItems ||
+      built.saleprices ||
       built.marketExamples ||
       built.targetInsight ||
       built.marginAnalysis ||
@@ -671,12 +682,22 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     );
   }
 
+  const materialsMd = sections?.materials || "";
+  const companionMd = sections?.companionItems || "";
+  const salepricesMd = sections?.saleprices || "";
   const marketExamples = sections?.marketExamples || '';
   const targetInsight = sections?.targetInsight || '';
   const marginAnalysis = sections?.marginAnalysis || '';
   const pricing = sections?.pricing || '';
   const yieldConsumption = sections?.yieldConsumption || '';
   const leadTime = sections?.leadTime || '';
+
+  const recapMaterials = parseMaterialsForDisplay(materialsMd);
+  const recapCompanion = parseCompanionForDisplay(companionMd);
+  const recapSales = parseSalesPriceForDisplay(salepricesMd);
+  const recapSalesNarrative =
+    (recapSales.body && recapSales.body.trim()) ||
+    (!recapSales.retailValue ? salepricesMd.trim() : "");
 
   const yieldRows = parseLabelValueLines(yieldConsumption);
   const leadParts = splitLeadTimeSections(leadTime);
@@ -752,34 +773,26 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     <>
       <Toaster position="top-right" richColors />
       <div
-        className="bg-[#E5E5E5] min-h-screen w-full overflow-x-hidden pb-8"
+        className="bg-[#E8E8E8] min-h-screen w-full overflow-x-hidden pb-8"
         data-capsule-step="market-analysis"
       >
-        {/* Hero */}
+        {/* Hero — aligned with Results: no overlay back button (footer retains Back) */}
         <section
-          className="relative w-full min-h-[min(48vh,400px)] h-[min(52vh,480px)] sm:min-h-[460px] sm:h-[min(56vh,520px)] flex flex-col items-center justify-end pb-10 sm:pb-14 px-4 text-center"
+          className="relative flex w-full flex-col items-center justify-end min-h-[min(42vw,260px)] sm:min-h-[280px] pt-10 pb-10 sm:pb-12 px-4 text-center text-white"
           style={{
             backgroundImage:
-              'linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.62) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
+              'linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.58) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
             backgroundSize: "cover",
             backgroundPosition: "center 32%",
           }}
         >
-          <button
-            type="button"
-            onClick={onBack}
-            className="absolute top-5 left-4 sm:left-8 z-20 rounded-lg bg-black px-3 py-2 text-[13px] font-semibold text-white hover:bg-neutral-900 transition-colors font-sans"
-          >
-            ← Back
-          </button>
-
           <img
             src="/assets/form-logo-white-transparent.png"
             alt="Form Department"
-            className="relative z-10 mx-auto mt-16 sm:mt-14 w-[min(46vw,200px)] sm:w-[220px] h-auto"
+            className="absolute top-6 sm:top-8 left-1/2 z-10 w-[min(42vw,210px)] sm:w-[200px] md:w-[220px] h-auto -translate-x-1/2"
           />
 
-          <h1 className="relative z-10 mt-10 sm:mt-12 mb-4 font-heading text-[clamp(1.5rem,4.5vw,2.125rem)] text-white tracking-tight">
+          <h1 className="relative z-10 mt-24 sm:mt-28 md:mt-24 mb-1 font-heading text-[clamp(1.65rem,4.5vw,2.625rem)] text-white tracking-tight leading-tight">
             Market Analysis
           </h1>
 
@@ -788,17 +801,106 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           </p>
         </section>
 
-        <div className="relative z-10 mx-auto max-w-[1100px] -mt-16 sm:-mt-24 px-3 sm:px-5 lg:px-6">
-          <div className="rounded-t-[32px] sm:rounded-t-[36px] bg-[#F2EFEA] shadow-[0_24px_60px_rgba(0,0,0,0.12)] px-5 pt-10 pb-8 sm:px-10 sm:pt-11 sm:pb-10">
+        <div className="relative z-10 mx-auto max-w-[1100px] -mt-6 sm:-mt-10 px-3 sm:px-5 lg:px-6">
+          <div className="rounded-t-[32px] sm:rounded-t-[36px] bg-[#ECEAE7] shadow-[0_24px_60px_rgba(0,0,0,0.12)] px-5 pt-10 pb-8 sm:px-10 sm:pt-11 sm:pb-10 border border-black/[0.06]">
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
               {categoryLabel}
             </p>
             <h2 className="mt-4 font-heading text-[clamp(1.875rem,5vw,2.625rem)] text-[#1E1D1B] leading-[1.05]">
               {productTitle}
             </h2>
-            <p className="mt-4 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2D2A25]/88 font-sans">
+            <p className="mt-4 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#1E1D1B] font-sans">
               {marketBlurb}
             </p>
+
+            {/* Capsule recap — same building blocks as Your Results */}
+            <p className="mt-10 text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
+              Capsule recap
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
+              <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-sm">
+                <h3 className="font-heading text-xl sm:text-2xl text-[#1E1D1B] tracking-tight">
+                  Materials
+                </h3>
+                {recapMaterials.mode === "blocks" && recapMaterials.blocks.length > 0 ? (
+                  <div className="mt-6 space-y-8">
+                    {recapMaterials.blocks.map((b, i) => (
+                      <div key={`${b.title}-${i}`}>
+                        <div className="font-heading text-[17px] sm:text-[19px] text-[#1E1D1B] tracking-tight">
+                          {b.title}
+                        </div>
+                        <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">
+                          {b.body}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : materialsMd ? (
+                  <div className="mt-5 text-[13px] sm:text-[14px] leading-relaxed text-[#232220] [&_p]:mb-3">
+                    <ReactMarkdown components={{ hr: () => null }}>{materialsMd}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </div>
+
+              <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-sm">
+                <h3 className="font-heading text-xl sm:text-2xl text-[#1E1D1B] tracking-tight">
+                  Companion Pieces
+                </h3>
+                {recapCompanion.mode === "blocks" && recapCompanion.blocks.length > 0 ? (
+                  <div className="mt-6 space-y-8">
+                    {recapCompanion.blocks.map((b, i) => (
+                      <div key={`${b.title}-${i}`}>
+                        <div
+                          className={
+                            b.body?.trim()
+                              ? "font-heading text-[17px] sm:text-[19px] text-[#1E1D1B] tracking-tight"
+                              : "font-sans font-semibold text-[14px] uppercase tracking-[0.12em] text-[#5c5349]"
+                          }
+                        >
+                          {b.title}
+                        </div>
+                        <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">
+                          {b.body}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : companionMd ? (
+                  <div className="mt-5 text-[13px] sm:text-[14px] leading-relaxed text-[#232220] [&_p]:mb-3">
+                    <ReactMarkdown components={{ hr: () => null }}>{companionMd}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </div>
+
+              <div className="rounded-[24px] sm:rounded-[28px] bg-[#262624] p-6 sm:p-10 text-white shadow-md lg:col-span-2">
+                <h3 className="font-heading text-xl sm:text-2xl text-white tracking-tight">
+                  Sales Price
+                </h3>
+                <div className="mt-5 text-sm sm:text-[15px] leading-relaxed text-white/90 [&_p]:mb-3 [&_p:last-child]:mb-0">
+                  {recapSalesNarrative ? (
+                    <ReactMarkdown components={{ hr: () => null }}>{recapSalesNarrative}</ReactMarkdown>
+                  ) : recapSales.retailValue ? null : (
+                    <p className="text-white/80 text-sm">No data available.</p>
+                  )}
+                </div>
+                {recapSales.retailValue ? (
+                  <div className="mt-8 text-left" role="region" aria-label="Retail price">
+                    <p className="font-sans text-[13px] sm:text-[14px] font-semibold tracking-wide text-white">
+                      Retail Price
+                    </p>
+                    <div className="mt-3 rounded-xl border border-white/15 bg-[#F2EFE9] px-5 py-4">
+                      <p className="font-heading text-[clamp(1.5rem,5vw,2.15rem)] font-medium tabular-nums leading-tight tracking-tight text-[#161514]">
+                        {recapSales.retailValue}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
 
             <h2 className="mt-10 sm:mt-12 mb-6 sm:mb-8 text-center font-heading text-xl sm:text-2xl text-[#292724] tracking-tight">
               Production &amp; Market Analysis
@@ -839,12 +941,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                               style={{ width: `${r.pct}%` }}
                             />
                           </div>
-                          {i === leadRows.length - 1 ? (
-                            <span
-                              className="h-2 w-2 shrink-0 rounded-full bg-[#16924a]"
-                              aria-hidden
-                            />
-                          ) : null}
                         </div>
                       </div>
                     ))}
@@ -886,19 +982,11 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
               <NumberedMarketCard index={4} title="Target Consumer Insight">
                 {consumerTiles.length >= 2 ? (
                   <div className="grid grid-cols-2 gap-3">
-                    {consumerTiles.slice(0, 4).map((t, i) => (
+                    {consumerTiles.slice(0, 4).map((t) => (
                       <div
                         key={t.key}
-                        className={`relative flex min-h-[6.75rem] flex-col justify-center rounded-2xl bg-[#DFDCD6]/90 py-3 text-center ${
-                          i === 0 ? "pl-9 pr-3" : "px-3"
-                        }`}
+                        className="relative flex min-h-[6.75rem] flex-col justify-center rounded-2xl bg-[#DFDCD6]/90 px-3 py-3 text-center"
                       >
-                        {i === 0 ? (
-                          <span
-                            className="absolute left-3 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#16924a]"
-                            aria-hidden
-                          />
-                        ) : null}
                         <span className="text-[11px] font-bold uppercase tracking-wide text-[#4a463f]">
                           {t.key}
                         </span>
@@ -933,13 +1021,13 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             </div>
 
             {/* Footer actions */}
-            <div className="mt-11 flex w-full flex-col gap-4 border-t border-black/[0.08] pt-9 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="mt-11 flex w-full flex-row flex-nowrap items-center justify-between gap-2 border-t border-black/[0.08] pt-9 sm:gap-6">
               <button
                 type="button"
                 onClick={onBack}
-                className="flex shrink-0 touch-manipulation items-center gap-3 self-start text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.2em] text-[#282522] hover:opacity-80 active:opacity-70 transition-opacity font-sans"
+                className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-[#282522] hover:opacity-80 active:opacity-70 transition-opacity sm:gap-3 sm:text-[11px] sm:tracking-[0.2em]"
               >
-                <span className="inline-flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#282522]/80 text-base leading-none">
+                <span className="inline-flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#282522]/80 text-sm leading-none sm:h-10 sm:w-10 sm:text-base">
                   ←
                 </span>
                 Back
@@ -948,15 +1036,17 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 type="button"
                 onClick={handleScheduleClick}
                 disabled={sendingEmail}
-                className={`flex min-h-[48px] w-full shrink-0 touch-manipulation items-center justify-center gap-2 rounded-full px-6 py-3 text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.16em] text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:ml-auto sm:w-auto sm:min-w-[220px] sm:max-w-md ${
+                className={`flex min-h-[44px] max-w-[min(10.75rem,calc(100%-6.5rem))] shrink touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:max-w-none sm:min-h-[46px] sm:gap-2.5 sm:px-5 sm:text-[11px] sm:tracking-[0.16em] ${
                   sendingEmail
                     ? "cursor-not-allowed bg-neutral-400"
                     : "bg-[#1a1918] hover:bg-black focus-visible:outline-white/40"
                 }`}
               >
-                <span>{sendingEmail ? "Sending details…" : "Schedule Call"}</span>
+                <span className={sendingEmail ? "text-center whitespace-normal leading-tight" : ""}>
+                  {sendingEmail ? "Sending details…" : "Schedule Call"}
+                </span>
                 {!sendingEmail ? (
-                  <span className="text-base leading-none shrink-0" aria-hidden>
+                  <span className="text-sm leading-none shrink-0 sm:text-base" aria-hidden>
                     →
                   </span>
                 ) : null}

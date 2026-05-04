@@ -3,6 +3,11 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
+import {
+  parseMaterialsForDisplay,
+  parseSalesPriceForDisplay,
+  parseCompanionForDisplay,
+} from "./capsuleResponseParsers";
 
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
@@ -43,250 +48,6 @@ function parseCostProductionRows(text) {
     }
   }
   return rows;
-}
-
-function parseBoldLeadBlocks(md) {
-  if (!md?.trim()) return [];
-  const blocks = [];
-  const re = /\*\*([^*]+)\*\*\s*([\s\S]*?)(?=\n*\*\*|$)/g;
-  let m;
-  while ((m = re.exec(md)) !== null) {
-    const title = m[1].trim();
-    const body = m[2].trim();
-    if (title.length && title.length < 100) blocks.push({ title, body });
-  }
-  return blocks;
-}
-
-/** Lines like "- Cotton (240 GSM): stretchy" → titled blocks; strips list markers */
-function parseListColonBlocks(text) {
-  if (!text?.trim()) return [];
-  const blocks = [];
-  const seen = new Set();
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line) continue;
-    const stripped = line
-      .replace(/^\s*(?:[-*•]|\d+[.)]+)\s+/, "")
-      .replace(/\*\*/g, "")
-      .trim();
-    const idx = stripped.indexOf(":");
-    if (idx <= 1 || idx >= stripped.length - 1) continue;
-    const title = stripped.slice(0, idx).trim();
-    const body = stripped.slice(idx + 1).trim();
-    if (title.length < 2 || body.length < 1) continue;
-    const key = title.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    blocks.push({ title, body });
-  }
-  return blocks;
-}
-
-/** Optional category line(s) before first bullet list (e.g. "Graphic Tees" + intro) */
-function extractCompanionPreamble(text) {
-  const lines = text.split(/\r?\n/).map((l) => l.trim());
-  const firstBullet = lines.findIndex((l) => l && /^\s*(?:[-*•]|\d+[.)]+)\s+/.test(l));
-  if (firstBullet <= 0) return null;
-  const before = lines.slice(0, firstBullet).filter(Boolean);
-  if (before.length >= 2) {
-    return { title: before[0], body: before.slice(1).join(" ") };
-  }
-  if (before.length === 1) {
-    return { title: before[0], body: "" };
-  }
-  return null;
-}
-
-/** Turn markdown list lines into paragraph breaks so we do not render as bullets */
-function normalizeListMarkdownToParagraphs(text) {
-  if (!text?.trim()) return text;
-  const lines = text.split(/\r?\n/);
-  const chunks = [];
-  let buf = [];
-  const flushBuf = () => {
-    if (buf.length) {
-      chunks.push(buf.join(" "));
-      buf = [];
-    }
-  };
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      flushBuf();
-      continue;
-    }
-    const isList = /^\s*(?:[-*•]|\d+[.)]+)\s+/.test(line);
-    const content = trimmed.replace(/^\s*(?:[-*•]|\d+[.)]+)\s+/, "").trim();
-    if (isList) {
-      flushBuf();
-      chunks.push(content);
-    } else {
-      buf.push(trimmed);
-    }
-  }
-  flushBuf();
-  return chunks.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
-}
-
-function parseMaterialsForDisplay(md) {
-  if (!md?.trim()) return { mode: "markdown", text: md || "" };
-  const fromBold = parseBoldLeadBlocks(md);
-  const fromList = parseListColonBlocks(md);
-  let blocks = [];
-  if (fromList.length >= 3) blocks = fromList;
-  else if (fromBold.length >= 3) blocks = fromBold;
-  else if (fromList.length >= fromBold.length && fromList.length >= 1) blocks = fromList;
-  else if (fromBold.length >= 1) blocks = fromBold;
-  else if (fromList.length >= 1) blocks = fromList;
-
-  if (blocks.length >= 1) return { mode: "blocks", blocks };
-
-  const colonBlocks = [];
-  for (const para of md.split(/\n\n+/)) {
-    const line = para.replace(/\*\*/g, "").split("\n")[0]?.trim();
-    if (!line) continue;
-    const cm =
-      line.match(/^([^:–—-]{2,80})[:–—-]\s*(.+)$/) ||
-      line.match(/^([^:–—-]{2,80}):\s*(.+)$/);
-    if (cm) {
-      colonBlocks.push({
-        title: cm[1].replace(/^[-*•\s]+/, "").trim(),
-        body: (cm[2] + para.slice(line.length)).trim(),
-      });
-    }
-  }
-  if (colonBlocks.length >= 1) return { mode: "blocks", blocks: colonBlocks };
-  return {
-    mode: "markdown",
-    text: normalizeListMarkdownToParagraphs(md),
-  };
-}
-
-function parseSalesPriceForDisplay(text) {
-  if (!text?.trim()) return { body: "", retailValue: null };
-
-  let retailValue = null;
-  const rangePatterns = [
-    /(?:Recommended|Suggested)\s+retail\s*:?\s*\*?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/i,
-    /(?:Retail\s+price|RRP|MSRP)\s*:?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/i,
-    /retail\s+(?:range|of|at|around|is)\s*:?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/i,
-    /(?:^|\n)\s*(?:Recommended\s+retail|Retail)\s*:?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/im,
-  ];
-  for (const re of rangePatterns) {
-    const m = text.match(re);
-    if (m?.[1]) {
-      retailValue = m[1].replace(/\s*-\s*/g, "–");
-      break;
-    }
-  }
-  if (!retailValue) {
-    const pair = text.match(/(\$[\d,.]+)\s*[-–]\s*(\$[\d,.]+)/);
-    if (pair) retailValue = `${pair[1]}–${pair[2]}`;
-  }
-  if (!retailValue) {
-    const all = text.match(/\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?/g);
-    if (all?.length) retailValue = all[all.length - 1];
-  }
-
-  let body = text;
-  if (retailValue) {
-    const esc = retailValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    body = body
-      .replace(
-        new RegExp(
-          `(?:\\*\\*)?(?:Recommended|Suggested)\\s+retail\\s*:?\\s*(?:\\*\\*)?\\s*${esc}[^\\n]*`,
-          "gi"
-        ),
-        ""
-      )
-      .replace(
-        new RegExp(`(?:Retail\\s+price|RRP|MSRP)\\s*:?\\s*${esc}[^\\n]*`, "gi"),
-        ""
-      )
-      .replace(
-        new RegExp(`^\\s*[-*•]?\\s*Recommended\\s+retail[^\\n]*${esc}[^\\n]*$`, "gim"),
-        ""
-      )
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
-  }
-
-  body = normalizeListMarkdownToParagraphs(body);
-  body = body
-    .replace(
-      /^\*\*Recommended\s+retail:\*\*\s*\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?\s*/im,
-      ""
-    )
-    .replace(
-      /^Recommended\s+retail:\s*\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?\s*/im,
-      ""
-    )
-    .trim();
-
-  return { body: body || text, retailValue };
-}
-
-function parseCompanionForDisplay(text) {
-  if (!text?.trim()) return { mode: "markdown", text: text || "" };
-
-  const preamble = extractCompanionPreamble(text);
-  const listBlocks = parseListColonBlocks(text);
-  const fromBold = parseBoldLeadBlocks(text);
-
-  const blocks = [];
-  if (preamble?.title) blocks.push(preamble);
-  if (listBlocks.length >= 1) blocks.push(...listBlocks);
-  else if (fromBold.length >= 1) {
-    const preambleTitle = (preamble?.title || "").toLowerCase();
-    for (const b of fromBold) {
-      if (
-        preambleTitle &&
-        b.title.toLowerCase() === preambleTitle &&
-        !b.body.trim()
-      )
-        continue;
-      blocks.push(b);
-    }
-  }
-
-  if (blocks.length >= 1) return { mode: "blocks", blocks };
-
-  const out = [];
-  for (const block of text.split(/\n\n+/)) {
-    const raw = block.trim();
-    if (!raw) continue;
-    const firstLine = raw.split(/\r?\n/)[0];
-    const plain = firstLine.replace(/\*\*/g, "");
-    const mc = plain.match(/^([^:–—]{2,100})[:–—]\s*(.*)$/);
-    if (mc) {
-      const restOfBlock = raw.slice(firstLine.length).trim();
-      const bodyPart = mc[2].trim()
-        ? `${mc[2].trim()}${restOfBlock ? `\n${restOfBlock}` : ""}`
-        : restOfBlock;
-      out.push({
-        title: mc[1].replace(/^[-*•\d.]+\s*/, "").trim(),
-        body: bodyPart || mc[2].trim(),
-      });
-    }
-  }
-  if (out.length > 0) return { mode: "blocks", blocks: out };
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  for (const line of lines) {
-    const plain = line.replace(/\*\*/g, "");
-    const mc = plain.match(/^([^:–—]{2,100})[:–—]\s*(.+)$/);
-    if (mc) {
-      out.push({
-        title: mc[1].replace(/^[-*•\d.]+\s*/, "").trim(),
-        body: mc[2].trim(),
-      });
-    }
-  }
-  if (out.length > 0) return { mode: "blocks", blocks: out };
-  return {
-    mode: "markdown",
-    text: normalizeListMarkdownToParagraphs(text),
-  };
 }
 
 export default function Step4Suggestions({ onNext, onBack, userPlan }) {
@@ -550,12 +311,16 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
     // Define instruction patterns that can appear with or without markdown formatting
     const instructionPatterns = {
       'Materials': [
+        /(\*\*)?You MUST output exactly four \(4\) different materials[^\n]*\n?/gi,
+        /(\*\*)?Repeat this block four times[^\n]*\n?/gi,
         /(\*\*)?Suggest appropriate materials for the product based on the design requirements and target price point\.?(\*\*)?\s*/gi,
         /(\*\*)?Include fabric types, weights \(GSM\), texture, special properties \(stretch, breathability, etc\.\), and any special considerations for sustainability or performance\.?(\*\*)?\s*/gi,
       ],
       'Sales Price': [
+        /(\*\*)?Put the price range on its own line first[^\n]*\n?/gi,
         /(\*\*)?You MUST include one explicit retail range[^\n]*\n?/gi,
         /(\*\*)?Provide a detailed suggested retail price analysis:(\*\*)?\s*/gi,
+        /(\*\*)?Then write 2–4 short paragraphs[^\n]*\n?/gi,
         /(\*\*)?Recommended retail price range\s*\(provide a specific range, e\.g\., \$80-\$100\)(\*\*)?\s*/gi,
         /(\*\*)?Justify the pricing based on materials, market positioning, and target audience(\*\*)?\s*/gi,
         /(\*\*)?Mention competitive pricing context if relevant\.?(\*\*)?\s*/gi,
@@ -579,6 +344,7 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
         /(\*\*)?- Include comparison between domestic vs overseas production costs if relevant(\*\*)?\s*/gi,
       ],
       'Companion Items': [
+        /(\*\*)?You MUST output exactly four \(4\) different companion pieces[^\n]*\n?/gi,
         /(\*\*)?Suggest 4-6 complementary pieces that would work well with this product in a capsule collection\.?(\*\*)?\s*/gi,
         /(\*\*)?Suggest 6[–-]8 complementary pieces for a capsule with this product\.?(\*\*)?\s*/gi,
         /(\*\*)?Be specific with item names and briefly explain why each piece complements the main product\.?(\*\*)?\s*/gi,
@@ -882,12 +648,15 @@ const generatePrompt = () => {
     Please provide your response in EXACTLY this format with these exact headings:
 
     **Materials**
-    Suggest appropriate materials for this product. Use a clear **bold heading** for each material, then a short description. Do not prefix lines with hyphens or asterisks.
+    You MUST output exactly four (4) different materials or fabrics. Repeat this block four times — no fewer than four:
+    **Material name (include GSM or weight)**
+    Two or three sentences on fiber content, hand feel, durability, breathability, sustainability, or relevant performance. Do not prefix lines with hyphens.
 
     **Sales Price**
-    You MUST include one explicit retail range on its own line near the top, in exactly this pattern (use real numbers for this product):
-    **Recommended retail:** $XX–$YY
-    After that, write 2–4 short PARAGRAPHS (not bullet lists) on pricing rationale, competitive context, and seasonal or promotional considerations. Do not start lines with "-" or "*".
+    Put the price range on its own line first, exactly:
+    **Retail price:** $XX–$YY
+    Then write 2–4 short paragraphs (not bullet lists) on pricing rationale, competitors, and promotions. Do not begin lines with "-" or "*".
+
 
     **Color Palette**
     Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format (one per line):
@@ -907,7 +676,9 @@ const generatePrompt = () => {
     - Include comparison between domestic vs overseas production costs if relevant
 
     **Companion Items**
-    Suggest complementary pieces for a capsule with this product. For each piece use **Piece name** on its own line followed by a descriptive paragraph. Do not use leading hyphens or asterisks before lines.
+    You MUST output exactly four (4) different companion pieces. Repeat this block four times — no fewer than four:
+    **Piece name**
+    Two or three sentences explaining how it complements the hero product, styling, layering, and the target customer. Do not prefix lines with hyphens.
 
     **Yield & Consumption Estimates**
     Provide a comprehensive fabric consumption analysis:
@@ -1103,7 +874,7 @@ const generatePrompt = () => {
             <h3 className="mt-3 sm:mt-4 font-heading text-[clamp(1.75rem,5vw,2.75rem)] leading-[1.05] text-[#1E1D1B] break-words">
               {productType?.trim() || category?.trim() || "Your product"}
             </h3>
-            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-[#2D2A25]/88 leading-relaxed max-w-prose">
+            <p className="mt-3 sm:mt-4 font-sans text-sm sm:text-base text-[#1E1D1B] leading-relaxed max-w-prose">
               A technical overview of construction, sourcing, positioning, and economics for this capsule concept—generated from your inputs and questionnaire.
             </p>
 
@@ -1183,20 +954,22 @@ const generatePrompt = () => {
                         </p>
                       )}
                     </div>
-                    {sales.retailValue && (
+                    {sales.retailValue ? (
                       <div
                         className="mt-8 text-left"
                         role="region"
-                        aria-label="Recommended retail price"
+                        aria-label="Retail price"
                       >
-                        <div className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.2em] text-[#C7A15E] font-sans">
-                          Recommended retail
-                        </div>
-                        <div className="mt-1 font-heading text-[clamp(1.65rem,5vw,2.35rem)] font-medium text-white leading-tight tracking-tight">
-                          {sales.retailValue}
+                        <p className="font-sans text-[13px] sm:text-[14px] font-semibold tracking-wide text-white">
+                          Retail Price
+                        </p>
+                        <div className="mt-3 rounded-xl border border-white/15 bg-[#F2EFE9] px-5 py-4">
+                          <p className="font-heading text-[clamp(1.5rem,5vw,2.15rem)] font-medium tabular-nums leading-tight tracking-tight text-[#161514]">
+                            {sales.retailValue}
+                          </p>
                         </div>
                       </div>
-                    )}
+                    ) : null}
                   </div>
 
                   {/* Cost Production — label / % / bar rows */}
@@ -1313,17 +1086,17 @@ const generatePrompt = () => {
                     )}
                   </div>
 
-                  <div className="mt-8 flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                  <div className="mt-8 flex w-full flex-row flex-nowrap items-center justify-between gap-2 sm:gap-4">
                     <button
                       type="button"
                       onClick={onBack}
-                      className="flex shrink-0 touch-manipulation items-center gap-3 self-start text-[#302D29] hover:opacity-90 active:opacity-80 transition-opacity"
+                      className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 text-[#302D29] hover:opacity-90 active:opacity-80 transition-opacity sm:gap-3"
                       aria-label="Back"
                     >
-                      <span className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#302D29] text-lg leading-none sm:h-12 sm:w-12 sm:text-xl">
+                      <span className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#302D29] text-base leading-none sm:h-11 sm:w-11 sm:text-lg md:h-12 md:w-12 md:text-xl">
                         ←
                       </span>
-                      <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium">
+                      <span className="text-[11px] tracking-[0.18em] uppercase font-sans font-medium sm:text-[12px] sm:tracking-[0.2em]">
                         BACK
                       </span>
                     </button>
@@ -1332,7 +1105,7 @@ const generatePrompt = () => {
                         href="https://formdepartment.com/pages/about?view=subscription-plans"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex min-h-[52px] w-full shrink-0 touch-manipulation items-center justify-center gap-3 rounded-full bg-[#2D2A25] px-6 py-3 text-[11px] sm:text-[12px] uppercase tracking-[0.18em] text-white text-center hover:bg-[#1a1816] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D2A25] sm:w-auto sm:min-w-[240px] sm:max-w-md"
+                        className="flex min-h-[44px] max-w-[min(11rem,calc(100%-6.75rem))] shrink touch-manipulation items-center justify-center rounded-full bg-[#2D2A25] px-3 py-2 text-[9px] uppercase leading-snug tracking-[0.12em] text-white text-center hover:bg-[#1a1816] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D2A25] sm:max-w-none sm:min-h-[46px] sm:gap-2 sm:px-5 sm:text-[11px] sm:tracking-[0.18em]"
                       >
                         Upgrade To Tier 2
                       </a>
@@ -1351,12 +1124,12 @@ const generatePrompt = () => {
                           );
                           if (onNext) onNext();
                         }}
-                        className="flex min-h-[52px] w-full shrink-0 touch-manipulation items-center justify-center gap-2 rounded-full bg-[#2D2A25] px-5 py-3 text-[10px] sm:text-[11px] md:text-[12px] uppercase tracking-[0.14em] sm:tracking-[0.18em] text-white hover:bg-[#1a1816] active:bg-[#141210] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D2A25] sm:w-auto sm:min-w-[min(100%,260px)] sm:max-w-md"
+                        className="flex min-h-[44px] max-w-[min(10.75rem,calc(100%-6.5rem))] shrink touch-manipulation items-center justify-center gap-1.5 rounded-full bg-[#2D2A25] px-2.5 py-2 uppercase tracking-[0.1em] text-white hover:bg-[#1a1816] active:bg-[#141210] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D2A25] sm:max-w-none sm:min-h-[46px] sm:gap-2 sm:px-4 sm:tracking-[0.15em]"
                       >
-                        <span className="text-center leading-tight px-0.5">
+                        <span className="text-center font-sans text-[8px] leading-tight sm:text-[10px] sm:leading-snug">
                           Continue To Market Analysis
                         </span>
-                        <span className="text-base leading-none shrink-0" aria-hidden>
+                        <span className="shrink-0 text-[13px] leading-none sm:text-[14px]" aria-hidden>
                           →
                         </span>
                       </button>
