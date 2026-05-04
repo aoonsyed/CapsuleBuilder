@@ -785,9 +785,9 @@ const generatePrompt = () => {
         )}
       </div>
     ) : (
-      <div className="bg-[#E8E8E8] min-h-screen">
+      <div className="bg-[#E8E8E8] min-h-screen w-full overflow-x-hidden">
         <section
-          className="relative h-[250px] flex flex-col items-center justify-start pt-10 text-white"
+          className="relative flex flex-col items-center justify-end min-h-[min(42vw,260px)] sm:min-h-[280px] pt-10 pb-10 sm:pb-12 px-4 text-white"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.58) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
@@ -797,176 +797,254 @@ const generatePrompt = () => {
         >
           <img
             src="/assets/form-logo-white-transparent.png"
-            alt="Form"
-            className="w-[170px] h-auto"
+            alt="Form Department"
+            className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 w-[min(42vw,210px)] sm:w-[200px] md:w-[220px] h-auto"
           />
-          <p className="mt-3 text-[45px] leading-none">°</p>
-          <h2 className="font-heading text-[44px] leading-[1.1] mt-14">Your Results</h2>
+          <div className="mt-24 sm:mt-28 md:mt-24 text-center max-w-xl">
+            <h2 className="font-heading text-[clamp(1.65rem,4.5vw,2.625rem)] leading-tight tracking-tight">
+              Your Results
+            </h2>
+          </div>
         </section>
 
-        <section className="relative -mt-12 pb-10 px-4">
-          <div className="mx-auto w-full max-w-[420px] rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-5 py-10">
-            <p className="text-[12px] uppercase tracking-[0.3em] text-[#8B8377]">Your capsule focus</p>
-            <h3 className="mt-4 font-heading text-[56px] leading-[0.95] text-[#1E1D1B]">
+        <section className="relative -mt-6 sm:-mt-10 pb-12 sm:pb-16 px-3 sm:px-5 lg:px-8">
+          <div className="mx-auto w-full max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[28px] sm:rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-4 py-8 sm:px-6 sm:py-10 md:px-8 md:py-11">
+            <p className="text-[11px] sm:text-[12px] uppercase tracking-[0.28em] text-[#6B6560]">
+              Your capsule focus
+            </p>
+            <h3 className="mt-3 sm:mt-4 font-heading text-[clamp(1.75rem,5vw,2.75rem)] leading-[1.05] text-[#1E1D1B] break-words">
               {productType?.trim() || category?.trim() || "Your product"}
             </h3>
-            <p className="mt-4 text-[34px] leading-[1.26] text-[#2D2A25]">
-              A technical deep-dive into the construction, sourcing and economic blueprint of our performance silhouette.
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-[#2D2A25]/88 leading-relaxed max-w-prose">
+              A technical overview of construction, sourcing, positioning, and economics for this capsule concept—generated from your inputs and questionnaire.
             </p>
 
-            <div className="mt-8 rounded-[22px] bg-[#F4F4F4] p-5">
-              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Materials</h4>
-              <div className="mt-4 text-[30px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-4 [&_p]:mb-4">
-                <ReactMarkdown>{suggestions.materials || "No data available."}</ReactMarkdown>
-              </div>
-            </div>
+            {/* Shared prose block for markdown body */}
+            {(() => {
+              const proseLight =
+                "mt-4 text-sm sm:text-[15px] leading-relaxed text-[#232220] break-words [&_*]:max-w-full [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1.5 [&_strong]:font-semibold [&_a]:underline [&_hr]:border-[#ccc]";
+              const proseLightTight =
+                "mt-4 text-sm sm:text-[15px] leading-relaxed text-[#232220] break-words [&_*]:max-w-full [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1.5 [&_strong]:font-semibold";
+              const sectionTitle =
+                "font-heading text-lg sm:text-xl md:text-2xl text-[#1C1C1A] tracking-tight";
+              const sectionTitleLight =
+                "font-heading text-lg sm:text-xl md:text-2xl text-white tracking-tight";
+              const proseDark =
+                "mt-4 text-sm sm:text-[15px] leading-relaxed text-white/93 break-words [&_*]:max-w-full [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1.5 [&_strong]:font-semibold [&_hr]:border-white/20";
 
-            <div className="mt-6 rounded-[22px] bg-[#2A2623] p-5 text-white">
-              <h4 className="font-heading text-[50px]">Sales Price</h4>
-              <div className="mt-3 text-[30px] leading-[1.35] text-white/95 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-3 [&_p]:mb-3">
-                <ReactMarkdown>{suggestions.saleprices || "No data available."}</ReactMarkdown>
-              </div>
-            </div>
+              const colorLines = (suggestions.colors || "")
+                .split(/\r?\n/)
+                .map((l) =>
+                  l
+                    .replace(/^[\s\-*•\d.]+\s*/, "")
+                    .replace(/\*\*/g, "")
+                    .trim()
+                )
+                .filter(Boolean);
 
-            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
-              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Cost Production</h4>
-              <div className="mt-4 text-[30px] leading-[1.35] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
-                <ReactMarkdown>{suggestions.productionCosts || "No data available."}</ReactMarkdown>
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
-              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Color Palette</h4>
-              {extractHexColors(suggestions.colors).length > 0 ? (
-                <div className="mt-5 space-y-4">
-                  {extractHexColors(suggestions.colors).slice(0, 6).map(([name, hex], idx) => (
-                    <div key={`${hex}-${idx}`} className="flex items-center justify-between gap-3">
-                      <div
-                        className="h-11 w-24 rounded-full shrink-0 border border-black/10"
-                        style={{ backgroundColor: hex }}
-                        aria-label={name}
-                      />
-                      <span className="text-[22px] sm:text-[26px] text-[#232220] uppercase tracking-[0.08em] text-right">
-                        {name}
-                      </span>
+              return (
+                <>
+                  <div className="mt-6 sm:mt-8 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
+                    <h4 className={sectionTitle}>Materials</h4>
+                    <div className={proseLight}>
+                      <ReactMarkdown>
+                        {suggestions.materials || "No data available."}
+                      </ReactMarkdown>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
-                  <ReactMarkdown>{suggestions.colors || "No color direction generated."}</ReactMarkdown>
-                </div>
-              )}
-            </div>
+                  </div>
 
-            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
-              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Companion Pieces</h4>
-              <div className="mt-4 text-[30px] leading-[1.45] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-5 [&_p]:mb-3">
-                <ReactMarkdown>{suggestions.companionItems || "No data available."}</ReactMarkdown>
-              </div>
-            </div>
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#2A2623] p-4 sm:p-6 text-white shadow-md">
+                    <h4 className={sectionTitleLight}>Sales Price</h4>
+                    <div className={proseDark}>
+                      <ReactMarkdown>
+                        {suggestions.saleprices || "No data available."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
 
-            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
-              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Yield &amp; Consumption</h4>
-              <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
-                <ReactMarkdown>
-                  {suggestions.yieldConsumption || "No yield or consumption estimates yet."}
-                </ReactMarkdown>
-              </div>
-            </div>
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
+                    <h4 className={sectionTitle}>Cost Production</h4>
+                    <div className={proseLight}>
+                      <ReactMarkdown>
+                        {suggestions.productionCosts || "No data available."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
 
-            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
-              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Production Lead Time</h4>
-              <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
-                <ReactMarkdown>
-                  {suggestions.leadTime || "No production timeline yet."}
-                </ReactMarkdown>
-              </div>
-            </div>
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
+                    <h4 className={sectionTitle}>Color Palette</h4>
+                    {extractHexColors(suggestions.colors).length > 0 ? (
+                      <div className="mt-4 space-y-3 sm:space-y-4">
+                        {extractHexColors(suggestions.colors)
+                          .slice(0, 8)
+                          .map(([name, hex], idx) => (
+                            <div
+                              key={`${hex}-${idx}`}
+                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3"
+                            >
+                              <div
+                                className="h-10 w-full sm:w-[5.5rem] max-w-[7rem] rounded-full shrink-0 border border-black/10 mx-auto sm:mx-0"
+                                style={{ backgroundColor: hex }}
+                                aria-label={name}
+                              />
+                              <span className="text-sm sm:text-base text-[#232220] text-center sm:text-right font-medium break-words flex-1 min-w-0">
+                                {name}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    ) : colorLines.length > 0 ? (
+                      <ul className="mt-4 space-y-2.5">
+                        {colorLines.map((line, idx) => (
+                          <li
+                            key={`${idx}-${line.slice(0, 24)}`}
+                            className="flex items-start gap-3 text-sm sm:text-[15px] text-[#232220]"
+                          >
+                            <span
+                              className="mt-1.5 h-2.5 w-2.5 rounded-full shrink-0 bg-[#8C7152]/70"
+                              aria-hidden
+                            />
+                            <span className="leading-relaxed break-words">{line}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className={proseLightTight}>
+                        <ReactMarkdown>
+                          {suggestions.colors || "No color direction generated."}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
 
-            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
-              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Comparable Market</h4>
-              <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
-                <ReactMarkdown>
-                  {suggestions.marketExamples || "No comparable market references yet."}
-                </ReactMarkdown>
-              </div>
-            </div>
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
+                    <h4 className={sectionTitle}>Companion Pieces</h4>
+                    <div className={proseLight}>
+                      <ReactMarkdown>
+                        {suggestions.companionItems || "No data available."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
 
-            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
-              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Target Consumer</h4>
-              <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
-                <ReactMarkdown>
-                  {suggestions.targetInsight || "No target consumer insight yet."}
-                </ReactMarkdown>
-              </div>
-            </div>
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
+                    <h4 className={sectionTitle}>Yield &amp; Consumption</h4>
+                    <div className={proseLight}>
+                      <ReactMarkdown>
+                        {suggestions.yieldConsumption ||
+                          "No yield or consumption estimates yet."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
 
-            <div className="mt-6 rounded-[22px] bg-[#2A2623] p-5 text-white">
-              <h4 className="font-heading text-[50px]">Margin Analysis</h4>
-              <div className="mt-3 text-[18px] sm:text-[22px] leading-[1.35] text-white/95 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
-                <ReactMarkdown>
-                  {suggestions.marginAnalysis || "No margin analysis yet."}
-                </ReactMarkdown>
-              </div>
-            </div>
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
+                    <h4 className={sectionTitle}>Production Lead Time</h4>
+                    <div className={proseLight}>
+                      <ReactMarkdown>
+                        {suggestions.leadTime ||
+                          "No production timeline yet."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
 
-            <div className="mt-6 rounded-[22px] bg-[#2A2623] p-5 text-white">
-              <h4 className="font-heading text-[50px]">Wholesale vs DTC</h4>
-              <div className="mt-3 text-[18px] sm:text-[22px] leading-[1.35] text-white/95 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
-                <ReactMarkdown>
-                  {suggestions.pricing || "No wholesale vs DTC pricing yet."}
-                </ReactMarkdown>
-              </div>
-            </div>
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
+                    <h4 className={sectionTitle}>Comparable Market</h4>
+                    <div className={proseLight}>
+                      <ReactMarkdown>
+                        {suggestions.marketExamples ||
+                          "No comparable market references yet."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
 
-            <div className="mt-8 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={onBack}
-                className="h-12 w-12 rounded-full border border-[#302D29] text-[24px] leading-none text-[#302D29]"
-                aria-label="Back"
-              >
-                ←
-              </button>
-              {userPlan === 'tier1' ? (
-                <a
-                  href="https://formdepartment.com/pages/about?view=subscription-plans"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-[#2D2A25] px-6 text-[12px] uppercase tracking-[0.22em] text-white"
-                >
-                  Upgrade To Tier 2
-                </a>
-              ) : (
-                <button
-                  onClick={() => {
-                    toast.info('Continue to view production timelines and market analysis', {
-                      style: { backgroundColor: '#3A3A3D', color: '#fff' },
-                    });
-                    if (onNext) onNext();
-                  }}
-                  className="h-12 flex-1 rounded-full bg-[#2D2A25] px-6 text-[12px] uppercase tracking-[0.22em] text-white"
-                >
-                  Continue To Market Analysis →
-                </button>
-              )}
-            </div>
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
+                    <h4 className={sectionTitle}>Target Consumer</h4>
+                    <div className={proseLight}>
+                      <ReactMarkdown>
+                        {suggestions.targetInsight ||
+                          "No target consumer insight yet."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#2A2623] p-4 sm:p-6 text-white shadow-md">
+                    <h4 className={sectionTitleLight}>Margin Analysis</h4>
+                    <div className={proseDark}>
+                      <ReactMarkdown>
+                        {suggestions.marginAnalysis ||
+                          "No margin analysis yet."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#2A2623] p-4 sm:p-6 text-white shadow-md">
+                    <h4 className={sectionTitleLight}>Wholesale vs DTC</h4>
+                    <div className={proseDark}>
+                      <ReactMarkdown>
+                        {suggestions.pricing ||
+                          "No wholesale vs DTC pricing yet."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+                    <button
+                      type="button"
+                      onClick={onBack}
+                      className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-full border border-[#302D29] text-lg sm:text-xl leading-none text-[#302D29] hover:bg-black/5 transition-colors"
+                      aria-label="Back"
+                    >
+                      ←
+                    </button>
+                    {userPlan === "tier1" ? (
+                      <a
+                        href="https://formdepartment.com/pages/about?view=subscription-plans"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-[44px] flex-1 min-w-[12rem] sm:max-w-md items-center justify-center rounded-full bg-[#2D2A25] px-4 sm:px-6 text-[11px] sm:text-[12px] uppercase tracking-[0.18em] text-white text-center"
+                      >
+                        Upgrade To Tier 2
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          toast.info(
+                            "Continue to view production timelines and market analysis",
+                            {
+                              style: {
+                                backgroundColor: "#3A3A3D",
+                                color: "#fff",
+                              },
+                            }
+                          );
+                          if (onNext) onNext();
+                        }}
+                        className="min-h-[44px] flex-1 min-w-[12rem] sm:max-w-md rounded-full bg-[#2D2A25] px-4 sm:px-6 text-[11px] sm:text-[12px] uppercase tracking-[0.18em] text-white hover:bg-[#1a1816] transition-colors"
+                      >
+                        Continue To Market Analysis →
+                      </button>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           <div
-            className="mx-auto mt-8 w-full max-w-[420px] rounded-[26px] px-6 py-10 text-center text-white"
+            className="mx-auto mt-8 sm:mt-10 w-full max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[22px] sm:rounded-[26px] overflow-hidden px-4 py-10 sm:px-8 sm:py-12 text-center text-white"
             style={{
               backgroundImage:
                 'linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.35) 100%), url("/assets/pesce-huang-k7DQy4YaVXk-unsplash_DARK.jpg")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              backgroundSize: "cover",
+              backgroundPosition: "center",
             }}
           >
-            <h3 className="font-heading text-[56px] leading-[1.05]">Refine your ideas and move forward with purpose</h3>
+            <h3 className="font-heading text-[clamp(1.25rem,4vw,2.75rem)] leading-snug max-w-xl mx-auto">
+              Refine your ideas and move forward with purpose
+            </h3>
             <button
               type="button"
-              className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-full border border-white/80 text-[12px] uppercase tracking-[0.22em]"
+              className="mt-6 sm:mt-8 inline-flex min-h-[44px] w-full max-w-sm mx-auto items-center justify-center rounded-full border border-white/80 px-6 text-[11px] sm:text-[12px] uppercase tracking-[0.22em]"
             >
               Start Your Capsule Collection
             </button>

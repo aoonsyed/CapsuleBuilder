@@ -638,8 +638,8 @@ Only return the JSON. No markdown. No explanation.
                 type="submit"
                 className="relative h-[52px] w-[248px] rounded-full bg-[#2B2A25] text-white"
               >
-                <span className="block w-full text-center font-sans text-[12px] tracking-[0.24em] uppercase">
-                  CONTINUE TO YOUR RESULTS
+                <span className="block w-full text-center font-sans text-[13px] tracking-[0.04em] font-medium">
+                  Continue
                 </span>
                 <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[16px] leading-none">
                   →
