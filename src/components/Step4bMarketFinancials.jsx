@@ -3,9 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import emailjs from '@emailjs/browser';
-// Cache expiration time in milliseconds (5 minutes)
-const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
-
 /**
  * Testing only: skips Market Analysis subscription check (same path as localhost).
  * Set to `false` before any production deploy that should enforce Tier 2.
@@ -36,7 +33,10 @@ function splitLeadTimeSections(markdownText) {
   let cut = rawLines.length;
   for (let i = 0; i < rawLines.length; i++) {
     const L = stripMdLight(rawLines[i]);
-    if (/^(?:Key factors|Rush production|Seasonal considerations)\s*:/i.test(L)) {
+    if (
+      /^(?:#{1,4}\s*)?(?:Key factors|Rush production|Seasonal considerations)\s*:/i.test(L) ||
+      /^(?:#{1,4}\s*)(?:Key factors|Rush production|Seasonal considerations)\s*$/i.test(L)
+    ) {
       cut = i;
       break;
     }
@@ -48,33 +48,65 @@ function splitLeadTimeSections(markdownText) {
   };
 }
 
+function leadRowWeekWeight(value) {
+  const v = stripMdLight(value || "");
+  const wr = v.match(/(\d+)\s*[-–]\s*(\d+)\s*weeks?/i);
+  const wo = v.match(/(\d+)\s*weeks?/i);
+  if (wr) return (parseInt(wr[1], 10) + parseInt(wr[2], 10)) / 2;
+  if (wo) return parseInt(wo[1], 10);
+  return 12;
+}
+
+function finalizeLeadRowsWithPct(temp) {
+  let maxWeeks = 20;
+  for (const r of temp) maxWeeks = Math.max(maxWeeks, r.w);
+  return temp.map((r) => ({
+    label: r.label,
+    value: r.value,
+    pct: Math.min(100, Math.round((r.w / maxWeeks) * 100)),
+  }));
+}
+
 function parseLeadTimelineRows(text) {
   const lines = stripMdLight(text)
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter(Boolean);
   const temp = [];
-  let maxWeeks = 20;
   for (const line of lines) {
     const cleaned = line.replace(/^[-*•\d.]+\s*/, "");
-    const m = cleaned.match(/^([^:]{2,100}):\s*(.+)$/);
-    if (!m) continue;
-    const label = m[1].trim();
-    const value = m[2].trim();
-    const wr = value.match(/(\d+)\s*[-–]\s*(\d+)\s*weeks?/i);
-    const wo = value.match(/(\d+)\s*weeks?/i);
-    let w = 12;
-    if (wr)
-      w = (parseInt(wr[1], 10) + parseInt(wr[2], 10)) / 2;
-    else if (wo) w = parseInt(wo[1], 10);
+    let label;
+    let value;
+    const mColon = cleaned.match(/^([^:]{2,100}):\s*(.+)$/);
+    if (mColon) {
+      label = mColon[1].trim();
+      value = mColon[2].trim();
+    } else {
+      const mDash = cleaned.match(/^(.{2,92}?)\s*[\u2013\u2014]\s*(.+)$/);
+      if (mDash && /\d/.test(mDash[2]) && /weeks?|month/i.test(mDash[2])) {
+        label = mDash[1].trim().replace(/[.:]+$/, "");
+        value = mDash[2].trim();
+      } else continue;
+    }
+    if (!value) continue;
+    const w = leadRowWeekWeight(value);
     temp.push({ label, value, w });
-    maxWeeks = Math.max(maxWeeks, w);
   }
-  return temp.map((r) => ({
-    label: r.label,
-    value: r.value,
-    pct: Math.min(100, Math.round((r.w / maxWeeks) * 100)),
-  }));
+  return finalizeLeadRowsWithPct(temp);
+}
+
+/** Same shape as parseLeadTimelineRows — used when colon/dash timeline lines were not detected. */
+function leadRowsFromLabelValuePairs(rows) {
+  const temp = [];
+  for (const r of rows) {
+    if (!r.value?.trim()) continue;
+    temp.push({
+      label: r.label,
+      value: r.value,
+      w: leadRowWeekWeight(r.value),
+    });
+  }
+  return finalizeLeadRowsWithPct(temp);
 }
 
 /** Short cue for timeline row header (week range sits above filled bar). */
@@ -97,31 +129,15 @@ function leadDetailSansLeadingCue(fullValue) {
     .trim();
 }
 
-/** Cream halo + rounded inner panel — same behind every oval on this screen. */
-function MarketShellInset({ children, className = "", innerTone = "white" }) {
-  const inner =
-    innerTone === "warm"
-      ? "bg-[#F9F8F5] border-[#eae6df]"
-      : "bg-white border-black/[0.065]";
+/** One cream oval + one white inner panel for the whole market block (no per-section halos). */
+function MarketUnifiedShell({ children, className = "" }) {
   return (
     <div
       className={`rounded-[30px] sm:rounded-[36px] bg-[#F2F1ED] border border-black/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.08)] px-4 py-5 sm:px-7 sm:py-8 ${className}`}
     >
-      <div
-        className={`rounded-[22px] sm:rounded-[28px] ${inner} border shadow-[0_12px_40px_rgba(0,0,0,0.055)] px-5 py-7 sm:px-9 sm:py-10`}
-      >
+      <div className="rounded-[22px] sm:rounded-[28px] bg-white border border-black/[0.065] shadow-[0_12px_40px_rgba(0,0,0,0.055)] px-5 py-7 sm:px-9 sm:py-10">
         {children}
       </div>
-    </div>
-  );
-}
-
-function MarketShellLooseInset({ children, className = "" }) {
-  return (
-    <div
-      className={`rounded-[30px] sm:rounded-[36px] bg-[#F2F1ED] border border-black/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.08)] px-4 py-5 sm:px-7 sm:py-8 ${className}`}
-    >
-      {children}
     </div>
   );
 }
@@ -265,6 +281,19 @@ function splitFinancialValueAndSub(fullVal) {
   return { mainVal, sub };
 }
 
+/** Models often return all financial rows on one line; split before known labels so `Label: value` parsing works. */
+function injectNewlinesBeforeFinancialLabels(text, kind) {
+  const s = stripMdLight(text || "").trim();
+  if (!s) return s;
+  const labelishLines = (s.match(/^\s*[^:\n]{2,96}:\s*\S.*/gm) || []).length;
+  if (labelishLines >= 3) return s;
+  const re =
+    kind === "pricing"
+      ? /\s+(?=(?:Wholesale gross margin percentage|DTC gross margin percentage|Retail\s*\/\s*DTC\s+price\s+range|Wholesale price range)\s*:)/gi
+      : /\s+(?=(?:Gross margin percentage|Production cost per unit(?:\s*\([^)]+\))?\s*|Production cost(?:\s+per unit)?\s*|Retail price)\s*:)/gi;
+  return s.replace(re, "\n");
+}
+
 function parseFinancialDarkCard(text) {
   const raw = stripMdLight(text);
   let highlight =
@@ -273,7 +302,7 @@ function parseFinancialDarkCard(text) {
     "";
   highlight = sanitizePctHighlight(highlight);
   const lines = [];
-  for (const part of text.split(/\n+/).map((l) => l.trim()).filter(Boolean)) {
+  for (const part of raw.split(/\n+/).map((l) => l.trim()).filter(Boolean)) {
     const t = stripMdLight(part).replace(/^[-*•\d.]+\s*/, "");
     const m = t.match(/^([^:]+):\s*(.+)$/);
     if (!m) continue;
@@ -348,14 +377,18 @@ function AudienceDashboardFourGrid({ audienceByKey }) {
                   {raw}
                 </span>
               ) : (
-                <span className="font-sans text-[13px] text-[#8f8b82]">Not specified</span>
+                <span className="font-sans text-[13px] text-[#b0aba2]" aria-hidden>
+                  —
+                </span>
               )
             ) : raw ? (
               <p className="mx-auto max-w-[18rem] font-sans text-[13px] sm:text-[14px] leading-snug text-[#2a2723]">
                 {raw}
               </p>
             ) : (
-              <p className="font-sans text-[13px] text-[#8f8b82]">Not specified</p>
+              <span className="font-sans text-[13px] text-[#b0aba2]" aria-hidden>
+                —
+              </span>
             )}
           </DemographicMutedCard>
         );
@@ -500,58 +533,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     };
   }, [paramsKey, hashParamsKey]);
 
-  // Load cached sections from localStorage
-  const loadCachedSections = useCallback(() => {
-    try {
-      const { rawAnswer: rawKey, parsedSections: parsedKey } = getStorageKeys();
-      
-      // First check if we have cached parsed sections
-      const cachedParsed = localStorage.getItem(parsedKey);
-      if (cachedParsed) {
-        const parsedData = JSON.parse(cachedParsed);
-        
-        // Check if cached data has timestamp and if it's expired
-        if (parsedData.timestamp) {
-          const age = Date.now() - parsedData.timestamp;
-          if (age > CACHE_EXPIRATION_MS) {
-            // Cache expired, remove it
-            localStorage.removeItem(parsedKey);
-            return null;
-          }
-        } else {
-          // Old format without timestamp - treat as expired and remove
-          localStorage.removeItem(parsedKey);
-          return null;
-        }
-        
-        // Validate structure
-        if (parsedData.sections && typeof parsedData.sections === 'object') {
-          return {
-            sections: parsedData.sections,
-          };
-        }
-      }
-      
-      // If no cached sections, check if we have the raw answer (from Step4Suggestions cache)
-      const cachedRaw = localStorage.getItem(rawKey);
-      if (cachedRaw) {
-        const rawData = JSON.parse(cachedRaw);
-        if (rawData.timestamp) {
-          const age = Date.now() - rawData.timestamp;
-          if (age > CACHE_EXPIRATION_MS) {
-            // Cache expired
-            return null;
-          }
-        }
-        // Return null to trigger parsing from raw answer
-        return null;
-      }
-    } catch (err) {
-      console.warn("Failed to load cached sections:", err);
-    }
-    return null;
-  }, [getStorageKeys]);
-
   // Save sections to cache (only cache parsed sections, raw answer is cached by Step4Suggestions)
   const saveSectionsToCache = useCallback((sections) => {
     try {
@@ -659,7 +640,11 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
         "pricing",
         "Wholesale vs. DTC Pricing",
         "Wholesale vs DTC Pricing",
-        "Wholesale vs DTC"
+        "Wholesale vs DTC",
+        "Wholesale vs Direct-to-Consumer Pricing",
+        "Wholesale vs. Direct-to-Consumer (DTC) Pricing",
+        "Wholesale and DTC Pricing",
+        "DTC and Wholesale Pricing"
       ),
       yieldConsumption: merge(
         "yieldConsumption",
@@ -748,13 +733,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   useEffect(() => {
     if (!hasAccess) return;
 
-    const cached = loadCachedSections();
-    if (cached && cached.sections) {
-      console.log("Loading Market Analysis from cache");
-      setSections(cached.sections);
-      return;
-    }
-
     let rawText = "";
     let parsed = {};
     try {
@@ -783,13 +761,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     ) {
       saveSectionsToCache(built);
     }
-  }, [
-    hasAccess,
-    paramsKey,
-    loadCachedSections,
-    saveSectionsToCache,
-    buildMarketSections,
-  ]);
+  }, [hasAccess, paramsKey, saveSectionsToCache, buildMarketSections]);
 
   // Show loading while checking access
   if (!accessChecked) {
@@ -907,7 +879,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     sections?.marginAnalysis?.trim() ||
     lsMergedSections.marginAnalysis?.trim() ||
     "";
-  const pricing =
+  const pricingBase =
     sections?.pricing?.trim() || lsMergedSections.pricing?.trim() || "";
   const yieldConsumption =
     sections?.yieldConsumption?.trim() ||
@@ -918,14 +890,52 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
   const yieldRows = parseLabelValueLines(yieldConsumption);
   const leadParts = splitLeadTimeSections(leadTime);
-  const leadRows = parseLeadTimelineRows(leadParts.main || leadTime || "");
+  const mainLead = (leadParts.main || leadTime || "").trim();
+  let leadRows = parseLeadTimelineRows(mainLead);
+  if (!leadRows.length) {
+    leadRows = leadRowsFromLabelValuePairs(parseLabelValueLines(mainLead));
+  }
   const leadSummaryRows = parseLeadSummaryLines(leadParts.summary || "");
   const comparableBrands = parseComparableBrandsList(marketExamples);
   const consumerTiles = parseConsumerInsightTiles(targetInsight);
   const orderedConsumerTiles = orderConsumerInsightTiles(consumerTiles);
   const audienceByKey = buildAudienceSlotsByKey(targetInsight, orderedConsumerTiles);
-  const marginParsed = parseFinancialDarkCard(marginAnalysis);
-  const wholesaleParsed = parseFinancialDarkCard(pricing);
+
+  let rawAnswerLs = "";
+  try {
+    rawAnswerLs = localStorage.getItem("answer") || "";
+  } catch (_) {
+    rawAnswerLs = "";
+  }
+
+  let marginForCard = marginAnalysis;
+  let marginParsed = parseFinancialDarkCard(
+    injectNewlinesBeforeFinancialLabels(marginForCard, "margin")
+  );
+  if (marginParsed.lines.length === 0 && rawAnswerLs.length > 40) {
+    const marginFromRaw =
+      buildMarketSections(rawAnswerLs, {}).marginAnalysis?.trim() || "";
+    if (marginFromRaw) {
+      marginForCard = marginFromRaw;
+      marginParsed = parseFinancialDarkCard(
+        injectNewlinesBeforeFinancialLabels(marginForCard, "margin")
+      );
+    }
+  }
+
+  let pricingForCard = pricingBase;
+  let wholesaleParsed = parseFinancialDarkCard(
+    injectNewlinesBeforeFinancialLabels(pricingForCard, "pricing")
+  );
+  if (wholesaleParsed.lines.length === 0 && rawAnswerLs.length > 40) {
+    const fromRawOnly = buildMarketSections(rawAnswerLs, {}).pricing?.trim() || "";
+    if (fromRawOnly) {
+      pricingForCard = fromRawOnly;
+      wholesaleParsed = parseFinancialDarkCard(
+        injectNewlinesBeforeFinancialLabels(pricingForCard, "pricing")
+      );
+    }
+  }
 
   const categoryLabel = (category || "Capsule").trim().toUpperCase() + " CATEGORY";
   const productTitle =
@@ -1020,45 +1030,42 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           </p>
         </section>
 
-        <div className="relative z-10 mx-auto max-w-[1100px] -mt-5 sm:-mt-7 lg:-mt-9 px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-6">
-          <MarketShellInset>
-            <>
-              <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
-                {categoryLabel}
-              </p>
-              <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
-                {productTitle}
-              </h2>
-              <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2a2825] font-sans font-normal">
-                {marketBlurb}
-              </p>
-            </>
-          </MarketShellInset>
+        <div className="relative z-10 mx-auto max-w-[1100px] -mt-5 sm:-mt-7 lg:-mt-9 px-3 sm:px-5 lg:px-8 space-y-8 sm:space-y-10">
+          <MarketUnifiedShell>
+            <div className="flex flex-col">
+              <section>
+                <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
+                  {categoryLabel}
+                </p>
+                <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
+                  {productTitle}
+                </h2>
+                <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2a2825] font-sans font-normal">
+                  {marketBlurb}
+                </p>
+              </section>
 
-          <MarketShellInset>
-            <>
-              <h3 className="font-heading text-[1.3125rem] sm:text-xl text-[#1E1D1B] tracking-tight leading-snug">
-                Yield &amp; Consumption Estimates
-              </h3>
-              <div className="mt-6 sm:mt-7 space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
-                {yieldRows.length ? (
-                  yieldRows.map((r) => (
-                    <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0 font-normal">
-                      <span className="text-[#141312]">{r.label}: </span>
-                      <span className="text-[#4a463f]">{r.value}</span>
-                    </p>
-                  ))
-                ) : yieldConsumption ? (
-                  <MarketMdBody>{yieldConsumption}</MarketMdBody>
-                ) : (
-                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
-                )}
-              </div>
-            </>
-          </MarketShellInset>
+              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
+                <h3 className="font-heading text-[1.3125rem] sm:text-xl text-[#1E1D1B] tracking-tight leading-snug">
+                  Yield &amp; Consumption Estimates
+                </h3>
+                <div className="mt-6 sm:mt-7 space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
+                  {yieldRows.length ? (
+                    yieldRows.map((r) => (
+                      <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0 font-normal">
+                        <span className="text-[#141312]">{r.label}: </span>
+                        <span className="text-[#4a463f]">{r.value}</span>
+                      </p>
+                    ))
+                  ) : yieldConsumption ? (
+                    <MarketMdBody>{yieldConsumption}</MarketMdBody>
+                  ) : (
+                    <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                  )}
+                </div>
+              </section>
 
-            <MarketShellInset innerTone="warm">
-              <>
+              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
                 <h3 className="font-heading text-[1.625rem] sm:text-[1.875rem] md:text-[2rem] text-[#1E1D1B] font-medium tracking-tight leading-tight mb-7 sm:mb-9">
                   Lead Time
                 </h3>
@@ -1069,29 +1076,23 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                       return leadRows.map((r, i) => {
                         const cue = extractLeadWeekCue(r.value);
                         const detail = leadDetailSansLeadingCue(r.value);
+                        const plain = stripMdLight(r.value);
                         const showDetail =
-                          detail.length >= 24 &&
-                          cue &&
-                          stripMdLight(r.value).length > cue.length + 20;
+                          detail.length > 0 && (!cue ? detail !== plain : true);
                         const isSampling = /^sampling/i.test(r.label.trim());
                         if (isSampling) samplingSeen += 1;
-                        const showSamplingDot =
-                          isSampling && samplingSeen === 2;
+                        const showSamplingDot = isSampling && samplingSeen === 2;
                         return (
                           <div
                             key={`${r.label}-${i}`}
                             className="pb-9 sm:pb-10 mb-2 sm:mb-1 last:pb-4 last:mb-0"
                           >
-                            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816]">
-                              <span>{r.label.replace(/:+\s*$/, "")}:</span>
-                              <span className="shrink-0 text-right font-bold max-w-[min(100%,20rem)] sm:max-w-[55%]">
-                                {cue ? (
-                                  <span className="tabular-nums">{cue}</span>
-                                ) : (
-                                  stripMdLight(r.value)
-                                )}
-                              </span>
-                            </div>
+                            <p className="m-0 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816]">
+                              {r.label.replace(/:+\s*$/, "")}:
+                            </p>
+                            <p className="mt-2 m-0 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816] tabular-nums">
+                              {cue ? cue : plain}
+                            </p>
                             {showDetail ? (
                               <p className="mt-3 text-[12px] sm:text-[13px] font-normal leading-relaxed text-[#4a463e]">
                                 {detail}
@@ -1119,6 +1120,10 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                           </p>
                         ))}
                       </div>
+                    ) : leadParts.summary?.trim() ? (
+                      <div className="mt-6 sm:mt-8 rounded-[16px] sm:rounded-[18px] bg-[#DAD6D0] px-5 py-6 sm:px-7 sm:py-7 border border-black/[0.06] text-[#292724]">
+                        <MarketMdBody>{leadParts.summary}</MarketMdBody>
+                      </div>
                     ) : null}
                   </div>
                 ) : leadTime ? (
@@ -1128,11 +1133,9 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 ) : (
                   <p className="text-sm text-[#756F68] font-sans">No data available</p>
                 )}
-              </>
-            </MarketShellInset>
+              </section>
 
-            <MarketShellInset>
-              <>
+              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
                 <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug mb-6 sm:mb-8">
                   Comparable Market Examples
                 </h3>
@@ -1149,34 +1152,33 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 ) : (
                   <p className="text-sm text-[#756F68] font-sans">No data available</p>
                 )}
-              </>
-            </MarketShellInset>
+              </section>
 
-            <MarketShellInset>
-              <>
+              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
                 <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug mb-6 sm:mb-8">
                   Target Audience
                 </h3>
                 <AudienceDashboardFourGrid audienceByKey={audienceByKey} />
-              </>
-            </MarketShellInset>
+              </section>
 
-            <MarketShellLooseInset>
-              <div className="flex flex-col gap-4 sm:gap-5">
-                <DarkFinancialCard
-                  title="Margin Analysis"
-                  parsed={marginParsed}
-                  fallbackText={marginAnalysis}
-                  showHighlight
-                />
-                <DarkFinancialCard
-                  title="Wholesale vs DTC Pricing"
-                  parsed={wholesaleParsed}
-                  fallbackText={pricing}
-                  showHighlight={false}
-                />
-              </div>
-            </MarketShellLooseInset>
+              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
+                <div className="flex flex-col gap-4 sm:gap-5">
+                  <DarkFinancialCard
+                    title="Margin Analysis"
+                    parsed={marginParsed}
+                    fallbackText={marginForCard}
+                    showHighlight
+                  />
+                  <DarkFinancialCard
+                    title="Wholesale vs DTC Pricing"
+                    parsed={wholesaleParsed}
+                    fallbackText={pricingForCard}
+                    showHighlight={false}
+                  />
+                </div>
+              </section>
+            </div>
+          </MarketUnifiedShell>
 
             {/* Footer actions */}
             <div className="mt-11 flex w-full flex-row flex-nowrap items-center justify-between gap-2 border-t border-black/[0.08] pt-9 sm:gap-6">

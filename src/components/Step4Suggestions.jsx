@@ -390,6 +390,7 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
       'Margin Analysis': [
         /(\*\*)?Calculate suggested retail price vs\. production cost to show the gross margin percentage\.?(\*\*)?\s*/gi,
         /(\*\*)?Display calculations clearly\.?(\*\*)?\s*/gi,
+        /(\*\*)?Output EXACTLY three labeled rows[^\n]*\n?/gi,
         /^Retail price:\s*\[[^\]]+\]/gim,
         /^Production cost:\s*\[[^\]]+\]/gim,
         /^Gross margin percentage:\s*\[[^\]]+\]/gim,
@@ -398,6 +399,8 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
         /(\*\*)?Automatically generate a suggested wholesale price and direct-to-consumer\s*\(DTC\)\s*price range\.?(\*\*)?\s*/gi,
         /(\*\*)?Base calculations on standard fashion industry markups, and present both ranges clearly\.?(\*\*)?\s*/gi,
         /(\*\*)?Output EXACTLY four lines[^\n]*\n?/gi,
+        /(\*\*)?Output EXACTLY four labeled rows[^\n]*\n?/gi,
+        /(\*\*)?Always fill this section[^\n]*\n?/gi,
         /^Wholesale price range:\s*\[[^\]]+\]/gim,
         /^Retail.*DTC price range:\s*\[[^\]]+\]/gim,
         /^Wholesale gross margin percentage:\s*\[[^\]]+\]/gim,
@@ -577,11 +580,15 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
     // But we'll use the text as-is here since it's already cleaned
     
   const getSection = (label) => {
-    // Try multiple patterns to catch different formatting
+    const esc = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const patterns = [
-      new RegExp(`\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
-      new RegExp(`\\*\\*${label}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
-      new RegExp(`${label}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
+      new RegExp(
+        `\\*\\*${esc}\\*\\*\\s*:?\\s*\\n*([\\s\\S]*?)(?=\\n\\s*\\*\\*|\\n⸻|$)`,
+        "i"
+      ),
+      new RegExp(`\\*\\*${esc}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, "i"),
+      new RegExp(`\\*\\*${esc}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, "i"),
+      new RegExp(`${esc}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, "i"),
     ];
     
     for (const pattern of patterns) {
@@ -635,7 +642,13 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
     marketExamples: getSection('Comparable Market Examples'),
     targetInsight: getSection('Target Consumer Insight'),
     marginAnalysis: getSection('Margin Analysis'),
-    pricing: getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing') || getSection('Wholesale vs DTC'),
+    pricing:
+      getSection('Wholesale vs. DTC Pricing') ||
+      getSection('Wholesale vs DTC Pricing') ||
+      getSection('Wholesale vs DTC') ||
+      getSection('Wholesale vs Direct-to-Consumer Pricing') ||
+      getSection('Wholesale vs. Direct-to-Consumer (DTC) Pricing') ||
+      getSection('Wholesale and DTC Pricing'),
   };
 
   // Debug logging for each section
