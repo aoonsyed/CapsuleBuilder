@@ -92,7 +92,7 @@ function leadDetailSansLeadingCue(fullValue) {
   const v = stripMdLight(fullValue || "").trim();
   if (!v) return "";
   return v
-    .replace(/^(\d+\s*[-–]\s*\d+|\d+)\s*weeks?\b\s*(?:[\.,;:]\s*)?/i, "")
+    .replace(/^(\d+\s*[-–]\s*\d+|\d+)\s*weeks?\b\s*(?:[.,;:]\s*)?/i, "")
     .replace(/^[\s.:;,\-–]+/, "")
     .trim();
 }
@@ -675,6 +675,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
   /** Re-merge financial / analysis sections from canonical LS keys — fixes stale/empty caches. */
   const lsMergedSections = useMemo(() => {
+    void paramsKey;
     let raw = "";
     try {
       raw = localStorage.getItem("answer") || "";
