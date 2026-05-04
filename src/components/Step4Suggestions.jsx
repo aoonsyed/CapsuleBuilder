@@ -58,9 +58,90 @@ function parseBoldLeadBlocks(md) {
   return blocks;
 }
 
+/** Lines like "- Cotton (240 GSM): stretchy" → titled blocks; strips list markers */
+function parseListColonBlocks(text) {
+  if (!text?.trim()) return [];
+  const blocks = [];
+  const seen = new Set();
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const stripped = line
+      .replace(/^\s*(?:[-*•]|\d+[.)]+)\s+/, "")
+      .replace(/\*\*/g, "")
+      .trim();
+    const idx = stripped.indexOf(":");
+    if (idx <= 1 || idx >= stripped.length - 1) continue;
+    const title = stripped.slice(0, idx).trim();
+    const body = stripped.slice(idx + 1).trim();
+    if (title.length < 2 || body.length < 1) continue;
+    const key = title.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    blocks.push({ title, body });
+  }
+  return blocks;
+}
+
+/** Optional category line(s) before first bullet list (e.g. "Graphic Tees" + intro) */
+function extractCompanionPreamble(text) {
+  const lines = text.split(/\r?\n/).map((l) => l.trim());
+  const firstBullet = lines.findIndex((l) => l && /^\s*(?:[-*•]|\d+[.)]+)\s+/.test(l));
+  if (firstBullet <= 0) return null;
+  const before = lines.slice(0, firstBullet).filter(Boolean);
+  if (before.length >= 2) {
+    return { title: before[0], body: before.slice(1).join(" ") };
+  }
+  if (before.length === 1) {
+    return { title: before[0], body: "" };
+  }
+  return null;
+}
+
+/** Turn markdown list lines into paragraph breaks so we do not render as bullets */
+function normalizeListMarkdownToParagraphs(text) {
+  if (!text?.trim()) return text;
+  const lines = text.split(/\r?\n/);
+  const chunks = [];
+  let buf = [];
+  const flushBuf = () => {
+    if (buf.length) {
+      chunks.push(buf.join(" "));
+      buf = [];
+    }
+  };
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushBuf();
+      continue;
+    }
+    const isList = /^\s*(?:[-*•]|\d+[.)]+)\s+/.test(line);
+    const content = trimmed.replace(/^\s*(?:[-*•]|\d+[.)]+)\s+/, "").trim();
+    if (isList) {
+      flushBuf();
+      chunks.push(content);
+    } else {
+      buf.push(trimmed);
+    }
+  }
+  flushBuf();
+  return chunks.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 function parseMaterialsForDisplay(md) {
+  if (!md?.trim()) return { mode: "markdown", text: md || "" };
   const fromBold = parseBoldLeadBlocks(md);
-  if (fromBold.length > 0) return { mode: "blocks", blocks: fromBold };
+  const fromList = parseListColonBlocks(md);
+  let blocks = [];
+  if (fromList.length >= 3) blocks = fromList;
+  else if (fromBold.length >= 3) blocks = fromBold;
+  else if (fromList.length >= fromBold.length && fromList.length >= 1) blocks = fromList;
+  else if (fromBold.length >= 1) blocks = fromBold;
+  else if (fromList.length >= 1) blocks = fromList;
+
+  if (blocks.length >= 1) return { mode: "blocks", blocks };
+
   const colonBlocks = [];
   for (const para of md.split(/\n\n+/)) {
     const line = para.replace(/\*\*/g, "").split("\n")[0]?.trim();
@@ -76,40 +157,101 @@ function parseMaterialsForDisplay(md) {
     }
   }
   if (colonBlocks.length >= 1) return { mode: "blocks", blocks: colonBlocks };
-  return { mode: "markdown", text: md };
+  return {
+    mode: "markdown",
+    text: normalizeListMarkdownToParagraphs(md),
+  };
 }
 
 function parseSalesPriceForDisplay(text) {
   if (!text?.trim()) return { body: "", retailValue: null };
+
   let retailValue = null;
-  const rangeMatch = text.match(
-    /(?:Recommended\s+retail|Retail\s+price|Retail)\s*:?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/i
-  );
-  if (rangeMatch) retailValue = rangeMatch[1];
+  const rangePatterns = [
+    /(?:Recommended|Suggested)\s+retail\s*:?\s*\*?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/i,
+    /(?:Retail\s+price|RRP|MSRP)\s*:?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/i,
+    /retail\s+(?:range|of|at|around|is)\s*:?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/i,
+    /(?:^|\n)\s*(?:Recommended\s+retail|Retail)\s*:?\s*(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)/im,
+  ];
+  for (const re of rangePatterns) {
+    const m = text.match(re);
+    if (m?.[1]) {
+      retailValue = m[1].replace(/\s*-\s*/g, "–");
+      break;
+    }
+  }
+  if (!retailValue) {
+    const pair = text.match(/(\$[\d,.]+)\s*[-–]\s*(\$[\d,.]+)/);
+    if (pair) retailValue = `${pair[1]}–${pair[2]}`;
+  }
   if (!retailValue) {
     const all = text.match(/\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?/g);
     if (all?.length) retailValue = all[all.length - 1];
   }
+
   let body = text;
   if (retailValue) {
-    const escaped = retailValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const esc = retailValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     body = body
       .replace(
         new RegExp(
-          `(?:\\*\\*)?(?:Recommended\\s+retail[^\\n]*|Retail\\s+price[^\\n]*|Retail[^\\n]*)\\s*:?\\s*${escaped}\\s*(?:\\*\\*)?`,
-          "i"
+          `(?:\\*\\*)?(?:Recommended|Suggested)\\s+retail\\s*:?\\s*(?:\\*\\*)?\\s*${esc}[^\\n]*`,
+          "gi"
         ),
+        ""
+      )
+      .replace(
+        new RegExp(`(?:Retail\\s+price|RRP|MSRP)\\s*:?\\s*${esc}[^\\n]*`, "gi"),
+        ""
+      )
+      .replace(
+        new RegExp(`^\\s*[-*•]?\\s*Recommended\\s+retail[^\\n]*${esc}[^\\n]*$`, "gim"),
         ""
       )
       .replace(/\n{3,}/g, "\n\n")
       .trim();
   }
+
+  body = normalizeListMarkdownToParagraphs(body);
+  body = body
+    .replace(
+      /^\*\*Recommended\s+retail:\*\*\s*\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?\s*/im,
+      ""
+    )
+    .replace(
+      /^Recommended\s+retail:\s*\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?\s*/im,
+      ""
+    )
+    .trim();
+
   return { body: body || text, retailValue };
 }
 
 function parseCompanionForDisplay(text) {
+  if (!text?.trim()) return { mode: "markdown", text: text || "" };
+
+  const preamble = extractCompanionPreamble(text);
+  const listBlocks = parseListColonBlocks(text);
   const fromBold = parseBoldLeadBlocks(text);
-  if (fromBold.length > 0) return { mode: "blocks", blocks: fromBold };
+
+  const blocks = [];
+  if (preamble?.title) blocks.push(preamble);
+  if (listBlocks.length >= 1) blocks.push(...listBlocks);
+  else if (fromBold.length >= 1) {
+    const preambleTitle = (preamble?.title || "").toLowerCase();
+    for (const b of fromBold) {
+      if (
+        preambleTitle &&
+        b.title.toLowerCase() === preambleTitle &&
+        !b.body.trim()
+      )
+        continue;
+      blocks.push(b);
+    }
+  }
+
+  if (blocks.length >= 1) return { mode: "blocks", blocks };
+
   const out = [];
   for (const block of text.split(/\n\n+/)) {
     const raw = block.trim();
@@ -141,7 +283,10 @@ function parseCompanionForDisplay(text) {
     }
   }
   if (out.length > 0) return { mode: "blocks", blocks: out };
-  return { mode: "markdown", text: text };
+  return {
+    mode: "markdown",
+    text: normalizeListMarkdownToParagraphs(text),
+  };
 }
 
 export default function Step4Suggestions({ onNext, onBack, userPlan }) {
@@ -407,8 +552,11 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
       'Materials': [
         /(\*\*)?Suggest appropriate materials for the product based on the design requirements and target price point\.?(\*\*)?\s*/gi,
         /(\*\*)?Include fabric types, weights \(GSM\), texture, special properties \(stretch, breathability, etc\.\), and any special considerations for sustainability or performance\.?(\*\*)?\s*/gi,
+        /(\*\*)?Provide exactly 3[–-]4 distinct fabric\/material options\.?(\*\*)?\s*/gi,
+        /(\*\*)?For EACH material use this structure with NO bullet characters[^.]*\.?(\*\*)?\s*/gi,
       ],
       'Sales Price': [
+        /(\*\*)?You MUST include one explicit retail range[^\n]*\n?/gi,
         /(\*\*)?Provide a detailed suggested retail price analysis:(\*\*)?\s*/gi,
         /(\*\*)?Recommended retail price range\s*\(provide a specific range, e\.g\., \$80-\$100\)(\*\*)?\s*/gi,
         /(\*\*)?Justify the pricing based on materials, market positioning, and target audience(\*\*)?\s*/gi,
@@ -434,7 +582,10 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
       ],
       'Companion Items': [
         /(\*\*)?Suggest 4-6 complementary pieces that would work well with this product in a capsule collection\.?(\*\*)?\s*/gi,
+        /(\*\*)?Suggest 6[–-]8 complementary pieces for a capsule with this product\.?(\*\*)?\s*/gi,
         /(\*\*)?Be specific with item names and briefly explain why each piece complements the main product\.?(\*\*)?\s*/gi,
+        /(\*\*)?Use ONLY this format[^\n]*(\*\*)?\s*/gi,
+        /(\*\*)?Optional: you may add one short category line[^\n]*(\*\*)?\s*/gi,
       ],
       'Color Palette': [
         /(\*\*)?Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format\s*\(one per line\):(\*\*)?\s*/gi,
@@ -733,14 +884,14 @@ const generatePrompt = () => {
     Please provide your response in EXACTLY this format with these exact headings:
 
     **Materials**
-    Suggest appropriate materials for the product based on the design requirements and target price point. Include fabric types, weights (GSM), texture, special properties (stretch, breathability, etc.), and any special considerations for sustainability or performance.
+    Provide exactly 3–4 distinct fabric/material options. For EACH material use this structure with NO bullet characters (- or *) at the start of lines:
+    **Material name (weight/spec, e.g. 240 GSM)**
+    One or two sentences on hand feel, performance, breathability, sustainability, or durability. Do not prefix lines with hyphens.
 
     **Sales Price**
-    Provide a detailed suggested retail price analysis:
-    - Recommended retail price range (provide a specific range, e.g., $80-$100)
-    - Justify the pricing based on materials, market positioning, and target audience
-    - Mention competitive pricing context if relevant
-    - Include any seasonal or promotional pricing considerations
+    You MUST include one explicit retail range on its own line near the top, in exactly this pattern (use real numbers for this product):
+    **Recommended retail:** $XX–$YY
+    After that, write 2–4 short PARAGRAPHS (not bullet lists) on pricing rationale, competitive context, and seasonal or promotional considerations. Do not start lines with "-" or "*".
 
     **Color Palette**
     Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format (one per line):
@@ -760,7 +911,10 @@ const generatePrompt = () => {
     - Include comparison between domestic vs overseas production costs if relevant
 
     **Companion Items**
-    Suggest 4-6 complementary pieces that would work well with this product in a capsule collection. Be specific with item names and briefly explain why each piece complements the main product.
+    Suggest 6–8 complementary pieces for a capsule with this product. Use ONLY this format (NO leading hyphens on any line):
+    **Piece name**
+    One sentence on how it complements the capsule.
+    Optional: you may add one short category line (e.g. layering or accessories) before the pieces as plain text, then the **Piece** blocks.
 
     **Yield & Consumption Estimates**
     Provide a comprehensive fabric consumption analysis:
@@ -922,7 +1076,11 @@ const generatePrompt = () => {
         )}
       </div>
     ) : (
-      <div className="bg-[#E8E8E8] min-h-screen w-full overflow-x-hidden">
+      <div
+        className="bg-[#E8E8E8] min-h-screen w-full overflow-x-hidden"
+        data-capsule-results="structured-v2"
+        data-capsule-step="your-results"
+      >
         <section
           className="relative flex flex-col items-center justify-end min-h-[min(42vw,260px)] sm:min-h-[280px] pt-10 pb-10 sm:pb-12 px-4 text-white"
           style={{
@@ -964,7 +1122,7 @@ const generatePrompt = () => {
               const mdBody =
                 "text-sm sm:text-[15px] leading-relaxed text-[#232220] break-words [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 [&_strong]:font-semibold";
               const mdBodyDark =
-                "text-sm sm:text-[15px] leading-relaxed text-white/90 break-words [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 [&_strong]:font-semibold";
+                "text-sm sm:text-[15px] leading-relaxed text-white/90 break-words [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_li]:pl-0 [&_strong]:font-semibold";
 
               const materials = parseMaterialsForDisplay(
                 suggestions.materials || ""
@@ -973,6 +1131,11 @@ const generatePrompt = () => {
                 suggestions.productionCosts || ""
               );
               const sales = parseSalesPriceForDisplay(suggestions.saleprices || "");
+              const salesNarrative =
+                (sales.body && sales.body.trim()) ||
+                (!sales.retailValue
+                  ? (suggestions.saleprices || "").trim()
+                  : "");
               const companion = parseCompanionForDisplay(
                 suggestions.companionItems || ""
               );
@@ -997,7 +1160,7 @@ const generatePrompt = () => {
                       <div className="mt-6 space-y-8">
                         {materials.blocks.map((b, i) => (
                           <div key={`${b.title}-${i}`}>
-                            <div className="font-sans font-semibold text-[15px] text-[#1a1a1a]">
+                            <div className="font-heading text-[17px] sm:text-[19px] text-[#1E1D1B] tracking-tight">
                               {b.title}
                             </div>
                             <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">
@@ -1019,18 +1182,24 @@ const generatePrompt = () => {
                   <div className="mt-4 sm:mt-5 rounded-[24px] sm:rounded-[28px] bg-[#262624] p-6 sm:p-10 text-white shadow-md">
                     <h4 className={titleSerifOnDark}>Sales Price</h4>
                     <div className={`mt-5 font-sans ${mdBodyDark}`}>
-                      <ReactMarkdown>
-                        {(sales.body && sales.body.trim()) ||
-                          suggestions.saleprices ||
-                          "No data available."}
-                      </ReactMarkdown>
+                      {salesNarrative ? (
+                        <ReactMarkdown>{salesNarrative}</ReactMarkdown>
+                      ) : sales.retailValue ? null : (
+                        <p className="text-white/80 text-sm">
+                          No data available.
+                        </p>
+                      )}
                     </div>
                     {sales.retailValue && (
-                      <div className="mt-8 text-left">
-                        <div className="text-[13px] font-bold text-white font-sans">
-                          Retail Price:
+                      <div
+                        className="mt-8 rounded-2xl border-2 border-[#C7A15E]/95 bg-[#1a1917] px-5 py-4 sm:px-6 sm:py-5 text-left shadow-[0_0_0_1px_rgba(199,161,94,0.15)]"
+                        role="region"
+                        aria-label="Recommended retail price"
+                      >
+                        <div className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.2em] text-[#C7A15E] font-sans">
+                          Recommended retail
                         </div>
-                        <div className="mt-1 font-sans text-[clamp(2rem,7vw,3.25rem)] font-medium italic text-white leading-[1.1] tracking-tight">
+                        <div className="mt-2 font-heading text-[clamp(1.75rem,6vw,2.75rem)] font-medium text-white leading-[1.08] tracking-tight">
                           {sales.retailValue}
                         </div>
                       </div>
@@ -1127,7 +1296,13 @@ const generatePrompt = () => {
                       <div className="mt-6 space-y-8">
                         {companion.blocks.map((b, i) => (
                           <div key={`${b.title}-${i}`}>
-                            <div className="font-sans font-semibold text-[15px] text-[#1a1a1a]">
+                            <div
+                              className={
+                                b.body?.trim()
+                                  ? "font-heading text-[17px] sm:text-[19px] text-[#1E1D1B] tracking-tight"
+                                  : "font-sans font-semibold text-[14px] uppercase tracking-[0.12em] text-[#5c5349]"
+                              }
+                            >
                               {b.title}
                             </div>
                             <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">

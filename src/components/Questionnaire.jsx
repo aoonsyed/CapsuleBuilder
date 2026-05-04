@@ -12,12 +12,12 @@ const HERO_STYLE = {
   backgroundPosition: "center",
 };
 
-/** Same chrome as Step1Vision / Step2Inspiration / Step3ProductFocus (full-page) */
+/** Same chrome as Step1Vision / Step2Inspiration / Step3ProductFocus (full-bleed hero) */
 function StepFormShell({ children }) {
   return (
-    <div className="w-full min-h-screen bg-white">
+    <div className="w-full min-w-0 min-h-screen bg-white">
       <section
-        className="relative w-full h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
+        className="relative w-full min-w-0 h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
         style={HERO_STYLE}
       >
         <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
@@ -31,7 +31,7 @@ function StepFormShell({ children }) {
           Your Curated Capsule
         </h2>
       </section>
-      <section className="relative -mt-[110px] px-6 pb-10">{children}</section>
+      <section className="relative -mt-[110px] w-full px-6 pb-10">{children}</section>
     </div>
   );
 }
@@ -522,9 +522,9 @@ Only return the JSON. No markdown. No explanation.
   }
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full min-w-0 bg-white">
       <section
-        className="relative w-full h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
+        className="relative w-full min-w-0 h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
         style={HERO_STYLE}
       >
         <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
@@ -539,8 +539,8 @@ Only return the JSON. No markdown. No explanation.
         </h2>
       </section>
 
-      <section className="relative -mt-[110px] px-6 pb-10">
-        <div className="mx-auto max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12">
+      <section className="relative -mt-[110px] w-full px-6 pb-10">
+        <div className="mx-auto w-full max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12">
           <form onSubmit={handleSubmit} className="space-y-11 text-[#2B2A25]">
             <div className="pt-1">
               <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">

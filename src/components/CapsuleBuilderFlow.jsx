@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Navbar from "./Navbar";
 import LandingPage2 from "./LandingPage2";
 import Step1Vision from "./Step1Vision";
 import Step2Inspiration from "./Step2Inspiration";
@@ -173,10 +172,6 @@ export default function CapsuleBuilderFlow() {
           You are currently using a free trial. Upgrade to unlock all features
         </div>
       )}
-      <div className="relative z-10">
-        {step === 5 && <Navbar />}
-      </div>
-
       <div className={`relative z-10 ${step === 1 ? "bg-white" : ""}`}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -188,9 +183,7 @@ export default function CapsuleBuilderFlow() {
             className={
               step === 1
                 ? "mx-auto flex flex-col md:flex-row items-start"
-                : step === 6 || step === 7
-                ? "w-full"
-                : "w-full max-w-xl mx-auto p-10"
+                : "w-full"
             }
           >
             {/* Step 1 — Landing */}
