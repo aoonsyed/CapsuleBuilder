@@ -15,7 +15,6 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
   const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
   const {
     idea,
-    localBrand,
     brand2,
     sharedPrefernce,
     productType,
@@ -29,10 +28,6 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
 
   // Debug logging for form data
   console.log('Form data from Redux:', formData);
-
-  const title = localBrand?.trim()
-    ? `${localBrand.trim()} ${productType?.trim()}`
-    : 'Product Breakdown';
 
   // Create paramsKey based on all inputs that affect AI output
   const paramsKey = useMemo(
@@ -70,6 +65,7 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
     return {
       rawAnswer: `productBreakdownRawAnswer_${hash}`,
       parsedSuggestions: `productBreakdownParsed_${hash}`,
+      marketAnalysisParsed: `marketAnalysisParsed_${hash}`,
     };
   }, [paramsKey, hashParamsKey]);
 
@@ -119,28 +115,50 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
   // Save suggestions to cache
   const saveSuggestionsToCache = useCallback((rawAnswer, parsedSuggestions) => {
     try {
-      const { rawAnswer: rawKey, parsedSuggestions: parsedKey } = getStorageKeys();
+      const {
+        rawAnswer: rawKey,
+        parsedSuggestions: parsedKey,
+        marketAnalysisParsed: marketKey,
+      } = getStorageKeys();
       const timestamp = Date.now();
-      
-      localStorage.setItem(rawKey, JSON.stringify({
-        answer: rawAnswer,
-        timestamp,
-      }));
-      
-      localStorage.setItem(parsedKey, JSON.stringify({
-        suggestions: parsedSuggestions,
-        timestamp,
-      }));
+
+      localStorage.setItem(
+        rawKey,
+        JSON.stringify({
+          answer: rawAnswer,
+          timestamp,
+        })
+      );
+
+      localStorage.setItem(
+        parsedKey,
+        JSON.stringify({
+          suggestions: parsedSuggestions,
+          timestamp,
+        })
+      );
+
+      // Force Market Analysis to re-merge from the new breakdown + raw answer
+      localStorage.removeItem(marketKey);
     } catch (err) {
       console.warn("Failed to save suggestions to cache:", err);
     }
   }, [getStorageKeys]);
 
- // Extract colors from the "Color Palette" markdown/text the AI returns
+  // Extract colors from the "Color Palette" markdown/text the AI returns
   const extractHexColors = (rawText) => {
-    const sectionRegex = /\*\*Color Palette with HEX Codes\*\*\n([\s\S]*?)(?=\n\*\*|$)/;
-    const match = rawText?.match(sectionRegex);
-    const section = match ? match[1] : (rawText || '');
+    const sectionRegexes = [
+      /\*\*Color Palette with HEX Codes\*\*\s*\n([\s\S]*?)(?=\n\*\*|$)/i,
+      /\*\*Color Palette\*\*\s*\n([\s\S]*?)(?=\n\*\*|$)/i,
+    ];
+    let section = rawText || "";
+    for (const re of sectionRegexes) {
+      const m = rawText?.match(re);
+      if (m && m[1]) {
+        section = m[1];
+        break;
+      }
+    }
 
     const hexColors = [];
 
@@ -538,7 +556,11 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
 
   const result = {
     materials: getSection('Materials'),
-    colors: getSection('Color Palette'),
+    colors:
+      getSection('Color Palette') ||
+      getSection('Color Palette with HEX Codes') ||
+      getSection('Colours') ||
+      getSection('Colors'),
     saleprices: getSection('Sales Price'),
     productionCosts: getSection('Cost Production'),
     companionItems: getSection('Companion Items'),
@@ -764,199 +786,192 @@ const generatePrompt = () => {
       </div>
     ) : (
       <div className="bg-[#E8E8E8] min-h-screen">
-        {/* Header with Back Button - Only show if user has access to Market Analysis */}
-        {userPlan === 'tier2' && (
-          <div className="bg-[#E8E8E8]">
-            <div className="container mx-auto px-4 py-6">
+        <section
+          className="relative h-[250px] flex flex-col items-center justify-start pt-10 text-white"
+          style={{
+            backgroundImage:
+              'linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.58) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 32%',
+          }}
+        >
+          <img
+            src="/assets/form-logo-white-transparent.png"
+            alt="Form"
+            className="w-[170px] h-auto"
+          />
+          <p className="mt-3 text-[45px] leading-none">°</p>
+          <h2 className="font-heading text-[44px] leading-[1.1] mt-14">Your Results</h2>
+        </section>
+
+        <section className="relative -mt-12 pb-10 px-4">
+          <div className="mx-auto w-full max-w-[420px] rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-5 py-10">
+            <p className="text-[12px] uppercase tracking-[0.3em] text-[#8B8377]">Your capsule focus</p>
+            <h3 className="mt-4 font-heading text-[56px] leading-[0.95] text-[#1E1D1B]">
+              {productType?.trim() || category?.trim() || "Your product"}
+            </h3>
+            <p className="mt-4 text-[34px] leading-[1.26] text-[#2D2A25]">
+              A technical deep-dive into the construction, sourcing and economic blueprint of our performance silhouette.
+            </p>
+
+            <div className="mt-8 rounded-[22px] bg-[#F4F4F4] p-5">
+              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Materials</h4>
+              <div className="mt-4 text-[30px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-4 [&_p]:mb-4">
+                <ReactMarkdown>{suggestions.materials || "No data available."}</ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#2A2623] p-5 text-white">
+              <h4 className="font-heading text-[50px]">Sales Price</h4>
+              <div className="mt-3 text-[30px] leading-[1.35] text-white/95 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-3 [&_p]:mb-3">
+                <ReactMarkdown>{suggestions.saleprices || "No data available."}</ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
+              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Cost Production</h4>
+              <div className="mt-4 text-[30px] leading-[1.35] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
+                <ReactMarkdown>{suggestions.productionCosts || "No data available."}</ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
+              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Color Palette</h4>
+              {extractHexColors(suggestions.colors).length > 0 ? (
+                <div className="mt-5 space-y-4">
+                  {extractHexColors(suggestions.colors).slice(0, 6).map(([name, hex], idx) => (
+                    <div key={`${hex}-${idx}`} className="flex items-center justify-between gap-3">
+                      <div
+                        className="h-11 w-24 rounded-full shrink-0 border border-black/10"
+                        style={{ backgroundColor: hex }}
+                        aria-label={name}
+                      />
+                      <span className="text-[22px] sm:text-[26px] text-[#232220] uppercase tracking-[0.08em] text-right">
+                        {name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
+                  <ReactMarkdown>{suggestions.colors || "No color direction generated."}</ReactMarkdown>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
+              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Companion Pieces</h4>
+              <div className="mt-4 text-[30px] leading-[1.45] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-5 [&_p]:mb-3">
+                <ReactMarkdown>{suggestions.companionItems || "No data available."}</ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
+              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Yield &amp; Consumption</h4>
+              <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
+                <ReactMarkdown>
+                  {suggestions.yieldConsumption || "No yield or consumption estimates yet."}
+                </ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
+              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Production Lead Time</h4>
+              <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
+                <ReactMarkdown>
+                  {suggestions.leadTime || "No production timeline yet."}
+                </ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
+              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Comparable Market</h4>
+              <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
+                <ReactMarkdown>
+                  {suggestions.marketExamples || "No comparable market references yet."}
+                </ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#F4F4F4] p-5">
+              <h4 className="font-heading text-[50px] text-[#1C1C1A]">Target Consumer</h4>
+              <div className="mt-4 text-[18px] sm:text-[22px] leading-[1.4] text-[#232220] [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
+                <ReactMarkdown>
+                  {suggestions.targetInsight || "No target consumer insight yet."}
+                </ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#2A2623] p-5 text-white">
+              <h4 className="font-heading text-[50px]">Margin Analysis</h4>
+              <div className="mt-3 text-[18px] sm:text-[22px] leading-[1.35] text-white/95 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
+                <ReactMarkdown>
+                  {suggestions.marginAnalysis || "No margin analysis yet."}
+                </ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-[22px] bg-[#2A2623] p-5 text-white">
+              <h4 className="font-heading text-[50px]">Wholesale vs DTC</h4>
+              <div className="mt-3 text-[18px] sm:text-[22px] leading-[1.35] text-white/95 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_p]:mb-2">
+                <ReactMarkdown>
+                  {suggestions.pricing || "No wholesale vs DTC pricing yet."}
+                </ReactMarkdown>
+              </div>
+            </div>
+
+            <div className="mt-8 flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={onBack}
-                className="px-4 py-2 text-white bg-black hover:bg-[#3A3A3D] rounded-md transition"
+                className="h-12 w-12 rounded-full border border-[#302D29] text-[24px] leading-none text-[#302D29]"
+                aria-label="Back"
               >
-                ← Back
+                ←
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Title Section */}
-        <div className="w-full px-6 py-8">
-          <h2 className="text-[#333333] text-[32px] font-heading font-semibold leading-[1.2] text-center mb-12">
-            {title}
-          </h2>
-        </div>
-
-        {/* Main Content - Full Width Layout */}
-        <div className="w-full px-6 pb-12">
-          
-          {/* Grid Row 1: 3 Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            {/* Materials Card */}
-            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white font-bold">1</span>
-                </div>
-                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Materials</h3>
-              </div>
-              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                {suggestions.materials ? (
-                  <div className="bg-[#E8E8E8] rounded-md p-6">
-                    <ReactMarkdown
-                      components={{
-                        hr: () => null,
-                      }}
-                    >
-                      {suggestions.materials}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="text-gray-400">No data available</p>
-                )}
-              </div>
-            </div>
-
-            {/* Sales Price Card */}
-            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white font-bold">2</span>
-                </div>
-                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Sales Price</h3>
-              </div>
-              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                {suggestions.saleprices ? (
-                  <div className="bg-[#E8E8E8] rounded-md p-6">
-                    <ReactMarkdown
-                      components={{
-                        hr: () => null,
-                      }}
-                    >
-                      {suggestions.saleprices}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="text-gray-400">No data available</p>
-                )}
-              </div>
-            </div>
-
-            {/* Cost Production Card */}
-            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white font-bold">3</span>
-                </div>
-                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Cost Production</h3>
-              </div>
-              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                {suggestions.productionCosts ? (
-                  <div className="bg-[#E8E8E8] rounded-md p-6">
-                    <ReactMarkdown
-                      components={{
-                        hr: () => null,
-                      }}
-                    >
-                      {suggestions.productionCosts}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="text-gray-400">No data available</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Grid Row 2: 2 Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            {/* Color Palette Card */}
-            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white font-bold">4</span>
-                </div>
-                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Color Palette</h3>
-              </div>
-              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                {suggestions.colors && extractHexColors(suggestions.colors).length > 0 ? (
-                  <div className="bg-[#E8E8E8] rounded-md p-6">
-                    <div className="flex flex-wrap gap-6 justify-center">
-                      {extractHexColors(suggestions.colors).slice(0, 4).map(([name, hex], idx) => (
-                        <div key={idx} className="flex flex-col items-center gap-2">
-                          <div
-                            className="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md"
-                            style={{ backgroundColor: hex }}
-                            title={name}
-                          />
-                          <span className="text-black text-xs font-sans font-bold">{hex}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-gray-400 text-center">No color data available</p>
-                )}
-              </div>
-            </div>
-
-            {/* Companion Items Card */}
-            <div className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white font-bold">5</span>
-                </div>
-                <h3 className="text-[24px] font-heading font-semibold leading-[1.2] text-black">Companion Pieces</h3>
-              </div>
-              <div className="text-[16px] leading-[1.2] text-black font-sans font-normal">
-                {suggestions.companionItems ? (
-                  <div className="bg-[#E8E8E8] rounded-md p-6">
-                    <ReactMarkdown
-                      components={{
-                        hr: () => null,
-                      }}
-                    >
-                      {suggestions.companionItems}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="text-gray-400">No data available</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation - Continue to Market Analysis */}
-          <div className="text-center mt-12">
-            {userPlan === 'tier1' ? (
-              <div className="bg-white rounded-lg border border-gray-300 p-6 max-w-md mx-auto">
-                <h3 className="text-[20px] font-heading font-semibold mb-3 text-black">Upgrade to Tier 2</h3>
-                <p className="text-[14px] font-sans text-gray-700 mb-4">
-                  Access Market Analysis, Production Timelines, and more with Tier 2 subscription.
-                </p>
+              {userPlan === 'tier1' ? (
                 <a
                   href="https://formdepartment.com/pages/about?view=subscription-plans"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block px-8 py-3 text-[14px] font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg shadow-lg transition-all hover:shadow-xl"
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-[#2D2A25] px-6 text-[12px] uppercase tracking-[0.22em] text-white"
                 >
-                  Upgrade Now →
+                  Upgrade To Tier 2
                 </a>
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  toast.info('Continue to view production timelines and market analysis', {
-                    style: { backgroundColor: '#3A3A3D', color: '#fff' },
-                  });
-                  if (onNext) onNext();
-                }}
-                className="px-10 py-4 text-lg font-bold text-white bg-black hover:bg-[#3A3A3D] rounded-lg shadow-lg transition-all hover:shadow-xl"
-              >
-                Continue to Market Analysis →
-              </button>
-            )}
+              ) : (
+                <button
+                  onClick={() => {
+                    toast.info('Continue to view production timelines and market analysis', {
+                      style: { backgroundColor: '#3A3A3D', color: '#fff' },
+                    });
+                    if (onNext) onNext();
+                  }}
+                  className="h-12 flex-1 rounded-full bg-[#2D2A25] px-6 text-[12px] uppercase tracking-[0.22em] text-white"
+                >
+                  Continue To Market Analysis →
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+
+          <div
+            className="mx-auto mt-8 w-full max-w-[420px] rounded-[26px] px-6 py-10 text-center text-white"
+            style={{
+              backgroundImage:
+                'linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.35) 100%), url("/assets/pesce-huang-k7DQy4YaVXk-unsplash_DARK.jpg")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <h3 className="font-heading text-[56px] leading-[1.05]">Refine your ideas and move forward with purpose</h3>
+            <button
+              type="button"
+              className="mt-7 inline-flex h-12 w-full items-center justify-center rounded-full border border-white/80 text-[12px] uppercase tracking-[0.22em]"
+            >
+              Start Your Capsule Collection
+            </button>
+          </div>
+        </section>
       </div>
     )}
   </>

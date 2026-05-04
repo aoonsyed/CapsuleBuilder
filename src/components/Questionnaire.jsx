@@ -5,6 +5,37 @@ import axios from "axios";
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
+const HERO_STYLE = {
+  backgroundImage:
+    'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.65) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+};
+
+/** Same chrome as Step1Vision / Step2Inspiration / Step3ProductFocus (full-page) */
+function StepFormShell({ children }) {
+  return (
+    <div className="w-full min-h-screen bg-white">
+      <section
+        className="relative w-full h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
+        style={HERO_STYLE}
+      >
+        <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
+          <img
+            src="/assets/form-logo-white-transparent.png"
+            alt="Form Department logo"
+            className="w-[210px] h-auto"
+          />
+        </div>
+        <h2 className="mt-10 font-heading text-[34px] leading-[1.15] text-[#C7A15E]">
+          Your Curated Capsule
+        </h2>
+      </section>
+      <section className="relative -mt-[110px] px-6 pb-10">{children}</section>
+    </div>
+  );
+}
+
 export default function Questionaire({ onNext, onBack }) {
   const {
     productType,
@@ -35,18 +66,16 @@ export default function Questionaire({ onNext, onBack }) {
   const lastKeyRef = useRef(null);
   const saveTimeoutRef = useRef(null);
 
-  // Hash function to create consistent localStorage keys
   const hashParamsKey = useCallback((key) => {
     let hash = 0;
     for (let i = 0; i < key.length; i++) {
       const char = key.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash;
     }
     return Math.abs(hash).toString(36);
   }, []);
 
-  // Get localStorage keys for current paramsKey
   const getStorageKeys = useCallback(() => {
     const hash = hashParamsKey(paramsKey);
     return {
@@ -55,29 +84,24 @@ export default function Questionaire({ onNext, onBack }) {
     };
   }, [paramsKey, hashParamsKey]);
 
-  // Load cached questions from localStorage
   const loadCachedQuestions = useCallback(() => {
     try {
       const { questions: questionsKey } = getStorageKeys();
       const cached = localStorage.getItem(questionsKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        
-        // Check if cached data has timestamp
+
         if (parsed.timestamp) {
           const age = Date.now() - parsed.timestamp;
           if (age > CACHE_EXPIRATION_MS) {
-            // Cache expired, remove it
             localStorage.removeItem(questionsKey);
             return null;
           }
         } else {
-          // Old format without timestamp - treat as expired and remove
           localStorage.removeItem(questionsKey);
           return null;
         }
-        
-        // Validate structure (new format with timestamp)
+
         const questions = parsed.questions;
         if (Array.isArray(questions) && questions.length > 0) {
           const isValid = questions.every(
@@ -98,32 +122,27 @@ export default function Questionaire({ onNext, onBack }) {
     return null;
   }, [getStorageKeys]);
 
-  // Load cached answers from localStorage
   const loadCachedAnswers = useCallback(() => {
     try {
       const { answers: answersKey } = getStorageKeys();
       const cached = localStorage.getItem(answersKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        
-        // Check if cached data has timestamp
+
         if (parsed.timestamp) {
           const age = Date.now() - parsed.timestamp;
           if (age > CACHE_EXPIRATION_MS) {
-            // Cache expired, remove it
             localStorage.removeItem(answersKey);
             return null;
           }
         } else {
-          // Old format without timestamp - treat as expired and remove
           localStorage.removeItem(answersKey);
           return null;
         }
-        
-        // Handle new format with timestamp
-        const answers = parsed.answers;
-        if (typeof answers === "object" && answers !== null) {
-          return answers;
+
+        const ans = parsed.answers;
+        if (typeof ans === "object" && ans !== null) {
+          return ans;
         }
       }
     } catch (err) {
@@ -132,35 +151,29 @@ export default function Questionaire({ onNext, onBack }) {
     return null;
   }, [getStorageKeys]);
 
-  // Match cached answers to current questions by question text
   const matchAnswersToQuestions = useCallback((cachedAnswers, questions) => {
     if (!cachedAnswers || !questions) return {};
-    
+
     const matched = {};
-    // Flatten all questions
     const allQuestions = questions.flatMap((cat) =>
       cat.questions.map((q) => q.question)
     );
-    
-    // Match answers by exact question text
+
     Object.keys(cachedAnswers).forEach((questionText) => {
       if (allQuestions.includes(questionText)) {
         matched[questionText] = cachedAnswers[questionText];
       }
     });
-    
+
     return matched;
   }, []);
 
-  // Save answers to localStorage (debounced)
   const saveAnswersToStorage = useCallback(
     (answersToSave) => {
-      // Clear existing timeout
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      
-      // Set new timeout for debounced save
+
       saveTimeoutRef.current = setTimeout(() => {
         try {
           const { answers: answersKey } = getStorageKeys();
@@ -172,20 +185,18 @@ export default function Questionaire({ onNext, onBack }) {
         } catch (err) {
           console.warn("Failed to save answers to localStorage:", err);
         }
-      }, 400); // 400ms debounce
+      }, 400);
     },
     [getStorageKeys]
   );
 
-  // Save answers immediately (no debounce) - used on submit
   const saveAnswersImmediately = useCallback(
     (answersToSave) => {
-      // Clear any pending debounced save
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = null;
       }
-      
+
       try {
         const { answers: answersKey } = getStorageKeys();
         const dataToSave = {
@@ -203,7 +214,6 @@ export default function Questionaire({ onNext, onBack }) {
   const handleAnswerChange = (question, value) => {
     setAnswers((prev) => {
       const updated = { ...prev, [question]: value };
-      // Save to localStorage with debouncing
       saveAnswersToStorage(updated);
       return updated;
     });
@@ -211,9 +221,7 @@ export default function Questionaire({ onNext, onBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Save immediately (no debounce) before navigating
     saveAnswersImmediately(answers);
-    // Also save to legacy key for backward compatibility
     localStorage.setItem("questionnaireAnswers", JSON.stringify(answers));
     if (onNext) onNext();
   };
@@ -265,7 +273,9 @@ Only return the JSON. No markdown. No explanation.
     if (s.startsWith("```")) {
       s = s.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
     }
-    const first = Math.min(...[s.indexOf("["), s.indexOf("{")].filter((x) => x >= 0));
+    const first = Math.min(
+      ...[s.indexOf("["), s.indexOf("{")].filter((x) => x >= 0)
+    );
     const last = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
     if (first >= 0 && last > first) s = s.slice(first, last + 1);
     const parsed = JSON.parse(s);
@@ -273,31 +283,29 @@ Only return the JSON. No markdown. No explanation.
     return parsed;
   };
 
-  // Load cached answers when component mounts or paramsKey changes
   useEffect(() => {
     const cachedAnswers = loadCachedAnswers();
     if (cachedAnswers && Object.keys(cachedAnswers).length > 0) {
-      // If we have questions already, match answers to them
       if (questionsData.length > 0) {
         const matched = matchAnswersToQuestions(cachedAnswers, questionsData);
         if (Object.keys(matched).length > 0) {
           setAnswers(matched);
         }
       } else {
-        // Store for later matching when questions load
         setAnswers(cachedAnswers);
       }
     }
   }, [loadCachedAnswers, matchAnswersToQuestions, questionsData]);
 
-  // Fetch questions (check cache first)
   useEffect(() => {
-    // If reloadTick is incremented, force refresh by clearing cache
     const shouldForceRefresh = reloadTick > 0;
-    
-    if (lastKeyRef.current === paramsKey && questionsData.length > 0 && !shouldForceRefresh) {
+
+    if (
+      lastKeyRef.current === paramsKey &&
+      questionsData.length > 0 &&
+      !shouldForceRefresh
+    ) {
       setLoading(false);
-      // Match cached answers to loaded questions
       const cachedAnswers = loadCachedAnswers();
       if (cachedAnswers) {
         const matched = matchAnswersToQuestions(cachedAnswers, questionsData);
@@ -307,11 +315,8 @@ Only return the JSON. No markdown. No explanation.
       }
       return;
     }
-    
-    // Check if paramsKey changed - will use new cache for new paramsKey
+
     if (lastKeyRef.current !== null && lastKeyRef.current !== paramsKey) {
-      // Params changed, will load new cache for new paramsKey
-      // Clear answers when params change
       setAnswers({});
     }
     lastKeyRef.current = paramsKey;
@@ -319,19 +324,19 @@ Only return the JSON. No markdown. No explanation.
     const fetchQuestions = async () => {
       setLoading(true);
       setError(null);
-      
-      // First, try to load from cache (unless forcing refresh)
+
       if (!shouldForceRefresh) {
         const cachedQuestions = loadCachedQuestions();
         if (cachedQuestions) {
-          console.log("Loading questions from cache");
           setQuestionsData(cachedQuestions);
           setLoading(false);
-          
-          // Load and match cached answers
+
           const cachedAnswers = loadCachedAnswers();
           if (cachedAnswers) {
-            const matched = matchAnswersToQuestions(cachedAnswers, cachedQuestions);
+            const matched = matchAnswersToQuestions(
+              cachedAnswers,
+              cachedQuestions
+            );
             if (Object.keys(matched).length > 0) {
               setAnswers(matched);
             }
@@ -339,7 +344,6 @@ Only return the JSON. No markdown. No explanation.
           return;
         }
       } else {
-        // Force refresh - clear cache for this paramsKey
         try {
           const { questions: questionsKey } = getStorageKeys();
           localStorage.removeItem(questionsKey);
@@ -348,16 +352,13 @@ Only return the JSON. No markdown. No explanation.
         }
       }
 
-      // Cache miss - fetch from API
       try {
         const res = await axios.post("/api/openai", { prompt });
 
-        // ✅ Check for API error
         if (res?.data?.error) {
           throw new Error(`OpenAI API error: ${res.data.error}`);
         }
 
-        // ✅ Support both chat + text completions (defensive)
         const content =
           res?.data?.choices?.[0]?.message?.content ??
           res?.data?.choices?.[0]?.text ??
@@ -373,7 +374,9 @@ Only return the JSON. No markdown. No explanation.
         } catch (err) {
           try {
             const maybe = JSON.parse(content);
-            parsed = Array.isArray(maybe) ? maybe : sanitizeAndParseJSON(maybe);
+            parsed = Array.isArray(maybe)
+              ? maybe
+              : sanitizeAndParseJSON(maybe);
           } catch (innerErr) {
             console.error("Failed to parse OpenAI response:", content);
             throw innerErr;
@@ -395,7 +398,6 @@ Only return the JSON. No markdown. No explanation.
           }),
         }));
 
-        // Save to cache with timestamp
         try {
           const { questions: questionsKey } = getStorageKeys();
           const dataToSave = {
@@ -408,8 +410,7 @@ Only return the JSON. No markdown. No explanation.
         }
 
         setQuestionsData(cleaned);
-        
-        // Load and match cached answers to new questions
+
         const cachedAnswers = loadCachedAnswers();
         if (cachedAnswers) {
           const matched = matchAnswersToQuestions(cachedAnswers, cleaned);
@@ -418,7 +419,7 @@ Only return the JSON. No markdown. No explanation.
           }
         }
       } catch (err) {
-        console.error("❌ FetchQuestions error:", err);
+        console.error("FetchQuestions error:", err);
         setQuestionsData([]);
         setError("Failed to load clarifying questions from AI.");
       } finally {
@@ -427,9 +428,17 @@ Only return the JSON. No markdown. No explanation.
     };
 
     fetchQuestions();
-  }, [paramsKey, prompt, reloadTick, loadCachedQuestions, loadCachedAnswers, matchAnswersToQuestions, getStorageKeys, questionsData]);
+  }, [
+    paramsKey,
+    prompt,
+    reloadTick,
+    loadCachedQuestions,
+    loadCachedAnswers,
+    matchAnswersToQuestions,
+    getStorageKeys,
+    questionsData,
+  ]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
@@ -440,102 +449,206 @@ Only return the JSON. No markdown. No explanation.
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-black/70 font-sans">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mr-3" />
-        <p>Loading questions...</p>
-      </div>
+      <StepFormShell>
+        <div className="mx-auto max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12 text-[#2B2A25]">
+          <div className="pt-1">
+            <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">
+              Step 4 of 5
+            </p>
+            <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
+            <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">
+              Clarifying Questions
+            </h1>
+          </div>
+          <div className="mt-10 flex flex-col items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#7B6B55] border-t-transparent mb-6" />
+            <p className="font-sans text-[15px] leading-[1.4] text-[#8C7152] text-center">
+              Generating your clarifying questions…
+            </p>
+          </div>
+        </div>
+      </StepFormShell>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-xl mx-auto p-6 bg-white rounded-lg shadow text-black">
-        <p className="mb-4">{error}</p>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setReloadTick((t) => t + 1)}
-            className="px-5 py-2 bg-black hover:bg-[#3A3A3D] text-white rounded-md"
-          >
-            Try again
-          </button>
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-5 py-2 ml-56 bg-black hover:bg-[#3A3A3D] text-white rounded-md"
-          >
-            ← Back
-          </button>
+      <StepFormShell>
+        <div className="mx-auto max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12">
+          <form className="space-y-11 text-[#2B2A25]">
+            <div className="pt-1">
+              <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">
+                Step 4 of 5
+              </p>
+              <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
+              <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">
+                Clarifying Questions
+              </h1>
+              <p className="mt-5 font-sans text-[15px] leading-[1.4] text-[#8C7152]">
+                {error}
+              </p>
+            </div>
+            <div className="mt-10 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex items-center gap-3"
+                aria-label="Back"
+              >
+                <span className="h-11 w-11 rounded-full border border-[#2B2A25] flex items-center justify-center text-[#2B2A25] text-[18px] leading-none">
+                  ←
+                </span>
+                <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium text-[#2B2A25]">
+                  BACK
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setReloadTick((t) => t + 1)}
+                className="relative h-[52px] w-[248px] rounded-full bg-[#2B2A25] text-white"
+              >
+                <span className="block w-full text-center font-sans text-[12px] tracking-[0.24em] uppercase">
+                  TRY AGAIN
+                </span>
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[16px] leading-none">
+                  →
+                </span>
+              </button>
+            </div>
+          </form>
         </div>
-      </div>
+      </StepFormShell>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-sans">
-      <form onSubmit={handleSubmit} className="space-y-8 text-black">
-        <div className="mb-8">
-          <p className="ml-5 text-sm font-sans text-[14px] font-medium leading-[1.2] mb-2">Step 4 of 5</p>
-          <h2 className="text-[32px] font-heading font-semibold leading-[1.2] mb-2">Clarifying Questions</h2>
+    <div className="w-full bg-white">
+      <section
+        className="relative w-full h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
+        style={HERO_STYLE}
+      >
+        <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
+          <img
+            src="/assets/form-logo-white-transparent.png"
+            alt="Form Department logo"
+            className="w-[210px] h-auto"
+          />
         </div>
+        <h2 className="mt-10 font-heading text-[34px] leading-[1.15] text-[#C7A15E]">
+          Your Curated Capsule
+        </h2>
+      </section>
 
-        {questionsData.map((category, ci) => (
-          <div key={ci} className="mb-6">
-            <h3 className="text-[24px] font-heading font-semibold leading-[1.2] mb-4">{category.title}</h3>
+      <section className="relative -mt-[110px] px-6 pb-10">
+        <div className="mx-auto max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12">
+          <form onSubmit={handleSubmit} className="space-y-11 text-[#2B2A25]">
+            <div className="pt-1">
+              <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">
+                Step 4 of 5
+              </p>
+              <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
+              <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">
+                Clarifying Questions
+              </h1>
+            </div>
 
-            {category.questions.map((q, qi) => (
-              <div key={qi} className="mb-6">
-                <label className="block text-[14px] font-sans font-medium leading-[1.2] mb-2 text-black">{q.question}</label>
+            {questionsData.map((category, ci) => (
+              <div key={ci} className="space-y-8">
+                <div className="pt-1">
+                  <p className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-semibold mb-4">
+                    {category.title}
+                  </p>
+                </div>
 
-                {q.type === "multiple-choice" && Array.isArray(q.options) ? (
-                  <div className="space-y-2">
-                    {q.options.map((opt, oi) => (
-                      <label key={oi} className="flex items-center space-x-2 text-black">
-                        <input
-                          type="radio"
-                          name={`q-${ci}-${qi}`}
-                          value={opt}
-                          checked={answers[q.question] === opt}
-                          onChange={(e) => handleAnswerChange(q.question, e.target.value)}
-                          className="accent-[#3A3A3D]"
-                          required={oi === 0 && !answers[q.question]}
-                        />
-                        <span className="text-[14px] font-sans font-medium leading-[1.2]">{opt}</span>
+                {category.questions.map((q, qi) => (
+                  <div key={qi} className="pt-1">
+                    {q.type === "multiple-choice" &&
+                    Array.isArray(q.options) ? (
+                      <p className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4">
+                        {q.question}
+                      </p>
+                    ) : (
+                      <label
+                        htmlFor={`q-${ci}-${qi}-text`}
+                        className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4"
+                      >
+                        {q.question}
                       </label>
-                    ))}
+                    )}
+
+                    {q.type === "multiple-choice" &&
+                    Array.isArray(q.options) ? (
+                      <div className="space-y-2">
+                        {q.options.map((opt, oi) => (
+                          <label
+                            key={oi}
+                            className="flex items-center gap-3 text-[#2B2A25]"
+                          >
+                            <input
+                              type="radio"
+                              name={`q-${ci}-${qi}`}
+                              value={opt}
+                              checked={answers[q.question] === opt}
+                              onChange={(e) =>
+                                handleAnswerChange(q.question, e.target.value)
+                              }
+                              className="accent-[#3A3A3D] w-[18px] h-[18px] shrink-0"
+                              required={oi === 0 && !answers[q.question]}
+                            />
+                            <span className="text-[14px] font-sans leading-[1.2]">
+                              {opt}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <input
+                        id={`q-${ci}-${qi}-text`}
+                        type="text"
+                        className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans font-normal leading-[1.2] text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md"
+                        placeholder="Your answer"
+                        value={answers[q.question] || ""}
+                        onChange={(e) =>
+                          handleAnswerChange(q.question, e.target.value)
+                        }
+                        required
+                      />
+                    )}
                   </div>
-                ) : (
-                  <input
-                    type="text"
-                    className="w-full border border-black bg-transparent px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black focus:outline-none rounded-md"
-                    placeholder="Your answer"
-                    value={answers[q.question] || ""}
-                    onChange={(e) => handleAnswerChange(q.question, e.target.value)}
-                    required
-                  />
-                )}
+                ))}
               </div>
             ))}
-          </div>
-        ))}
 
-        <div className="flex items-center justify-between gap-4 mt-8">
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-6 py-3 text-[14px] font-sans font-medium leading-[1.2] text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
-          >
-            ← Back
-          </button>
+            <div className="mt-10 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex items-center gap-3"
+                aria-label="Back"
+              >
+                <span className="h-11 w-11 rounded-full border border-[#2B2A25] flex items-center justify-center text-[#2B2A25] text-[18px] leading-none">
+                  ←
+                </span>
+                <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium text-[#2B2A25]">
+                  BACK
+                </span>
+              </button>
 
-          <button
-            type="submit"
-            className="px-6 py-3 text-[14px] font-sans font-medium leading-[1.2] text-white bg-black hover:bg-[#3A3A3D] active:bg-[#1C1C1C] rounded-md shadow transition duration-200"
-          >
-            Next →
-          </button>
+              <button
+                type="submit"
+                className="relative h-[52px] w-[248px] rounded-full bg-[#2B2A25] text-white"
+              >
+                <span className="block w-full text-center font-sans text-[12px] tracking-[0.24em] uppercase">
+                  CONTINUE TO YOUR RESULTS
+                </span>
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[16px] leading-none">
+                  →
+                </span>
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </section>
     </div>
   );
 }

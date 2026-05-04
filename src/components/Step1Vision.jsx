@@ -4,6 +4,7 @@ import { setIdea, setBrand } from "../formSlice";
 
 export default function Step1Vision({
   onNext,
+  onBack,
   // keep prop but don't trip eslint by not using it
   email: _email = "demo@example.com",
   embedded = false,
@@ -26,66 +27,204 @@ export default function Step1Vision({
     if (!embedded && onNext) onNext();
   };
 
-  // Build an inline style object so you can set exact heights
-  const toSize = (v) =>
-    typeof v === "number" ? `${v}px` : (typeof v === "string" ? v : undefined);
+  // If embedded is true, keep the original lightweight card.
+  if (embedded) {
+    return (
+      <div className="bg-[#F1EEE8] w-full max-w-[380px] p-8 pb-6 rounded-[34px] shadow-[0_20px_60px_rgba(0,0,0,0.10)] font-sans flex flex-col overflow-hidden">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col text-black" noValidate>
+          <div className="mb-6">
+            <p className="ml-2 text-sm mb-2 font-sans text-[14px] font-medium leading-[1.2]">Step 1 of 5</p>
+            <h1 className="text-[34px] font-heading font-semibold leading-[1.1]">Line Strategy</h1>
 
-  const containerStyle = {
-    ...(height ? { height: toSize(height) } : null),
-    ...(minHeight ? { minHeight: toSize(minHeight) } : null),
-    ...(maxHeight ? { maxHeight: toSize(maxHeight) } : null),
-  };
+            <p className="mt-4 ml-2 text-[13px] leading-[1.35] text-[#8C7152]">
+              In this phase, we define the core architecture of your brand&apos;s presence. We are looking for
+              the thread that connects your vision to the market
+            </p>
 
-  // Slightly tighter padding when embedded, and make the card a flex column
-  const cardClass = embedded
-    ? "bg-white/60 w-full max-w-[380px] p-6 pb-4 backdrop-blur-md rounded-lg shadow-xl font-sans flex flex-col overflow-hidden"
-    : "bg-white/60 max-w-md mx-auto p-8 pb-6 backdrop-blur-md rounded-lg shadow-xl font-sans flex flex-col overflow-hidden";
+            <div className="mt-6 rounded-[14px] bg-[#E9E7E1] border border-[#DFDDD6] px-5 py-4">
+              <div className="font-heading text-[15px] font-semibold text-[#2B2A25]">
+                A note from Form Department
+              </div>
+              <div className="mt-2 font-sans text-[12px] leading-[1.25] text-[#8C7152] italic">
+                &apos;Design is not just what it looks and feels like. Design is how it works&apos;
+                &nbsp;Focus on the &apos;why&apos; before the &apos;what&apos;.
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto pr-1 space-y-6">
+            <div className="relative">
+              <label
+                htmlFor="brandName"
+                className="block text-[12px] tracking-[0.22em] uppercase font-sans font-medium leading-[1.2] mb-3 text-[#8C7152]"
+              >
+                DO YOU HAVE A NAME FOR YOUR BRAND?
+              </label>
+              <input
+                id="brandName"
+                name="brandName"
+                type="text"
+                autoComplete="off"
+                className="w-full border border-[#7C7C7C] bg-[#F5F5F5] px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/60 focus:outline-none rounded-md pr-12"
+                placeholder="e.g Reformation"
+                value={brandValue}
+                onChange={(e) => dispatch(setBrand(e.target.value))}
+              />
+              <span className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 w-[6px] h-[6px] rounded-full bg-[#0B8A61]" />
+            </div>
+
+            <div>
+              <label
+                htmlFor="idea"
+                className="block text-[12px] tracking-[0.22em] uppercase font-sans font-medium leading-[1.2] mb-3 text-[#8C7152]"
+              >
+                TELL US A LITTLE BIT ABOUT YOUR IDEA:
+              </label>
+              <textarea
+                id="idea"
+                name="idea"
+                rows={4}
+                className="w-full border border-[#7C7C7C] bg-[#F5F5F5] px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/60 focus:outline-none rounded-md"
+                placeholder="Share a quick overview of your ideal"
+                value={idea}
+                onChange={(e) => dispatch(setIdea(e.target.value))}
+                required
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   return (
-    <div className={cardClass} style={containerStyle}>
-      {/* The form is a flex column and will expand; the fields area scrolls if needed */}
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col text-black" noValidate>
-        {/* Header */}
-        <div className="mb-8">
-          <p className="ml-2 text-sm mb-2 font-sans text-[14px] font-medium leading-[1.2]">Step 1 of 5</p>
-          <h1 className="text-[32px] font-heading font-semibold leading-[1.2]">Line Strategy</h1>
+    <div className="w-full bg-white">
+      {/* Hero */}
+      <section
+        className="relative w-full h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
+        style={{
+          backgroundImage:
+            'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.65) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
+          <img
+            src="/assets/form-logo-white-transparent.png"
+            alt="Form Department logo"
+            className="w-[210px] h-auto"
+          />
         </div>
 
-        {/* Scrollable fields block (adjust internal spacing here) */}
-        <div className="flex-1 overflow-y-auto pr-1 space-y-6">
-          <div>
-            <label htmlFor="brandName" className="block text-[14px] font-sans font-medium leading-[1.2] mb-2">
-              Do you have a name for your brand?
-            </label>
-            <input
-              id="brandName"
-              name="brandName"
-              type="text"
-              autoComplete="off"
-              className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/60 focus:outline-none rounded-md"
-              placeholder="e.g. Reformation"
-              value={brandValue}
-              onChange={(e) => dispatch(setBrand(e.target.value))}
-            />
-          </div>
+        <h2 className="mt-10 font-heading text-[34px] leading-[1.15] text-[#C7A15E]">
+          Your Curated Capsule
+        </h2>
 
-          <div>
-            <label htmlFor="idea" className="block text-[14px] font-sans font-medium leading-[1.2] mb-2">
-              Tell us a little bit about your idea:
-            </label>
-            <textarea
-              id="idea"
-              name="idea"
-              rows={4}
-              className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/60 focus:outline-none rounded-md"
-              placeholder="Share a quick overview of your idea!"
-              value={idea}
-              onChange={(e) => dispatch(setIdea(e.target.value))}
-              required
-            />
-          </div>
+      </section>
+
+      {/* Main card: ~25% overlaps hero, ~75% on light background */}
+      <section className="relative -mt-[110px] px-6 pb-10">
+        <div className="mx-auto max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12">
+            <form onSubmit={handleSubmit} className="text-[#2B2A25]" noValidate>
+              {/* Top */}
+              <div className="text-left">
+                <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">Step 1 of 5</p>
+                <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
+                <h1 className="mt-9 font-heading text-[46px] leading-[1.05]">Line Strategy</h1>
+                <p className="mt-5 font-sans text-[15px] leading-[1.4] text-[#8C7152]">
+                  In this phase, we define the core architecture of your brand&apos;s presence. We are looking
+                  for the thread that connects your vision to the market
+                </p>
+              </div>
+
+              {/* Note */}
+              <div className="mt-8 rounded-[18px] bg-[#E9E7E1] border border-[#DFDDD6] px-6 py-5">
+                <div className="font-heading text-[18px] font-semibold text-[#2B2A25] leading-[1.2]">
+                  A note from Form Department
+                </div>
+                <div className="mt-2 font-sans text-[13px] leading-[1.25] text-[#8C7152] italic">
+                  &apos;Design is not just what it looks and feels like. Design is how it works&apos; Focus on
+                  the &apos;why&apos; before the &apos;what&apos;.
+                </div>
+              </div>
+
+              {/* Fields */}
+              <div className="mt-10 space-y-8">
+                <div>
+                  <label
+                    htmlFor="brandName"
+                    className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4"
+                  >
+                    DO YOU HAVE A NAME FOR YOUR BRAND?
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="brandName"
+                      name="brandName"
+                      type="text"
+                      autoComplete="off"
+                      className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans font-normal leading-[1.2] text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md"
+                      placeholder="e.g Reformation"
+                      value={brandValue}
+                      onChange={(e) => dispatch(setBrand(e.target.value))}
+                      required
+                    />
+                    <span className="absolute right-5 top-1/2 -translate-y-1/2 w-[8px] h-[8px] rounded-full bg-[#0B8A61] flex items-center justify-center pointer-events-none">
+                      <span className="w-[3px] h-[3px] rounded-full bg-white" />
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="idea"
+                    className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4"
+                  >
+                    TELL US A LITTLE BIT ABOUT YOUR IDEA:
+                  </label>
+                  <textarea
+                    id="idea"
+                    name="idea"
+                    rows={5}
+                    className="w-full min-h-[165px] resize-none border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans font-normal leading-[1.2] text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md"
+                    placeholder="Share a quick overview of your ideal"
+                    value={idea}
+                    onChange={(e) => dispatch(setIdea(e.target.value))}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Bottom controls */}
+              <div className="mt-10 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="flex items-center gap-3"
+                  aria-label="Back"
+                >
+                  <span className="h-11 w-11 rounded-full border border-[#2B2A25] flex items-center justify-center text-[#2B2A25] text-[18px] leading-none">
+                    ←
+                  </span>
+                  <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium text-[#2B2A25]">
+                    BACK
+                  </span>
+                </button>
+
+                <button
+                  type="submit"
+                  className="relative h-[52px] w-[248px] rounded-full bg-[#2B2A25] text-white"
+                >
+                  <span className="block w-full text-center font-sans text-[12px] tracking-[0.24em] uppercase">
+                    CONTINUE TO STEP 2
+                  </span>
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[16px] leading-none">→</span>
+                </button>
+              </div>
+            </form>
         </div>
-      </form>
+      </section>
     </div>
   );
 }

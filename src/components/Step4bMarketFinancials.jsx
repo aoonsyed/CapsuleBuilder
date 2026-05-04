@@ -142,11 +142,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     }
   }, [getStorageKeys]);
 
-  // Get suggestions from localStorage (legacy) or cache
-  // Use useMemo to ensure these are always available for hooks
-  const rawAnswer = useMemo(() => localStorage.getItem('answer') || '', []);
-  const suggestions = useMemo(() => JSON.parse(localStorage.getItem('parsedSuggestions') || '{}'), []);
-
   // Remove trailing dashes and similar AI artifacts from section text
   const sanitizeSectionText = (text) => {
     if (!text || typeof text !== 'string') return text;
@@ -175,33 +170,76 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     return s.trim();
   };
 
-  // Parse sections for this screen
-  const parseSections = useCallback((rawText) => {
+  const buildMarketSections = useCallback((rawText, parsedSuggestions) => {
+    const safeParsed =
+      parsedSuggestions && typeof parsedSuggestions === "object"
+        ? parsedSuggestions
+        : {};
+
     const getSection = (label) => {
+      const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const patterns = [
-        new RegExp(`\\*\\*${label}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
-        new RegExp(`\\*\\*${label}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
-        new RegExp(`${label}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, 'i'),
+        new RegExp(
+          `\\*\\*${escaped}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`,
+          "i"
+        ),
+        new RegExp(
+          `\\*\\*${escaped}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`,
+          "i"
+        ),
+        new RegExp(
+          `${escaped}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`,
+          "i"
+        ),
       ];
-      
+
       for (const pattern of patterns) {
         const match = rawText.match(pattern);
         if (match && match[1] && match[1].trim()) {
           return match[1].trim();
         }
       }
-      return '';
+      return "";
+    };
+
+    const merge = (parsedKey, ...labels) => {
+      const fromParsed = safeParsed[parsedKey];
+      if (typeof fromParsed === "string" && fromParsed.trim()) {
+        return sanitizeSectionText(fromParsed);
+      }
+      for (const label of labels) {
+        const fromRaw = getSection(label);
+        if (fromRaw && fromRaw.trim()) {
+          return sanitizeSectionText(fromRaw);
+        }
+      }
+      return "";
     };
 
     return {
-      marketExamples: sanitizeSectionText(suggestions.marketExamples || getSection('Comparable Market Examples')),
-      targetInsight: sanitizeSectionText(suggestions.targetInsight || getSection('Target Consumer Insight')),
-      marginAnalysis: sanitizeSectionText(suggestions.marginAnalysis || getSection('Margin Analysis')),
-      pricing: sanitizeSectionText(suggestions.pricing || getSection('Wholesale vs. DTC Pricing') || getSection('Wholesale vs DTC Pricing') || getSection('Wholesale vs DTC')),
-      yieldConsumption: sanitizeSectionText(suggestions.yieldConsumption || getSection('Yield & Consumption Estimates')),
-      leadTime: sanitizeSectionText(suggestions.leadTime || getSection('Production Lead Time Estimate')),
+      marketExamples: merge(
+        "marketExamples",
+        "Comparable Market Examples"
+      ),
+      targetInsight: merge("targetInsight", "Target Consumer Insight"),
+      marginAnalysis: merge("marginAnalysis", "Margin Analysis"),
+      pricing: merge(
+        "pricing",
+        "Wholesale vs. DTC Pricing",
+        "Wholesale vs DTC Pricing",
+        "Wholesale vs DTC"
+      ),
+      yieldConsumption: merge(
+        "yieldConsumption",
+        "Yield & Consumption Estimates"
+      ),
+      leadTime: merge(
+        "leadTime",
+        "Production Lead Time Estimate",
+        "Production Lead Time"
+      ),
     };
-  }, [suggestions]);
+  }, []);
 
   // Check page access on mount
   useEffect(() => {
@@ -239,7 +277,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     checkAccess();
   }, []);
 
-  // Load cached sections or parse from localStorage
+  // Load cached sections or parse fresh from localStorage whenever inputs change
   useEffect(() => {
     if (!hasAccess) return;
 
@@ -250,15 +288,38 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       return;
     }
 
-    // Parse from legacy localStorage or cached raw answer
-    if (rawAnswer) {
-      const parsed = parseSections(rawAnswer);
-      setSections(parsed);
-      
-      // Save parsed sections to cache
-      saveSectionsToCache(parsed);
+    let rawText = "";
+    let parsed = {};
+    try {
+      rawText = localStorage.getItem("answer") || "";
+    } catch {
+      rawText = "";
     }
-  }, [hasAccess, rawAnswer, loadCachedSections, parseSections, saveSectionsToCache]);
+    try {
+      parsed = JSON.parse(localStorage.getItem("parsedSuggestions") || "{}");
+    } catch {
+      parsed = {};
+    }
+
+    const built = buildMarketSections(rawText, parsed);
+    setSections(built);
+    if (
+      built.marketExamples ||
+      built.targetInsight ||
+      built.marginAnalysis ||
+      built.pricing ||
+      built.yieldConsumption ||
+      built.leadTime
+    ) {
+      saveSectionsToCache(built);
+    }
+  }, [
+    hasAccess,
+    paramsKey,
+    loadCachedSections,
+    saveSectionsToCache,
+    buildMarketSections,
+  ]);
 
   // Show loading while checking access
   if (!accessChecked) {
@@ -346,7 +407,13 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       title,
       brand: brand2 || localBrand || '',
       product_type: productType || '',
-      raw_answer: rawAnswer,
+      raw_answer: (() => {
+        try {
+          return localStorage.getItem("answer") || "";
+        } catch {
+          return "";
+        }
+      })(),
       scheduling_url:
         process.env.REACT_APP_SCHEDULING_URL ||
         'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137',
@@ -363,7 +430,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     return emailjs.send(serviceId, templateId, templateParams, { publicKey });
   };
 
-  const handleScheduleClick = async () => {
+  async function handleScheduleClick() {
     const schedulingUrl =
       process.env.REACT_APP_SCHEDULING_URL ||
       'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137';
@@ -380,7 +447,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     } finally {
       setSendingEmail(false);
     }
-  };
+  }
 
   return (
     <>

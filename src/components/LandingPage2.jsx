@@ -40,14 +40,16 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
 
     const heroImage = "/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg";
 
-    const [showAllForms, setShowAllForms] = useState(startInGrid);
+    // Local wizard for the 3-form grid.
+    // When started, we show one step at a time (Step 1 -> Step 2 -> Step 3).
+    const [activeFormStep, setActiveFormStep] = useState(startInGrid ? 1 : 0);
     const [validating, setValidating] = useState(false);
 
     const previewImage = "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg";
     const [activeSlide, setActiveSlide] = useState(0);
 
     useEffect(() => {
-        if (startInGrid) setShowAllForms(true);
+        if (startInGrid) setActiveFormStep(1);
     }, [startInGrid]);
 
     useEffect(() => {
@@ -59,7 +61,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
     // Customer validation is now handled at the CapsuleBuilderFlow level
     // No need to validate here anymore
 
-    const handleGetStarted = () => setShowAllForms(true);
+    const handleGetStarted = () => setActiveFormStep(1);
 
     const handleAdminDashboardClick = () => {
         if (!ADMIN_DASHBOARD_TOKEN) {
@@ -149,63 +151,34 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
 
     /* ================= FULL-PAGE: THREE FORMS ONLY ================= */
     /* ================= FULL-PAGE: THREE FORMS ONLY ================= */
-    if (showAllForms) {
-        return (
-            <div className="min-h-[10px] font-sans w-full" style={{ backgroundColor: "#E8E8E8" }}>
-                <section className="w-full px-4 sm:px-6">
-                    <div
-                        className="
-            mx-auto max-w-7xl
-            grid gap-8
-            grid-cols-1 lg:grid-cols-3
-            justify-items-center
-          "
-                    >
-                        {/* 380x570 wrappers; inner card can scroll */}
-                        <div className="w-full h-auto lg:w-[380px] lg:h-[570px] [&>*]:h-full [&>*]:w-full [&>*]:max-w-none [&>*]:overflow-auto">
-                            <Step1Vision embedded />
-                        </div>
-
-                        <div className="w-full h-auto lg:w-[380px] lg:h-[570px] [&>*]:h-full [&>*]:w-full [&>*]:max-w-none [&>*]:overflow-auto">
-                            <Step2Inspiration embedded />
-                        </div>
-
-                        <div className="w-full h-auto lg:w-[380px] lg:h-[570px]">
-                            {/* scrolls but HIDDEN scrollbar */}
-                            <div className="h-full w-full overflow-auto no-scrollbar [&>*]:w-full [&>*]:max-w-none">
-                                <Step3ProductFocus embedded />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-8 mx-auto max-w-7xl flex justify-end">
-                        <button
-                            type="button"
-                            onClick={handleContinue}
-                            disabled={validating}
-                            className={`px-6 py-3 text-[14px] font-sans font-medium leading-[1.2] text-white rounded-md shadow transition duration-200 ${
-                                validating 
-                                    ? "bg-gray-400 cursor-not-allowed" 
-                                    : "bg-black hover:bg-[#3A3A3D] active:bg-[#2A2A2A]"
-                            }`}
-                        >
-                            {validating ? "Validating..." : "Continue →"}
-                        </button>
-                    </div>
-                </section>
-
-                {/* Make .no-scrollbar available in this view */}
-                <style>{`
-        .no-scrollbar {
-          -ms-overflow-style: none; /* IE & Edge */
-          scrollbar-width: none;    /* Firefox */
+    if (activeFormStep > 0) {
+        if (activeFormStep === 1) {
+            return (
+                <Step1Vision
+                    onNext={() => setActiveFormStep(2)}
+                    onBack={() => setActiveFormStep(0)}
+                />
+            );
         }
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;            /* Chrome, Safari, Opera */
+
+        if (activeFormStep === 2) {
+            return (
+                <Step2Inspiration
+                    onNext={() => setActiveFormStep(3)}
+                    onBack={() => setActiveFormStep(1)}
+                />
+            );
         }
-      `}</style>
-            </div>
-        );
+
+        if (activeFormStep === 3) {
+            return (
+                <Step3ProductFocus
+                    onBack={() => setActiveFormStep(2)}
+                    onNext={handleContinue}
+                    validating={validating}
+                />
+            );
+        }
     }
 
 

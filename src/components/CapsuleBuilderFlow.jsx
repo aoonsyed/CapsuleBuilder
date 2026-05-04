@@ -25,10 +25,24 @@ export default function CapsuleBuilderFlow() {
   // Control whether Landing should immediately open in the 3-form grid view
   const [startLandingInGrid, setStartLandingInGrid] = useState(false);
 
+  const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+  const isLocalhost =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0";
+
   // Backend validation - runs automatically when component mounts
   // Note: Shopify already ensures only logged-in users can access the tool
   useEffect(() => {
     const validateCustomer = async () => {
+      if (isLocalhost) {
+        // Local dev: emulate a free-trial state so the same UI banner renders.
+        setIsTrial(true);
+        setIsValidated(true);
+        setIsValidating(false);
+        return;
+      }
+
       try {
         const params = new URLSearchParams(window.location.search);
         const cid = params.get("customer_id");
@@ -130,7 +144,7 @@ export default function CapsuleBuilderFlow() {
     };
 
     validateCustomer();
-  }, []);
+  }, [isLocalhost]);
 
   // Show loading state while validating
   if (isValidating) {
@@ -146,6 +160,10 @@ export default function CapsuleBuilderFlow() {
 
   // Check page access before navigating to Market Analysis
   const checkMarketAnalysisAccess = async () => {
+    if (isLocalhost) {
+      return true;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const cid = params.get("customer_id");
     
@@ -192,18 +210,18 @@ export default function CapsuleBuilderFlow() {
   }
 
   return (
-    <div className="bg-[#E8E8E8] min-h-screen bg-cover bg-center font-sans text-white relative">
-      <div className="absolute inset-0 bg-[#E8E8E8] z-0" />
+    <div className="bg-white min-h-screen bg-cover bg-center font-sans text-white relative">
+      <div className="absolute inset-0 bg-white z-0" />
       {isTrial && (
         <div className="relative z-20 bg-[#25221D] text-[#EBDCC5] text-center py-2 px-4 font-sans text-[11px] tracking-[0.24em] uppercase">
           You are currently using a free trial. Upgrade to unlock all features
         </div>
       )}
       <div className="relative z-10">
-        {step !== 1 && <Navbar />}
+        {step === 5 && <Navbar />}
       </div>
 
-      <div className={`relative z-10 ${step === 1 ? "bg-[#E8E8E8]" : ""}`}>
+      <div className={`relative z-10 ${step === 1 ? "bg-white" : ""}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
@@ -228,7 +246,7 @@ export default function CapsuleBuilderFlow() {
                   // User used the 3-form grid "Continue"
                   setStartedWithGrid(true);
                   setStartLandingInGrid(false); // reset hint after leaving landing
-                  setStep(5); // jump straight to Questionnaire
+                  setStep(5); // Clarifying questions (AI questionnaire)
                 }}
                 onNext={() => {
                   // Fallback: treat like continue to questionnaire
@@ -243,6 +261,7 @@ export default function CapsuleBuilderFlow() {
             {step === 2 && (
               <Step1Vision
                 onNext={() => setStep(3)}
+                onBack={() => setStep(1)}
                 setEmail={setEmail}
                 setBrand={setBrand}
               />
@@ -284,13 +303,7 @@ export default function CapsuleBuilderFlow() {
                 brand={brand}
                 userPlan={userPlan}
                 onNext={handleNavigateToMarketAnalysis}
-                onBack={() => {
-                  // Only allow back to Market Analysis (step 7) if user has Tier 2 access
-                  // Cannot go back to Questionnaire (step 5) - output pages are locked
-                  if (userPlan === 'tier2') {
-                    setStep(7);
-                  }
-                }}
+                onBack={() => setStep(5)}
               />
             )}
 
