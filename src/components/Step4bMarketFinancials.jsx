@@ -112,19 +112,63 @@ function parseConsumerInsightTiles(text) {
     .filter(Boolean);
   for (const line of lines) {
     const m = line.match(
-      /^(Age\s*range|Lifestyle|Values|Buying\s*motivations?)\s*:?\s*(.+)$/i
+      /^(Age\s*range|Lifestyle|Values|Buying\s*motivations?|Psychographics)\s*:?\s*(.+)$/i
     );
     if (!m) continue;
     const label = m[1].trim();
     const normalized =
-      /^buying/i.test(label) ? "Buying motivations" : /^age/i.test(label)
-        ? "Age Range"
-        : /^lifestyle/i.test(label)
-          ? "Lifestyle"
-          : "Values";
+      /^buying/i.test(label)
+        ? "Buying motivations"
+        : /^age/i.test(label)
+          ? "Age Range"
+          : /^lifestyle|^psychographics/i.test(label)
+            ? "Lifestyle"
+            : "Values";
     tiles.push({ key: normalized, value: m[2].trim() });
   }
   return tiles;
+}
+
+/** Pull "18–35" style spans from prose (e.g. "Targeting adults aged 18–35 who…"). */
+function extractAgeSpanFromProse(fullText) {
+  const s = stripMdLight(fullText).replace(/\s+/g, " ");
+  let m =
+    s.match(/\badults?\s+aged\s+(\d{1,2})\s*[-–]\s*(\d{1,3})\b/i) ||
+    s.match(/\baged\s+(\d{1,2})\s*[-–]\s*(\d{1,3})\b/i) ||
+    s.match(/\b(?:age\s*range)\s*[:\s]+(\d{1,2})\s*[-–]\s*(\d{1,3})\b/i);
+  if (m) return `${m[1]}–${m[2]}`;
+  m = s.match(/\b(\d{1,2})\s+(?:to|through)\s+(\d{1,3})\s+years?\b/i);
+  if (m) return `${m[1]}–${m[2]}`;
+  return null;
+}
+
+/** Fills Age / Lifestyle etc. when the model returned a paragraph instead of four lines. */
+function buildAudienceSlotsByKey(rawInsight, parsedOrdered) {
+  const keys = ["Age Range", "Lifestyle", "Values", "Buying motivations"];
+  const map = {};
+  for (const t of parsedOrdered) {
+    if (t.value) map[t.key] = t.value;
+  }
+  const flat = stripMdLight(rawInsight || "").trim();
+  const prose = flat.replace(/\s*\n+\s*/g, " ").trim();
+
+  if (!map["Age Range"] && prose) {
+    const g = extractAgeSpanFromProse(prose);
+    if (g) map["Age Range"] = g;
+  }
+
+  const parsedFilled = parsedOrdered.filter((t) => (t.value || "").trim()).length;
+
+  if (!map["Lifestyle"] && prose && parsedFilled < 2) {
+    map["Lifestyle"] = prose.length > 420 ? `${prose.slice(0, 417)}…` : prose;
+  }
+
+  const out = {};
+  for (const k of keys) {
+    const v = (map[k] || "").trim();
+    out[k] = v;
+  }
+  return out;
 }
 
 function orderConsumerInsightTiles(tiles) {
@@ -207,9 +251,19 @@ function MarketSectionCard({ title, children, tone = "white", bodyClassName = ""
   );
 }
 
-function DemographicMutedCard({ label, children }) {
+const DEMO_TILE_SHELLS = [
+  "rounded-[14px] sm:rounded-2xl border border-[#D5D2CA] bg-[#EBEBE8] px-5 py-6 sm:px-7 sm:py-8",
+  "rounded-[14px] sm:rounded-2xl border border-[#DAD6CF] bg-[#E7E6E2] px-5 py-6 sm:px-7 sm:py-8",
+  "rounded-[14px] sm:rounded-2xl border border-[#D8D6D0] bg-[#F0EFEC] px-5 py-6 sm:px-7 sm:py-8",
+  "rounded-[14px] sm:rounded-2xl border border-[#D9D8D2] bg-[#E4E3DD] px-5 py-6 sm:px-7 sm:py-8",
+];
+
+function DemographicMutedCard({ label, children, toneIndex = 0 }) {
+  const shell = DEMO_TILE_SHELLS[toneIndex % DEMO_TILE_SHELLS.length];
   return (
-    <div className="flex min-h-[10rem] sm:min-h-[10.75rem] flex-col justify-center rounded-[14px] sm:rounded-2xl border border-[#D8D4CC] bg-[#EBEAE4] px-5 py-6 sm:px-7 sm:py-8 text-center shadow-[0_8px_28px_rgba(0,0,0,0.042)]">
+    <div
+      className={`flex min-h-[10rem] sm:min-h-[10.75rem] flex-col justify-center ${shell} text-center shadow-none`}
+    >
       <span className="font-sans text-[13px] font-bold text-[#292724]">
         {label}
       </span>
@@ -218,13 +272,55 @@ function DemographicMutedCard({ label, children }) {
   );
 }
 
-function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
+/** PDF ref: Comparable card + fixed 2×2 audience dashboard (four small muted tiles). */
+function AudienceDashboardFourGrid({ audienceByKey }) {
+  const keys = ["Age Range", "Lifestyle", "Values", "Buying motivations"];
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      {keys.map((key, idx) => {
+        const raw = (audienceByKey[key] || "").trim();
+        return (
+          <DemographicMutedCard
+            key={key}
+            label={`${key}:`}
+            toneIndex={idx}
+          >
+            {key === "Age Range" ? (
+              raw ? (
+                <span className="block font-sans text-[clamp(2.35rem,7.5vw,3.85rem)] font-extralight tabular-nums leading-[0.98] tracking-[-0.02em] text-[#1a1816]">
+                  {raw}
+                </span>
+              ) : (
+                <span className="font-sans text-[13px] text-[#8f8b82]">Not specified</span>
+              )
+            ) : raw ? (
+              <p className="mx-auto max-w-[18rem] font-sans text-[13px] sm:text-[14px] leading-snug text-[#2a2723]">
+                {raw}
+              </p>
+            ) : (
+              <p className="font-sans text-[13px] text-[#8f8b82]">Not specified</p>
+            )}
+          </DemographicMutedCard>
+        );
+      })}
+    </div>
+  );
+}
+
+function DarkFinancialCard({ title, parsed, fallbackText, showHighlight, palette = "charcoal" }) {
   const { lines, highlight } = parsed;
   const showHL = Boolean(showHighlight && highlight && lines.length > 0);
   const pct = sanitizePctHighlight(highlight);
 
+  const shell =
+    palette === "warm"
+      ? "rounded-[28px] sm:rounded-[30px] bg-[#3A362F] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_26px_60px_rgba(22,17,14,0.28)] ring-1 ring-[#faf9f7]/14"
+      : palette === "ink"
+        ? "rounded-[28px] sm:rounded-[30px] bg-[#2C3140] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_24px_58px_rgba(15,20,34,0.28)] ring-1 ring-[#e8eaf0]/10"
+        : "rounded-[28px] sm:rounded-[30px] bg-[#2D2D2A] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_22px_56px_rgba(0,0,0,0.22)]";
+
   return (
-    <div className="rounded-[28px] sm:rounded-[30px] bg-[#2D2D2A] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_22px_56px_rgba(0,0,0,0.22)]">
+    <div className={shell}>
       <h3 className="font-heading text-[clamp(1.45rem,3.8vw,1.8rem)] font-normal tracking-tight text-white mb-8 sm:mb-9">
         {title}
       </h3>
@@ -747,10 +843,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const comparableBrands = parseComparableBrandsList(marketExamples);
   const consumerTiles = parseConsumerInsightTiles(targetInsight);
   const orderedConsumerTiles = orderConsumerInsightTiles(consumerTiles);
-  const ageTile = orderedConsumerTiles.find((t) => t.key === "Age Range");
-  const lifeTile = orderedConsumerTiles.find((t) => t.key === "Lifestyle");
-  const valuesTile = orderedConsumerTiles.find((t) => t.key === "Values");
-  const buyingTile = orderedConsumerTiles.find((t) => t.key === "Buying motivations");
+  const audienceByKey = buildAudienceSlotsByKey(targetInsight, orderedConsumerTiles);
   const marginParsed = parseFinancialDarkCard(marginAnalysis);
   const wholesaleParsed = parseFinancialDarkCard(pricing);
 
@@ -893,7 +986,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
               Capsule recap
             </p>
-            <div className="mt-5 grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
+            <div className="mt-5 flex flex-col gap-4 sm:gap-5">
               <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
                 <h3 className="font-heading text-xl sm:text-2xl text-[#1E1D1B] tracking-tight">
                   Materials
@@ -952,7 +1045,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 )}
               </div>
 
-              <div className="rounded-[24px] sm:rounded-[28px] bg-[#262624] p-6 sm:p-10 text-white shadow-md lg:col-span-2">
+              <div className="rounded-[24px] sm:rounded-[28px] bg-[#262624] p-6 sm:p-10 text-white shadow-md">
                 <h3 className="font-heading text-xl sm:text-2xl text-white tracking-tight">
                   Sales Price
                 </h3>
@@ -976,10 +1069,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
               </div>
             </div>
           </div>
-
-            <h2 className="pt-6 sm:pt-8 text-center font-heading text-[1.125rem] sm:text-2xl text-[#292724] tracking-tight px-2">
-              Production &amp; Market Analysis
-            </h2>
 
             {/* Lead Time — PDF layout: serif title, bold label/value rows, hairline proportional bars */}
             <section className="rounded-[20px] sm:rounded-[22px] bg-[#F9F8F3] px-6 py-8 sm:px-10 sm:py-11 shadow-[0_14px_40px_rgba(0,0,0,0.055)] border border-black/[0.05]">
@@ -1041,17 +1130,9 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
             <MarketSectionCard tone="white" title="Comparable Market Examples">
               {comparableBrands.length ? (
-                <div className="-mt-6 sm:-mt-8 flex flex-col gap-3 sm:gap-3.5 font-sans text-[14px] sm:text-[15px] text-[#3a3834]">
+                <div className="-mt-6 sm:-mt-8 flex flex-col gap-3 sm:gap-3.5 font-sans text-[14px] sm:text-[15px] text-[#3a3834] text-left">
                   {comparableBrands.map((b, i) => (
-                    <div key={`${i}-${b.slice(0, 24)}`} className="text-center sm:text-left">
-                      <div>{b}</div>
-                      {i === 2 ? (
-                        <span
-                          className="mt-2 inline-block h-2 w-2 rounded-full bg-emerald-600 sm:ml-0"
-                          aria-hidden
-                        />
-                      ) : null}
-                    </div>
+                    <div key={`${i}-${b.slice(0, 24)}`}>{b}</div>
                   ))}
                 </div>
               ) : marketExamples ? (
@@ -1063,100 +1144,22 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
               )}
             </MarketSectionCard>
 
-            {(() => {
-              const hasStandard =
-                ageTile || lifeTile || valuesTile || buyingTile;
+            <AudienceDashboardFourGrid audienceByKey={audienceByKey} />
 
-              if (hasStandard) {
-                return (
-                  <div className="space-y-4 sm:space-y-5">
-                    {ageTile || lifeTile ? (
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
-                        {ageTile ? (
-                          <DemographicMutedCard label="Age Range:">
-                            <span className="block font-sans text-[clamp(3rem,8.75vw,4.375rem)] font-extralight tabular-nums leading-[0.98] tracking-[-0.02em] text-[#1a1816]">
-                              {ageTile.value}
-                            </span>
-                          </DemographicMutedCard>
-                        ) : null}
-                        {lifeTile ? (
-                          <DemographicMutedCard label="Lifestyle:">
-                            <p className="mx-auto max-w-[20rem] font-sans text-[14px] sm:text-[15px] leading-snug text-[#2a2723]">
-                              {lifeTile.value}
-                            </p>
-                          </DemographicMutedCard>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {valuesTile || buyingTile ? (
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
-                        {valuesTile ? (
-                          <DemographicMutedCard label="Values:">
-                            <p className="mx-auto max-w-none font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#2a2723]">
-                              {valuesTile.value}
-                            </p>
-                          </DemographicMutedCard>
-                        ) : null}
-                        {buyingTile ? (
-                          <DemographicMutedCard label="Buying motivations:">
-                            <p className="mx-auto max-w-none font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#2a2723]">
-                              {buyingTile.value}
-                            </p>
-                          </DemographicMutedCard>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              }
-
-              if (orderedConsumerTiles.length > 0) {
-                return (
-                  <MarketSectionCard tone="muted" title="Target Consumer Insight">
-                    <div className="-mt-6 sm:-mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {orderedConsumerTiles.slice(0, 4).map((t) => (
-                        <DemographicMutedCard key={`${t.key}-${t.value.slice(0, 12)}`} label={`${t.key}:`}>
-                          <p className="font-sans text-[13px] leading-relaxed text-[#2a2723]">
-                            {t.value}
-                          </p>
-                        </DemographicMutedCard>
-                      ))}
-                    </div>
-                  </MarketSectionCard>
-                );
-              }
-
-              if (targetInsight.trim()) {
-                return (
-                  <MarketSectionCard tone="muted" title="Target Consumer Insight">
-                    <div className="-mt-6 sm:-mt-7">
-                      <MarketMdBody>{targetInsight}</MarketMdBody>
-                    </div>
-                  </MarketSectionCard>
-                );
-              }
-
-              return (
-                <MarketSectionCard tone="muted" title="Target Consumer Insight">
-                  <p className="-mt-6 sm:-mt-7 text-sm text-[#756F68] font-sans">
-                    No data available
-                  </p>
-                </MarketSectionCard>
-              );
-            })()}
-
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6 items-stretch pt-2">
+            <div className="flex flex-col gap-5 pt-2">
               <DarkFinancialCard
                 title="Margin Analysis"
                 parsed={marginParsed}
                 fallbackText={marginAnalysis}
                 showHighlight
+                palette="charcoal"
               />
               <DarkFinancialCard
                 title="Wholesale vs DTC Pricing"
                 parsed={wholesaleParsed}
                 fallbackText={pricing}
                 showHighlight={false}
+                palette="ink"
               />
             </div>
 

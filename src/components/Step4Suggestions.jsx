@@ -380,6 +380,12 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
       'Target Consumer Insight': [
         /(\*\*)?Suggest target consumer demographics and psychographics\.?(\*\*)?\s*/gi,
         /(\*\*)?Include age range, lifestyle, values, and buying motivations that align with the product direction described\.?(\*\*)?\s*/gi,
+        /(\*\*)?Output EXACTLY four lines[^\n]*\n?/gi,
+        /(\*\*)?Each line MUST follow this pattern[^\n]*\n?/gi,
+        /^Age range:\s*\[short span[^\]]*\]/gim,
+        /^Lifestyle:\s*\[one sentence[^\]]*\]/gim,
+        /^Values:\s*\[comma-separated[^\]]*\]/gim,
+        /^Buying motivations:\s*\[one sentence[^\]]*\]/gim,
       ],
       'Margin Analysis': [
         /(\*\*)?Calculate suggested retail price vs\. production cost to show the gross margin percentage\.?(\*\*)?\s*/gi,
@@ -706,7 +712,17 @@ const generatePrompt = () => {
     List 2–3 comparable market references. Select brands at similar quality and price points to the user's concept.
 
     **Target Consumer Insight**
-    Suggest target consumer demographics and psychographics. Include age range, lifestyle, values, and buying motivations that align with the product direction described.
+    Output EXACTLY four lines (no headings, bullets, numbered lists, or extra paragraphs inside this section). Each line MUST use this shape: Label, colon, single space, then content.
+
+    Age range: [specific span — e.g. 18–35 or 25–40]
+
+    Lifestyle: [one concise sentence tying routines, aesthetics, channel discovery, etc.]
+
+    Values: [comma-separated traits such as longevity, inclusivity, sustainability]
+
+    Buying motivations: [one concise sentence on triggers to purchase vs. substitutes]
+
+    Keep each line grounded in THIS product category, price positioning, and the user's brief. Prefer an en dash between ages where appropriate (e.g. 25–40).
 
     ⸻
 
