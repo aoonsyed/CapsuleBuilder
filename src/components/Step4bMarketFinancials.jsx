@@ -189,31 +189,31 @@ function MarketMdBody({ children }) {
   );
 }
 
-/** Light section cards — reference: production / market mocks (serif headings, flush body). */
+/** Light section cards — Market Analysis PDF: white cards use soft float shadow; serif titles. */
 function MarketSectionCard({ title, children, tone = "white", bodyClassName = "" }) {
   const shells = {
     white:
-      "rounded-[22px] sm:rounded-[24px] bg-white border border-black/[0.07] shadow-[0_14px_44px_rgba(0,0,0,0.065)]",
+      "rounded-[18px] sm:rounded-[20px] bg-white border border-black/[0.06] shadow-[0_18px_48px_rgba(0,0,0,0.072)]",
     muted:
-      "rounded-[22px] sm:rounded-[24px] bg-[#EBE9E4] border border-[#DDD9D3] shadow-[0_12px_36px_rgba(0,0,0,0.048)]",
+      "rounded-[18px] sm:rounded-[20px] bg-[#E8E6E1] border border-[#D5D1CA] shadow-[0_12px_36px_rgba(0,0,0,0.045)]",
   };
   return (
-    <article className={`${shells[tone]} p-6 sm:p-8 lg:p-9`}>
-      <h3 className="font-heading text-[1.375rem] sm:text-2xl text-[#1E1D1B] tracking-tight leading-snug">
+    <article className={`${shells[tone]} p-8 sm:p-9 lg:p-10`}>
+      <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug">
         {title}
       </h3>
-      <div className={`mt-6 sm:mt-7 ${bodyClassName}`}>{children}</div>
+      <div className={`mt-6 sm:mt-8 ${bodyClassName}`}>{children}</div>
     </article>
   );
 }
 
 function DemographicMutedCard({ label, children }) {
   return (
-    <div className="flex min-h-[9.5rem] sm:min-h-[10.25rem] flex-col justify-center rounded-[22px] border border-[#D5D1CA] bg-[#EBE9E4] px-5 py-6 sm:px-6 sm:py-7 text-center shadow-[0_10px_32px_rgba(0,0,0,0.04)]">
-      <span className="font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-[#48443d]">
+    <div className="flex min-h-[10rem] sm:min-h-[10.75rem] flex-col justify-center rounded-[14px] sm:rounded-2xl border border-[#D8D4CC] bg-[#EBEAE4] px-5 py-6 sm:px-7 sm:py-8 text-center shadow-[0_8px_28px_rgba(0,0,0,0.042)]">
+      <span className="font-sans text-[13px] font-bold text-[#292724]">
         {label}
       </span>
-      <div className="mt-3 text-[#1E1D1B]">{children}</div>
+      <div className="mt-4 text-[#1E1D1B]">{children}</div>
     </div>
   );
 }
@@ -224,8 +224,8 @@ function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
   const pct = sanitizePctHighlight(highlight);
 
   return (
-    <div className="rounded-[24px] sm:rounded-[26px] bg-[#1A1A1A] px-6 sm:px-8 py-8 sm:py-9 text-white shadow-[0_20px_52px_rgba(0,0,0,0.2)]">
-      <h3 className="font-heading text-[clamp(1.5rem,3.9vw,1.875rem)] font-extralight tracking-tight text-white mb-7">
+    <div className="rounded-[28px] sm:rounded-[30px] bg-[#2D2D2A] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_22px_56px_rgba(0,0,0,0.22)]">
+      <h3 className="font-heading text-[clamp(1.45rem,3.8vw,1.8rem)] font-normal tracking-tight text-white mb-8 sm:mb-9">
         {title}
       </h3>
       {lines.length > 0 ? (
@@ -233,25 +233,25 @@ function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
           {lines.map((row, i) => (
             <div
               key={`${row.label}-${i}`}
-              className={i > 0 ? "mt-5 pt-5 border-t border-white/12" : ""}
+              className={i > 0 ? "mt-5 pt-5 border-t border-[#484844]/90" : ""}
             >
               <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 items-baseline font-sans">
-                <span className="max-w-[55%] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] text-white leading-snug">
+                <span className="max-w-[52%] text-[10px] sm:text-[11px] font-normal uppercase tracking-[0.2em] text-[#C9C5BE] leading-relaxed">
                   {row.label}:
                 </span>
-                <span className="text-right text-[14px] sm:text-[15px] font-medium not-italic text-white tabular-nums">
+                <span className="text-right text-[14px] sm:text-[15px] font-normal italic text-white tabular-nums">
                   {row.value}
                 </span>
               </div>
               {row.sub ? (
-                <p className="mt-2 text-right text-[11px] sm:text-[12px] text-white/45 not-italic">
+                <p className="mt-2 text-right text-[11px] sm:text-[12px] text-[#A8A49C] italic tracking-tight">
                   ({row.sub})
                 </p>
               ) : null}
             </div>
           ))}
           {showHL ? (
-            <div className="mt-8 pt-3 text-right font-heading text-[clamp(1.15rem,3.8vw,1.75rem)] font-extralight text-white tracking-tight tabular-nums">
+            <div className="mt-8 pt-2 text-right font-heading text-[clamp(1.25rem,3.6vw,1.85rem)] font-light italic text-white tracking-tight tabular-nums">
               {`= ${pct}`}
             </div>
           ) : null}
@@ -759,7 +759,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     productType?.trim() || category?.trim() || "Your product";
 
   const marketBlurb =
-    "A technical deep-dive into the construction, sourcing, and economic blueprint for this silhouette—based on your inputs and questionnaire.";
+    "A technical deep-dive into the construction, sourcing and economic blueprint of this performance silhouette.";
 
   // Build email params
   const buildEmailParams = () => {
@@ -819,10 +819,17 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     <>
       <Toaster position="top-right" richColors />
       <div
-        className="bg-white min-h-screen w-full overflow-x-hidden pb-10 sm:pb-12"
+        className="bg-[#f5f4f1] min-h-screen w-full overflow-x-hidden pb-10 sm:pb-12"
         data-capsule-step="market-analysis"
       >
-        {/* Hero — full-bleed image + overlay (reference landing card) */}
+        {/* PDF / product mock: thin trial announcement */}
+        <div className="w-full bg-[#2a2928] py-2.5 px-4 text-center">
+          <p className="font-sans text-[9px] sm:text-[10px] font-normal uppercase tracking-[0.22em] text-[#b5b3ae] leading-snug">
+            You are currently using a free trial. Upgrade to unlock all features
+          </p>
+        </div>
+
+        {/* Hero — full-bleed image + overlay (Market Analysis screen) */}
         <section
           className="relative flex w-full flex-col items-center justify-end min-h-[min(52vh,420px)] sm:min-h-[min(52vh,480px)] pt-14 pb-12 sm:pt-16 sm:pb-14 px-4 text-center text-white"
           style={{
@@ -848,21 +855,41 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
         </section>
 
         <div className="relative z-10 mx-auto max-w-[1100px] -mt-14 sm:-mt-20 lg:-mt-[5.25rem] px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-6">
-          {/* Intro card — overlaps hero */}
-          <div className="rounded-t-[28px] sm:rounded-t-[34px] bg-[#F2F0EA] shadow-[0_28px_70px_rgba(0,0,0,0.14)] px-5 pt-9 pb-7 sm:px-10 sm:pt-11 sm:pb-9 border border-black/[0.07] border-b-0">
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#5C574F] font-sans">
+          {/* Market summary — cream shell (PDF): category, hero title, blurb + nested white Yield */}
+          <div className="rounded-t-[36px] sm:rounded-t-[40px] bg-[#F2F1ED] shadow-[0_32px_80px_rgba(0,0,0,0.14)] px-6 pt-9 pb-8 sm:px-10 sm:pt-11 sm:pb-10 border border-black/[0.06] border-b-0">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
               {categoryLabel}
             </p>
             <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
               {productTitle}
             </h2>
-            <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#1E1D1B] font-sans">
+            <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2a2825] font-sans">
               {marketBlurb}
             </p>
+
+            <div className="mt-9 sm:mt-10 rounded-[16px] sm:rounded-[20px] bg-white border border-black/[0.06] shadow-[0_14px_44px_rgba(0,0,0,0.07)] px-7 py-8 sm:px-9 sm:py-10">
+              <h3 className="font-heading text-[1.3125rem] sm:text-xl text-[#1E1D1B] tracking-tight leading-snug">
+                Yield &amp; Consumption Estimates
+              </h3>
+              <div className="mt-6 sm:mt-7 space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
+                {yieldRows.length ? (
+                  yieldRows.map((r) => (
+                    <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0">
+                      <span className="font-semibold text-[#141312]">{r.label}: </span>
+                      <span className="text-[#4a463f]">{r.value}</span>
+                    </p>
+                  ))
+                ) : yieldConsumption ? (
+                  <MarketMdBody>{yieldConsumption}</MarketMdBody>
+                ) : (
+                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Capsule recap */}
-          <div className="-mt-px rounded-b-[28px] sm:rounded-b-[34px] border border-black/[0.07] border-t-0 bg-[#F2F0EA]/95 px-5 py-8 sm:px-10 sm:py-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+          <div className="-mt-px rounded-b-[36px] sm:rounded-b-[40px] border border-black/[0.06] border-t-0 bg-[#F2F1ED] px-6 py-8 sm:px-10 sm:py-11 shadow-[0_22px_55px_rgba(0,0,0,0.08)]">
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
               Capsule recap
             </p>
@@ -950,85 +977,89 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             </div>
           </div>
 
-            <h2 className="pt-4 text-center font-heading text-[1.25rem] sm:text-2xl text-[#292724] tracking-tight">
+            <h2 className="pt-6 sm:pt-8 text-center font-heading text-[1.125rem] sm:text-2xl text-[#292724] tracking-tight px-2">
               Production &amp; Market Analysis
             </h2>
 
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
-              <MarketSectionCard title="Yield & Consumption Estimates">
-                {yieldRows.length ? (
-                  <div className="-mt-6 sm:-mt-7 space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
-                    {yieldRows.map((r) => (
-                      <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0">
-                        <span className="font-semibold text-[#141312]">{r.label}: </span>
-                        <span className="text-[#383530]">{r.value}</span>
-                      </p>
-                    ))}
-                  </div>
-                ) : yieldConsumption ? (
-                  <div className="-mt-6 sm:-mt-7">
-                    <MarketMdBody>{yieldConsumption}</MarketMdBody>
-                  </div>
-                ) : (
-                  <p className="-mt-6 sm:-mt-7 text-sm text-[#756F68] font-sans">
-                    No data available
-                  </p>
-                )}
-              </MarketSectionCard>
-
-              <MarketSectionCard title="Lead Time">
-                {leadRows.length ? (
-                  <div className="-mt-6 sm:-mt-7 space-y-5">
-                    {leadRows.map((r, i) => (
-                      <div key={`${r.label}-${i}`}>
-                        <div className="flex justify-between gap-3 items-baseline text-[13px] sm:text-[14px] font-sans text-[#141312]">
-                          <span className="font-semibold">{r.label}</span>
-                          <span className="shrink-0 text-[#4a463f] tabular-nums">{r.value}</span>
+            {/* Lead Time — PDF layout: serif title, bold label/value rows, hairline proportional bars */}
+            <section className="rounded-[20px] sm:rounded-[22px] bg-[#F9F8F3] px-6 py-8 sm:px-10 sm:py-11 shadow-[0_14px_40px_rgba(0,0,0,0.055)] border border-black/[0.05]">
+              <h3 className="font-heading text-[1.625rem] sm:text-[1.875rem] text-[#1E1D1B] tracking-tight leading-tight mb-7 sm:mb-8">
+                Lead Time
+              </h3>
+              {leadRows.length ? (
+                <div className="space-y-0">
+                  {(() => {
+                    let samplingSeen = 0;
+                    return leadRows.map((r, i) => {
+                      const isSampling = /^sampling/i.test(r.label.trim());
+                      if (isSampling) samplingSeen += 1;
+                      const showTimelineDot = isSampling && samplingSeen === 2;
+                      return (
+                        <div key={`${r.label}-${i}`} className="mb-6 sm:mb-7 last:mb-0 relative">
+                          {showTimelineDot ? (
+                            <span
+                              className="absolute -top-2 left-[0.125rem] h-2 w-2 rounded-full bg-emerald-600 shadow-sm ring-2 ring-emerald-600/25"
+                              aria-hidden
+                              title=""
+                            />
+                          ) : null}
+                          <div className="flex justify-between gap-3 items-baseline text-[13px] sm:text-[14px] font-sans text-[#141312]">
+                            <span className="font-bold">{r.label}:</span>
+                            <span className="shrink-0 font-bold text-[#1a1816] tabular-nums">
+                              {r.value}
+                            </span>
+                          </div>
+                          <div className="relative mt-2 h-px w-full bg-[#D4D0C8]">
+                            <div
+                              className="absolute left-0 top-0 h-px bg-[#1a1918]"
+                              style={{ width: `${r.pct}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="relative mt-2 h-[5px] w-full overflow-hidden rounded-full bg-[#E5DED4]">
-                          <div
-                            className="h-full rounded-full bg-[#463529]"
-                            style={{ width: `${r.pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {leadSummaryRows.length > 0 ? (
-                      <div className="mt-7 rounded-[18px] border border-black/[0.06] bg-[#E5E2DC]/95 px-4 py-4 font-sans text-[13px] leading-relaxed text-[#292724] space-y-2.5 shadow-inner">
-                        {leadSummaryRows.map((row) => (
-                          <p key={row.label} className="m-0">
-                            <span className="font-semibold">{row.label}: </span>
-                            {row.value}
-                          </p>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : leadTime ? (
-                  <div className="-mt-6 sm:-mt-7">
-                    <MarketMdBody>{leadTime}</MarketMdBody>
-                  </div>
-                ) : (
-                  <p className="-mt-6 sm:-mt-7 text-sm text-[#756F68] font-sans">
-                    No data available
-                  </p>
-                )}
-              </MarketSectionCard>
-            </div>
+                      );
+                    });
+                  })()}
+                  {leadSummaryRows.length > 0 ? (
+                    <div className="mt-8 rounded-[14px] sm:rounded-2xl bg-[#D9D6D0] px-5 py-5 sm:px-6 sm:py-6 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-2.5">
+                      {leadSummaryRows.map((row) => (
+                        <p key={row.label} className="m-0">
+                          <span className="font-bold">{row.label}: </span>
+                          {row.value}
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : leadTime ? (
+                <div className="text-[#232220]">
+                  <MarketMdBody>{leadTime}</MarketMdBody>
+                </div>
+              ) : (
+                <p className="text-sm text-[#756F68] font-sans">No data available</p>
+              )}
+            </section>
 
-            <MarketSectionCard tone="muted" title="Comparable Market Examples">
+            <MarketSectionCard tone="white" title="Comparable Market Examples">
               {comparableBrands.length ? (
-                <div className="-mt-6 sm:-mt-7 flex flex-col gap-2 font-sans text-[14px] sm:text-[15px] text-[#5C5852]">
+                <div className="-mt-6 sm:-mt-8 flex flex-col gap-3 sm:gap-3.5 font-sans text-[14px] sm:text-[15px] text-[#3a3834]">
                   {comparableBrands.map((b, i) => (
-                    <div key={`${i}-${b.slice(0, 24)}`}>{b}</div>
+                    <div key={`${i}-${b.slice(0, 24)}`} className="text-center sm:text-left">
+                      <div>{b}</div>
+                      {i === 2 ? (
+                        <span
+                          className="mt-2 inline-block h-2 w-2 rounded-full bg-emerald-600 sm:ml-0"
+                          aria-hidden
+                        />
+                      ) : null}
+                    </div>
                   ))}
                 </div>
               ) : marketExamples ? (
-                <div className="-mt-6 sm:-mt-7 [&_.font-heading]:text-[#5C5852]">
+                <div className="-mt-6 sm:-mt-8 [&_.font-heading]:text-[#3a3834]">
                   <MarketMdBody>{marketExamples}</MarketMdBody>
                 </div>
               ) : (
-                <p className="-mt-6 sm:-mt-7 text-sm text-[#756F68] font-sans">No data available</p>
+                <p className="-mt-6 sm:-mt-8 text-sm text-[#756F68] font-sans">No data available</p>
               )}
             </MarketSectionCard>
 
@@ -1043,7 +1074,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
                         {ageTile ? (
                           <DemographicMutedCard label="Age Range:">
-                            <span className="block font-sans text-[clamp(2.125rem,6.8vw,3.125rem)] font-medium tabular-nums leading-none tracking-tight">
+                            <span className="block font-sans text-[clamp(3rem,8.75vw,4.375rem)] font-extralight tabular-nums leading-[0.98] tracking-[-0.02em] text-[#1a1816]">
                               {ageTile.value}
                             </span>
                           </DemographicMutedCard>
@@ -1134,25 +1165,25 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
               <button
                 type="button"
                 onClick={onBack}
-                className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] text-[#282522] hover:opacity-80 active:opacity-70 transition-opacity sm:gap-3 sm:text-[11px] sm:tracking-[0.2em]"
+                className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 font-sans text-[10px] font-semibold tracking-[0.2em] text-[#282522] hover:opacity-80 active:opacity-70 transition-opacity sm:gap-3 sm:text-[11px] sm:tracking-[0.22em]"
               >
-                <span className="inline-flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#282522]/80 text-sm leading-none sm:h-10 sm:w-10 sm:text-base">
+                <span className="inline-flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#282522]/85 text-[15px] font-light leading-none sm:h-10 sm:w-10 sm:text-base">
                   ←
                 </span>
-                Back
+                <span className="font-semibold uppercase">Back</span>
               </button>
               <button
                 type="button"
                 onClick={handleScheduleClick}
                 disabled={sendingEmail}
-                className={`flex min-h-[44px] max-w-[min(10.75rem,calc(100%-6.5rem))] shrink touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:max-w-none sm:min-h-[46px] sm:gap-2.5 sm:px-5 sm:text-[11px] sm:tracking-[0.16em] ${
+                className={`flex min-h-[44px] max-w-[min(12.5rem,calc(100%-6.5rem))] shrink touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:max-w-none sm:min-h-[46px] sm:gap-2.5 sm:px-6 sm:text-[10px] sm:tracking-[0.18em] ${
                   sendingEmail
                     ? "cursor-not-allowed bg-neutral-400"
-                    : "bg-[#1a1918] hover:bg-black focus-visible:outline-white/40"
+                    : "bg-[#2D2D2A] hover:bg-[#252522] focus-visible:outline-white/40"
                 }`}
               >
                 <span className={sendingEmail ? "text-center whitespace-normal leading-tight" : ""}>
-                  {sendingEmail ? "Sending details…" : "Schedule Call"}
+                  {sendingEmail ? "Sending details…" : "Schedule a call"}
                 </span>
                 {!sendingEmail ? (
                   <span className="text-sm leading-none shrink-0 sm:text-base" aria-hidden>
