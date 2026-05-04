@@ -127,12 +127,35 @@ function parseConsumerInsightTiles(text) {
   return tiles;
 }
 
+function orderConsumerInsightTiles(tiles) {
+  const order = ["Age Range", "Lifestyle", "Values", "Buying motivations"];
+  const used = new Set();
+  const out = [];
+  for (const key of order) {
+    const hit = tiles.find((t) => t.key === key);
+    if (hit) {
+      out.push(hit);
+      used.add(hit);
+    }
+  }
+  for (const t of tiles) {
+    if (!used.has(t)) out.push(t);
+  }
+  return out;
+}
+
+function sanitizePctHighlight(str) {
+  if (!str || typeof str !== "string") return "";
+  return str.replace(/\uFEFF|[\u200B-\u200D\u2060]/g, "").trim();
+}
+
 function parseFinancialDarkCard(text) {
   const raw = stripMdLight(text);
-  const highlight =
+  let highlight =
     raw.match(/=\s*([\d.]+%)/)?.[1] ||
     raw.match(/\b([\d.]+%)\s*$/m)?.[1] ||
     "";
+  highlight = sanitizePctHighlight(highlight);
   const lines = [];
   for (const part of text.split(/\n+/).map((l) => l.trim()).filter(Boolean)) {
     const t = stripMdLight(part).replace(/^[-*•\d.]+\s*/, "");
@@ -166,16 +189,31 @@ function MarketMdBody({ children }) {
   );
 }
 
-function NumberedMarketCard({ index, title, children }) {
+/** Light section cards — reference: production / market mocks (serif headings, flush body). */
+function MarketSectionCard({ title, children, tone = "white", bodyClassName = "" }) {
+  const shells = {
+    white:
+      "rounded-[22px] sm:rounded-[24px] bg-white border border-black/[0.07] shadow-[0_14px_44px_rgba(0,0,0,0.065)]",
+    muted:
+      "rounded-[22px] sm:rounded-[24px] bg-[#EBE9E4] border border-[#DDD9D3] shadow-[0_12px_36px_rgba(0,0,0,0.048)]",
+  };
   return (
-    <div className="rounded-[26px] bg-white shadow-[0_14px_44px_rgba(0,0,0,0.07)] border border-black/[0.06] p-6 sm:p-8">
-      <div className="flex items-start gap-4 mb-5">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black text-[15px] font-bold text-white font-sans">
-          {index}
-        </div>
-        <h3 className="font-heading text-xl sm:text-2xl text-[#1E1D1B] leading-tight pt-1">{title}</h3>
-      </div>
-      <div className="rounded-2xl bg-[#E8E8E8] p-5 sm:p-6">{children}</div>
+    <article className={`${shells[tone]} p-6 sm:p-8 lg:p-9`}>
+      <h3 className="font-heading text-[1.375rem] sm:text-2xl text-[#1E1D1B] tracking-tight leading-snug">
+        {title}
+      </h3>
+      <div className={`mt-6 sm:mt-7 ${bodyClassName}`}>{children}</div>
+    </article>
+  );
+}
+
+function DemographicMutedCard({ label, children }) {
+  return (
+    <div className="flex min-h-[9.5rem] sm:min-h-[10.25rem] flex-col justify-center rounded-[22px] border border-[#D5D1CA] bg-[#EBE9E4] px-5 py-6 sm:px-6 sm:py-7 text-center shadow-[0_10px_32px_rgba(0,0,0,0.04)]">
+      <span className="font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-[#48443d]">
+        {label}
+      </span>
+      <div className="mt-3 text-[#1E1D1B]">{children}</div>
     </div>
   );
 }
@@ -183,35 +221,38 @@ function NumberedMarketCard({ index, title, children }) {
 function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
   const { lines, highlight } = parsed;
   const showHL = Boolean(showHighlight && highlight && lines.length > 0);
+  const pct = sanitizePctHighlight(highlight);
 
   return (
-    <div className="rounded-[28px] bg-[#1A1A1A] px-6 sm:px-8 py-8 text-white shadow-[0_20px_50px_rgba(0,0,0,0.18)]">
-      <h3 className="font-heading text-[1.5rem] sm:text-[1.65rem] tracking-tight mb-6">{title}</h3>
+    <div className="rounded-[24px] sm:rounded-[26px] bg-[#1A1A1A] px-6 sm:px-8 py-8 sm:py-9 text-white shadow-[0_20px_52px_rgba(0,0,0,0.2)]">
+      <h3 className="font-heading text-[clamp(1.5rem,3.9vw,1.875rem)] font-extralight tracking-tight text-white mb-7">
+        {title}
+      </h3>
       {lines.length > 0 ? (
         <>
           {lines.map((row, i) => (
             <div
               key={`${row.label}-${i}`}
-              className={i > 0 ? "mt-5 pt-5 border-t border-white/15" : ""}
+              className={i > 0 ? "mt-5 pt-5 border-t border-white/12" : ""}
             >
               <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 items-baseline font-sans">
-                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.16em] text-white/90">
-                  {row.label}
+                <span className="max-w-[55%] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] text-white leading-snug">
+                  {row.label}:
                 </span>
-                <span className="text-right text-[15px] sm:text-base italic font-medium text-white tabular-nums">
+                <span className="text-right text-[14px] sm:text-[15px] font-medium not-italic text-white tabular-nums">
                   {row.value}
                 </span>
               </div>
               {row.sub ? (
-                <p className="mt-2 text-right text-[11px] sm:text-[12px] italic text-white/50">
+                <p className="mt-2 text-right text-[11px] sm:text-[12px] text-white/45 not-italic">
                   ({row.sub})
                 </p>
               ) : null}
             </div>
           ))}
           {showHL ? (
-            <div className="mt-8 pt-2 text-right font-heading text-[clamp(1.35rem,3.5vw,1.95rem)] font-semibold text-white tracking-tight">
-              = {highlight}
+            <div className="mt-8 pt-3 text-right font-heading text-[clamp(1.15rem,3.8vw,1.75rem)] font-extralight text-white tracking-tight tabular-nums">
+              {`= ${pct}`}
             </div>
           ) : null}
         </>
@@ -305,7 +346,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     const hash = hashParamsKey(paramsKey);
     return {
       rawAnswer: `productBreakdownRawAnswer_${hash}`, // Same as Step4Suggestions
-      parsedSections: `marketAnalysisParsed_v2_${hash}`, // bump when section shape changes
+      parsedSections: `marketAnalysisParsed_v3_${hash}`, // bump when section shape changes
     };
   }, [paramsKey, hashParamsKey]);
 
@@ -581,7 +622,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   // Show loading while checking access
   if (!accessChecked) {
     return (
-      <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
+      <div className="bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
           <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">
@@ -596,7 +637,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     return (
       <>
         <Toaster position="top-right" richColors />
-        <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center px-4">
+        <div className="bg-white min-h-screen flex items-center justify-center px-4">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
             <h2 className="text-[28px] font-heading font-semibold text-black mb-3">
               Sign in required
@@ -637,7 +678,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     return (
       <>
         <Toaster position="top-right" richColors />
-        <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center px-4">
+        <div className="bg-white min-h-screen flex items-center justify-center px-4">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
             <h2 className="text-[32px] font-heading font-semibold text-black mb-4">
               Upgrade Required
@@ -671,7 +712,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   // Show loading while loading sections
   if (!hasAccess || !sections) {
     return (
-      <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center">
+      <div className="bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
           <p className="text-black font-sans text-[16px] font-normal leading-[1.2]">
@@ -705,6 +746,11 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const leadSummaryRows = parseLeadSummaryLines(leadParts.summary || "");
   const comparableBrands = parseComparableBrandsList(marketExamples);
   const consumerTiles = parseConsumerInsightTiles(targetInsight);
+  const orderedConsumerTiles = orderConsumerInsightTiles(consumerTiles);
+  const ageTile = orderedConsumerTiles.find((t) => t.key === "Age Range");
+  const lifeTile = orderedConsumerTiles.find((t) => t.key === "Lifestyle");
+  const valuesTile = orderedConsumerTiles.find((t) => t.key === "Values");
+  const buyingTile = orderedConsumerTiles.find((t) => t.key === "Buying motivations");
   const marginParsed = parseFinancialDarkCard(marginAnalysis);
   const wholesaleParsed = parseFinancialDarkCard(pricing);
 
@@ -713,7 +759,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     productType?.trim() || category?.trim() || "Your product";
 
   const marketBlurb =
-    "A technical deep-dive into the construction, sourcing, positioning, and economics for this capsule concept—based on your inputs and questionnaire.";
+    "A technical deep-dive into the construction, sourcing, and economic blueprint for this silhouette—based on your inputs and questionnaire.";
 
   // Build email params
   const buildEmailParams = () => {
@@ -773,26 +819,26 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     <>
       <Toaster position="top-right" richColors />
       <div
-        className="bg-[#E8E8E8] min-h-screen w-full overflow-x-hidden pb-8"
+        className="bg-white min-h-screen w-full overflow-x-hidden pb-10 sm:pb-12"
         data-capsule-step="market-analysis"
       >
-        {/* Hero — aligned with Results: no overlay back button (footer retains Back) */}
+        {/* Hero — full-bleed image + overlay (reference landing card) */}
         <section
-          className="relative flex w-full flex-col items-center justify-end min-h-[min(42vw,260px)] sm:min-h-[280px] pt-10 pb-10 sm:pb-12 px-4 text-center text-white"
+          className="relative flex w-full flex-col items-center justify-end min-h-[min(52vh,420px)] sm:min-h-[min(52vh,480px)] pt-14 pb-12 sm:pt-16 sm:pb-14 px-4 text-center text-white"
           style={{
             backgroundImage:
-              'linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.58) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
+              'linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.66) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
             backgroundSize: "cover",
-            backgroundPosition: "center 32%",
+            backgroundPosition: "center 28%",
           }}
         >
           <img
             src="/assets/form-logo-white-transparent.png"
             alt="Form Department"
-            className="absolute top-6 sm:top-8 left-1/2 z-10 w-[min(42vw,210px)] sm:w-[200px] md:w-[220px] h-auto -translate-x-1/2"
+            className="absolute top-8 sm:top-10 left-1/2 z-10 w-[min(40vw,200px)] sm:w-[208px] md:w-[220px] h-auto -translate-x-1/2"
           />
 
-          <h1 className="relative z-10 mt-24 sm:mt-28 md:mt-24 mb-1 font-heading text-[clamp(1.65rem,4.5vw,2.625rem)] text-white tracking-tight leading-tight">
+          <h1 className="relative z-10 mt-28 sm:mt-32 mb-2 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)]">
             Market Analysis
           </h1>
 
@@ -801,24 +847,27 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           </p>
         </section>
 
-        <div className="relative z-10 mx-auto max-w-[1100px] -mt-6 sm:-mt-10 px-3 sm:px-5 lg:px-6">
-          <div className="rounded-t-[32px] sm:rounded-t-[36px] bg-[#ECEAE7] shadow-[0_24px_60px_rgba(0,0,0,0.12)] px-5 pt-10 pb-8 sm:px-10 sm:pt-11 sm:pb-10 border border-black/[0.06]">
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
+        <div className="relative z-10 mx-auto max-w-[1100px] -mt-14 sm:-mt-20 lg:-mt-[5.25rem] px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-6">
+          {/* Intro card — overlaps hero */}
+          <div className="rounded-t-[28px] sm:rounded-t-[34px] bg-[#F2F0EA] shadow-[0_28px_70px_rgba(0,0,0,0.14)] px-5 pt-9 pb-7 sm:px-10 sm:pt-11 sm:pb-9 border border-black/[0.07] border-b-0">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#5C574F] font-sans">
               {categoryLabel}
             </p>
-            <h2 className="mt-4 font-heading text-[clamp(1.875rem,5vw,2.625rem)] text-[#1E1D1B] leading-[1.05]">
+            <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
               {productTitle}
             </h2>
-            <p className="mt-4 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#1E1D1B] font-sans">
+            <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#1E1D1B] font-sans">
               {marketBlurb}
             </p>
+          </div>
 
-            {/* Capsule recap — same building blocks as Your Results */}
-            <p className="mt-10 text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
+          {/* Capsule recap */}
+          <div className="-mt-px rounded-b-[28px] sm:rounded-b-[34px] border border-black/[0.07] border-t-0 bg-[#F2F0EA]/95 px-5 py-8 sm:px-10 sm:py-10 shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
               Capsule recap
             </p>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
-              <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-sm">
+            <div className="mt-5 grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
+              <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
                 <h3 className="font-heading text-xl sm:text-2xl text-[#1E1D1B] tracking-tight">
                   Materials
                 </h3>
@@ -892,60 +941,60 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                     <p className="font-sans text-[13px] sm:text-[14px] font-semibold tracking-wide text-white">
                       Retail Price
                     </p>
-                    <div className="mt-3 rounded-xl border border-white/15 bg-[#F2EFE9] px-5 py-4">
-                      <p className="font-heading text-[clamp(1.5rem,5vw,2.15rem)] font-medium tabular-nums leading-tight tracking-tight text-[#161514]">
-                        {recapSales.retailValue}
-                      </p>
-                    </div>
+                    <p className="mt-3 font-heading text-[clamp(1.5rem,5vw,2.15rem)] font-medium tabular-nums leading-tight tracking-tight text-white">
+                      {recapSales.retailValue}
+                    </p>
                   </div>
                 ) : null}
               </div>
             </div>
+          </div>
 
-            <h2 className="mt-10 sm:mt-12 mb-6 sm:mb-8 text-center font-heading text-xl sm:text-2xl text-[#292724] tracking-tight">
+            <h2 className="pt-4 text-center font-heading text-[1.25rem] sm:text-2xl text-[#292724] tracking-tight">
               Production &amp; Market Analysis
             </h2>
 
-            {/* 1 · Yield · 2 · Lead */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
-              <NumberedMarketCard index={1} title="Yield & Consumption Estimates">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
+              <MarketSectionCard title="Yield & Consumption Estimates">
                 {yieldRows.length ? (
-                  <div className="space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
+                  <div className="-mt-6 sm:-mt-7 space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
                     {yieldRows.map((r) => (
                       <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0">
-                        <span className="font-semibold text-[#1a1a1a]">{r.label}: </span>
-                        <span>{r.value}</span>
+                        <span className="font-semibold text-[#141312]">{r.label}: </span>
+                        <span className="text-[#383530]">{r.value}</span>
                       </p>
                     ))}
                   </div>
                 ) : yieldConsumption ? (
-                  <MarketMdBody>{yieldConsumption}</MarketMdBody>
+                  <div className="-mt-6 sm:-mt-7">
+                    <MarketMdBody>{yieldConsumption}</MarketMdBody>
+                  </div>
                 ) : (
-                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                  <p className="-mt-6 sm:-mt-7 text-sm text-[#756F68] font-sans">
+                    No data available
+                  </p>
                 )}
-              </NumberedMarketCard>
+              </MarketSectionCard>
 
-              <NumberedMarketCard index={2} title="Lead Time">
+              <MarketSectionCard title="Lead Time">
                 {leadRows.length ? (
-                  <div className="space-y-5">
+                  <div className="-mt-6 sm:-mt-7 space-y-5">
                     {leadRows.map((r, i) => (
                       <div key={`${r.label}-${i}`}>
-                        <div className="flex justify-between gap-3 items-baseline text-[13px] sm:text-[14px] font-sans text-[#1a1a1a]">
+                        <div className="flex justify-between gap-3 items-baseline text-[13px] sm:text-[14px] font-sans text-[#141312]">
                           <span className="font-semibold">{r.label}</span>
-                          <span className="text-[#45423e]">{r.value}</span>
+                          <span className="shrink-0 text-[#4a463f] tabular-nums">{r.value}</span>
                         </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <div className="relative h-[5px] flex-1 overflow-hidden rounded-full bg-black/[0.1]">
-                            <div
-                              className="h-full rounded-full bg-[#2c2c2c]"
-                              style={{ width: `${r.pct}%` }}
-                            />
-                          </div>
+                        <div className="relative mt-2 h-[5px] w-full overflow-hidden rounded-full bg-[#E5DED4]">
+                          <div
+                            className="h-full rounded-full bg-[#463529]"
+                            style={{ width: `${r.pct}%` }}
+                          />
                         </div>
                       </div>
                     ))}
                     {leadSummaryRows.length > 0 ? (
-                      <div className="mt-6 rounded-xl bg-[#DFDCD6] px-4 py-4 font-sans text-[13px] leading-relaxed text-[#292724] space-y-2">
+                      <div className="mt-7 rounded-[18px] border border-black/[0.06] bg-[#E5E2DC]/95 px-4 py-4 font-sans text-[13px] leading-relaxed text-[#292724] space-y-2.5 shadow-inner">
                         {leadSummaryRows.map((row) => (
                           <p key={row.label} className="m-0">
                             <span className="font-semibold">{row.label}: </span>
@@ -956,56 +1005,116 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                     ) : null}
                   </div>
                 ) : leadTime ? (
-                  <MarketMdBody>{leadTime}</MarketMdBody>
+                  <div className="-mt-6 sm:-mt-7">
+                    <MarketMdBody>{leadTime}</MarketMdBody>
+                  </div>
                 ) : (
-                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                  <p className="-mt-6 sm:-mt-7 text-sm text-[#756F68] font-sans">
+                    No data available
+                  </p>
                 )}
-              </NumberedMarketCard>
+              </MarketSectionCard>
             </div>
 
-            {/* 3 · Market examples · 4 · Target */}
-            <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
-              <NumberedMarketCard index={3} title="Comparable Market Examples">
-                {comparableBrands.length ? (
-                  <div className="flex flex-col gap-2 font-sans text-[14px] sm:text-[15px] text-[#232220]">
-                    {comparableBrands.map((b, i) => (
-                      <div key={`${i}-${b}`}>{b}</div>
-                    ))}
-                  </div>
-                ) : marketExamples ? (
+            <MarketSectionCard tone="muted" title="Comparable Market Examples">
+              {comparableBrands.length ? (
+                <div className="-mt-6 sm:-mt-7 flex flex-col gap-2 font-sans text-[14px] sm:text-[15px] text-[#5C5852]">
+                  {comparableBrands.map((b, i) => (
+                    <div key={`${i}-${b.slice(0, 24)}`}>{b}</div>
+                  ))}
+                </div>
+              ) : marketExamples ? (
+                <div className="-mt-6 sm:-mt-7 [&_.font-heading]:text-[#5C5852]">
                   <MarketMdBody>{marketExamples}</MarketMdBody>
-                ) : (
-                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
-                )}
-              </NumberedMarketCard>
+                </div>
+              ) : (
+                <p className="-mt-6 sm:-mt-7 text-sm text-[#756F68] font-sans">No data available</p>
+              )}
+            </MarketSectionCard>
 
-              <NumberedMarketCard index={4} title="Target Consumer Insight">
-                {consumerTiles.length >= 2 ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    {consumerTiles.slice(0, 4).map((t) => (
-                      <div
-                        key={t.key}
-                        className="relative flex min-h-[6.75rem] flex-col justify-center rounded-2xl bg-[#DFDCD6]/90 px-3 py-3 text-center"
-                      >
-                        <span className="text-[11px] font-bold uppercase tracking-wide text-[#4a463f]">
-                          {t.key}
-                        </span>
-                        <span className="mt-2 block text-[12px] sm:text-[13px] leading-snug text-[#1E1D1B]">
-                          {t.value}
-                        </span>
+            {(() => {
+              const hasStandard =
+                ageTile || lifeTile || valuesTile || buyingTile;
+
+              if (hasStandard) {
+                return (
+                  <div className="space-y-4 sm:space-y-5">
+                    {ageTile || lifeTile ? (
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                        {ageTile ? (
+                          <DemographicMutedCard label="Age Range:">
+                            <span className="block font-sans text-[clamp(2.125rem,6.8vw,3.125rem)] font-medium tabular-nums leading-none tracking-tight">
+                              {ageTile.value}
+                            </span>
+                          </DemographicMutedCard>
+                        ) : null}
+                        {lifeTile ? (
+                          <DemographicMutedCard label="Lifestyle:">
+                            <p className="mx-auto max-w-[20rem] font-sans text-[14px] sm:text-[15px] leading-snug text-[#2a2723]">
+                              {lifeTile.value}
+                            </p>
+                          </DemographicMutedCard>
+                        ) : null}
                       </div>
-                    ))}
+                    ) : null}
+                    {valuesTile || buyingTile ? (
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                        {valuesTile ? (
+                          <DemographicMutedCard label="Values:">
+                            <p className="mx-auto max-w-none font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#2a2723]">
+                              {valuesTile.value}
+                            </p>
+                          </DemographicMutedCard>
+                        ) : null}
+                        {buyingTile ? (
+                          <DemographicMutedCard label="Buying motivations:">
+                            <p className="mx-auto max-w-none font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#2a2723]">
+                              {buyingTile.value}
+                            </p>
+                          </DemographicMutedCard>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
-                ) : targetInsight ? (
-                  <MarketMdBody>{targetInsight}</MarketMdBody>
-                ) : (
-                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
-                )}
-              </NumberedMarketCard>
-            </div>
+                );
+              }
 
-            {/* 5 · 6 dark financial cards */}
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-stretch">
+              if (orderedConsumerTiles.length > 0) {
+                return (
+                  <MarketSectionCard tone="muted" title="Target Consumer Insight">
+                    <div className="-mt-6 sm:-mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {orderedConsumerTiles.slice(0, 4).map((t) => (
+                        <DemographicMutedCard key={`${t.key}-${t.value.slice(0, 12)}`} label={`${t.key}:`}>
+                          <p className="font-sans text-[13px] leading-relaxed text-[#2a2723]">
+                            {t.value}
+                          </p>
+                        </DemographicMutedCard>
+                      ))}
+                    </div>
+                  </MarketSectionCard>
+                );
+              }
+
+              if (targetInsight.trim()) {
+                return (
+                  <MarketSectionCard tone="muted" title="Target Consumer Insight">
+                    <div className="-mt-6 sm:-mt-7">
+                      <MarketMdBody>{targetInsight}</MarketMdBody>
+                    </div>
+                  </MarketSectionCard>
+                );
+              }
+
+              return (
+                <MarketSectionCard tone="muted" title="Target Consumer Insight">
+                  <p className="-mt-6 sm:-mt-7 text-sm text-[#756F68] font-sans">
+                    No data available
+                  </p>
+                </MarketSectionCard>
+              );
+            })()}
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6 items-stretch pt-2">
               <DarkFinancialCard
                 title="Margin Analysis"
                 parsed={marginParsed}
@@ -1052,7 +1161,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 ) : null}
               </button>
             </div>
-          </div>
         </div>
       </div>
     </>

@@ -963,11 +963,9 @@ const generatePrompt = () => {
                         <p className="font-sans text-[13px] sm:text-[14px] font-semibold tracking-wide text-white">
                           Retail Price
                         </p>
-                        <div className="mt-3 rounded-xl border border-white/15 bg-[#F2EFE9] px-5 py-4">
-                          <p className="font-heading text-[clamp(1.5rem,5vw,2.15rem)] font-medium tabular-nums leading-tight tracking-tight text-[#161514]">
-                            {sales.retailValue}
-                          </p>
-                        </div>
+                        <p className="mt-3 font-heading text-[clamp(1.5rem,5vw,2.15rem)] font-medium tabular-nums leading-tight tracking-tight text-white">
+                          {sales.retailValue}
+                        </p>
                       </div>
                     ) : null}
                   </div>
