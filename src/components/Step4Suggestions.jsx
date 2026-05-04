@@ -586,6 +586,12 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
         /(\*\*)?Be specific with item names and briefly explain why each piece complements the main product\.?(\*\*)?\s*/gi,
         /(\*\*)?Use ONLY this format[^\n]*(\*\*)?\s*/gi,
         /(\*\*)?Optional: you may add one short category line[^\n]*(\*\*)?\s*/gi,
+        /^\s*MANDATORY for every response:[^\n]*$/gim,
+        /^\s*Each piece MUST use this format[^\n]*$/gim,
+        /^\s*Then write 2[–-]3 lines of description[^\n]*$/gim,
+        /^\s*Cover how it complements the main product[^\n]*$/gim,
+        /^\s*Do not use "-" or "\*" at the start of lines[^\n]*$/gim,
+        /^\s*Do not write only one sentence per piece\.?\s*$/gim,
       ],
       'Color Palette': [
         /(\*\*)?Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format\s*\(one per line\):(\*\*)?\s*/gi,
@@ -911,10 +917,9 @@ const generatePrompt = () => {
     - Include comparison between domestic vs overseas production costs if relevant
 
     **Companion Items**
-    Suggest 6–8 complementary pieces for a capsule with this product. Use ONLY this format (NO leading hyphens on any line):
+    MANDATORY for every response: include exactly 4 or 5 complementary pieces (never fewer than 4, never more than 5). Each piece MUST use this format with NO leading hyphens or bullets:
     **Piece name**
-    One sentence on how it complements the capsule.
-    Optional: you may add one short category line (e.g. layering or accessories) before the pieces as plain text, then the **Piece** blocks.
+    Then write 2–3 lines of description (at least two complete sentences, ideally three). Cover how it complements the main product, styling or layering context, and the target wearer. Do not use "-" or "*" at the start of lines. Do not write only one sentence per piece.
 
     **Yield & Consumption Estimates**
     Provide a comprehensive fabric consumption analysis:
@@ -1192,14 +1197,14 @@ const generatePrompt = () => {
                     </div>
                     {sales.retailValue && (
                       <div
-                        className="mt-8 rounded-2xl border-2 border-[#C7A15E]/95 bg-[#1a1917] px-5 py-4 sm:px-6 sm:py-5 text-left shadow-[0_0_0_1px_rgba(199,161,94,0.15)]"
+                        className="mt-8 text-left"
                         role="region"
                         aria-label="Recommended retail price"
                       >
                         <div className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.2em] text-[#C7A15E] font-sans">
                           Recommended retail
                         </div>
-                        <div className="mt-2 font-heading text-[clamp(1.75rem,6vw,2.75rem)] font-medium text-white leading-[1.08] tracking-tight">
+                        <div className="mt-1 font-heading text-[clamp(1.65rem,5vw,2.35rem)] font-medium text-white leading-tight tracking-tight">
                           {sales.retailValue}
                         </div>
                       </div>

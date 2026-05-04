@@ -7,6 +7,12 @@ import emailjs from '@emailjs/browser';
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
+/**
+ * Testing only: skips Market Analysis subscription check (same path as localhost).
+ * Set to `false` before any production deploy that should enforce Tier 2.
+ */
+const TEMP_BYPASS_MARKET_ACCESS_FOR_TESTING = true;
+
 export default function Step4bMarketFinancials({ onNext, onBack }) {
   const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -21,6 +27,10 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
     hostname === "0.0.0.0";
+
+  /** Dev / preview only: set REACT_APP_BYPASS_MARKET_ANALYSIS_ACCESS=true at build time. Never enable on the public production storefront. */
+  const bypassMarketPaywall =
+    process.env.REACT_APP_BYPASS_MARKET_ANALYSIS_ACCESS === "true";
 
   // All hooks must be called before any early returns
   const formData = useSelector((state) => state.form);
@@ -254,7 +264,11 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
       const params = new URLSearchParams(window.location.search);
       const cid = params.get("customer_id");
 
-      if (isLocalhost) {
+      if (
+        isLocalhost ||
+        bypassMarketPaywall ||
+        TEMP_BYPASS_MARKET_ACCESS_FOR_TESTING
+      ) {
         setHasAccess(true);
         setAccessChecked(true);
         setAccessDenied(false);
@@ -295,7 +309,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     };
 
     checkAccess();
-  }, [isLocalhost]);
+  }, [isLocalhost, bypassMarketPaywall]);
 
   // Load cached sections or parse fresh from localStorage whenever inputs change
   useEffect(() => {
