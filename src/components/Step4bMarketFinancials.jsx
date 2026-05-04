@@ -14,6 +14,13 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
   const [hasAccess, setHasAccess] = useState(false);
   const [sections, setSections] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [missingCustomerId, setMissingCustomerId] = useState(false);
+
+  const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+  const isLocalhost =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0";
 
   // All hooks must be called before any early returns
   const formData = useSelector((state) => state.form);
@@ -241,41 +248,54 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     };
   }, []);
 
-  // Check page access on mount
+  // Check page access on mount (no hard redirect — use in-app states)
   useEffect(() => {
     const checkAccess = async () => {
       const params = new URLSearchParams(window.location.search);
       const cid = params.get("customer_id");
-      
-      if (!cid) {
-        window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
+
+      if (isLocalhost) {
+        setHasAccess(true);
+        setAccessChecked(true);
+        setAccessDenied(false);
+        setMissingCustomerId(false);
         return;
       }
-      
+
+      if (!cid) {
+        setMissingCustomerId(true);
+        setHasAccess(false);
+        setAccessDenied(false);
+        setAccessChecked(true);
+        return;
+      }
+
       try {
         const response = await fetch(
           `https://backend-capsule-builder.onrender.com/proxy/check-page-access?customer_id=${cid}&page=market-analysis`
         );
         const data = await response.json();
-        
+
         if (data.ok && data.allowed) {
           setHasAccess(true);
-          setAccessChecked(true);
+          setAccessDenied(false);
+          setMissingCustomerId(false);
         } else {
-          // Show upgrade page instead of redirecting
           setAccessDenied(true);
-          setAccessChecked(true);
+          setHasAccess(false);
+          setMissingCustomerId(false);
         }
       } catch (err) {
         console.error("Access check error:", err);
-        // On error, still show upgrade page
         setAccessDenied(true);
-        setAccessChecked(true);
+        setHasAccess(false);
+        setMissingCustomerId(false);
       }
+      setAccessChecked(true);
     };
 
     checkAccess();
-  }, []);
+  }, [isLocalhost]);
 
   // Load cached sections or parse fresh from localStorage whenever inputs change
   useEffect(() => {
@@ -335,7 +355,44 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     );
   }
 
-  // Show upgrade page if access is denied
+  if (missingCustomerId) {
+    return (
+      <>
+        <Toaster position="top-right" richColors />
+        <div className="bg-[#E8E8E8] min-h-screen flex items-center justify-center px-4">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+            <h2 className="text-[28px] font-heading font-semibold text-black mb-3">
+              Sign in required
+            </h2>
+            <p className="text-[15px] font-sans text-gray-700 mb-6 leading-relaxed">
+              Open the Capsule Builder from your Form Department account so your session
+              includes a customer ID. The subscription page opened before because the app
+              could not verify access without it.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-6 py-3 text-[15px] font-semibold text-black bg-gray-200 hover:bg-gray-300 rounded-lg transition-all"
+              >
+                ← Back to results
+              </button>
+              <a
+                href="https://formdepartment.com/account/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 text-[15px] font-semibold text-white bg-black hover:bg-[#3A3A3D] rounded-lg transition-all inline-block"
+              >
+                Go to account login
+              </a>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Show upgrade page if access is denied (tier / plan from backend)
   if (accessDenied && !hasAccess) {
     const tier2ProductId = 8424683241647;
     const tier2CheckoutUrl = `https://formdepartment.com/cart/${tier2ProductId}:1`;

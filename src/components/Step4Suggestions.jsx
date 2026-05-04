@@ -926,65 +926,11 @@ const generatePrompt = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
-                    <h4 className={sectionTitle}>Yield &amp; Consumption</h4>
-                    <div className={proseLight}>
-                      <ReactMarkdown>
-                        {suggestions.yieldConsumption ||
-                          "No yield or consumption estimates yet."}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
-                    <h4 className={sectionTitle}>Production Lead Time</h4>
-                    <div className={proseLight}>
-                      <ReactMarkdown>
-                        {suggestions.leadTime ||
-                          "No production timeline yet."}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
-                    <h4 className={sectionTitle}>Comparable Market</h4>
-                    <div className={proseLight}>
-                      <ReactMarkdown>
-                        {suggestions.marketExamples ||
-                          "No comparable market references yet."}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#F4F4F4] border border-black/[0.06] p-4 sm:p-6">
-                    <h4 className={sectionTitle}>Target Consumer</h4>
-                    <div className={proseLight}>
-                      <ReactMarkdown>
-                        {suggestions.targetInsight ||
-                          "No target consumer insight yet."}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#2A2623] p-4 sm:p-6 text-white shadow-md">
-                    <h4 className={sectionTitleLight}>Margin Analysis</h4>
-                    <div className={proseDark}>
-                      <ReactMarkdown>
-                        {suggestions.marginAnalysis ||
-                          "No margin analysis yet."}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 sm:mt-5 rounded-[18px] sm:rounded-[22px] bg-[#2A2623] p-4 sm:p-6 text-white shadow-md">
-                    <h4 className={sectionTitleLight}>Wholesale vs DTC</h4>
-                    <div className={proseDark}>
-                      <ReactMarkdown>
-                        {suggestions.pricing ||
-                          "No wholesale vs DTC pricing yet."}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
+                  <p className="mt-6 sm:mt-7 text-sm sm:text-[15px] text-[#2D2A25]/75 leading-relaxed text-center max-w-md mx-auto">
+                    Yield, lead times, market comps, consumer insight, and wholesale vs DTC
+                    pricing are on the next screen—
+                    <span className="font-medium text-[#2D2A25]"> Market Analysis</span>.
+                  </p>
 
                   <div className="mt-8 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                     <button

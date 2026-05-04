@@ -158,51 +158,7 @@ export default function CapsuleBuilderFlow() {
     );
   }
 
-  // Check page access before navigating to Market Analysis
-  const checkMarketAnalysisAccess = async () => {
-    if (isLocalhost) {
-      return true;
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const cid = params.get("customer_id");
-    
-    if (!cid) {
-      window.location.href = "https://formdepartment.com/pages/about?view=subscription-plans";
-      return false;
-    }
-    
-    try {
-      const response = await fetch(
-        `https://backend-capsule-builder.onrender.com/proxy/check-page-access?customer_id=${cid}&page=market-analysis`
-      );
-      const data = await response.json();
-      
-      if (data.ok && data.allowed) {
-        return true;
-      } else {
-        // Show upgrade message or redirect
-        if (data.redirect) {
-          window.location.href = data.redirect;
-        } else {
-          alert(data.message || "This page requires Tier 2 subscription. Please upgrade.");
-        }
-        return false;
-      }
-    } catch (err) {
-      console.error("Access check error:", err);
-      alert("Unable to verify access. Please try again.");
-      return false;
-    }
-  };
-
-  // Handle navigation to Market Analysis with access check
-  const handleNavigateToMarketAnalysis = async () => {
-    const hasAccess = await checkMarketAnalysisAccess();
-    if (hasAccess) {
-      setStep(7);
-    }
-  };
+  // Market Analysis (step 7) runs its own access check in Step4b—no redirect here.
 
   // Only render app content after validation passes
   if (!isValidated) {
@@ -302,7 +258,7 @@ export default function CapsuleBuilderFlow() {
                 email={email}
                 brand={brand}
                 userPlan={userPlan}
-                onNext={handleNavigateToMarketAnalysis}
+                onNext={() => setStep(7)}
                 onBack={() => setStep(5)}
               />
             )}
