@@ -390,10 +390,18 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
       'Margin Analysis': [
         /(\*\*)?Calculate suggested retail price vs\. production cost to show the gross margin percentage\.?(\*\*)?\s*/gi,
         /(\*\*)?Display calculations clearly\.?(\*\*)?\s*/gi,
+        /^Retail price:\s*\[[^\]]+\]/gim,
+        /^Production cost:\s*\[[^\]]+\]/gim,
+        /^Gross margin percentage:\s*\[[^\]]+\]/gim,
       ],
       'Wholesale vs. DTC Pricing': [
         /(\*\*)?Automatically generate a suggested wholesale price and direct-to-consumer\s*\(DTC\)\s*price range\.?(\*\*)?\s*/gi,
         /(\*\*)?Base calculations on standard fashion industry markups, and present both ranges clearly\.?(\*\*)?\s*/gi,
+        /(\*\*)?Output EXACTLY four lines[^\n]*\n?/gi,
+        /^Wholesale price range:\s*\[[^\]]+\]/gim,
+        /^Retail.*DTC price range:\s*\[[^\]]+\]/gim,
+        /^Wholesale gross margin percentage:\s*\[[^\]]+\]/gim,
+        /^DTC gross margin percentage:\s*\[[^\]]+\]/gim,
       ],
     };
     
@@ -729,10 +737,26 @@ const generatePrompt = () => {
     **Business & Financial Tools**
 
     **Margin Analysis**
-    Calculate suggested retail price vs. production cost to show the gross margin percentage. Display calculations clearly.
+    Output EXACTLY three labeled rows (each: Label, colon, single space, value). Numbers must reflect the SAME recommended retail range and landed cost assumptions you infer from the capsule.
+
+    Retail price: $[number]
+
+    Production cost per unit (landed estimate): $[number]
+
+    Gross margin percentage: show the formula inline (for example (($[retail]-$[cost])/$[retail])*100) and finish with '= [XX.XX%]'
 
     **Wholesale vs. DTC Pricing**
-    Automatically generate a suggested wholesale price and direct-to-consumer (DTC) price range. Base calculations on standard fashion industry markups, and present both ranges clearly.
+    Always fill this section. Output EXACTLY four labeled rows (same Label: value pattern, no headings or bullets between lines):
+
+    Wholesale price range: $[low]–$[high]
+
+    Retail / DTC price range: $[low]–$[high]
+
+    Wholesale gross margin percentage: formula showing ($[retail-wholesale])/($[retail]) * 100 '= [YY.YY%]' (explain any assumptions)
+
+    DTC gross margin percentage: formula linking DTC retail to production cost '= [ZZ.ZZ%]'
+
+    Tie Wholesale and Retail/DTC ranges to industry markups and the retail price stated in Margin Analysis where possible.
   `.trim();
 };
 

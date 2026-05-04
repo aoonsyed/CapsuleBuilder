@@ -3,12 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import emailjs from '@emailjs/browser';
-import {
-  parseMaterialsForDisplay,
-  parseCompanionForDisplay,
-  parseSalesPriceForDisplay,
-} from "./capsuleResponseParsers";
-
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
@@ -193,6 +187,20 @@ function sanitizePctHighlight(str) {
   return str.replace(/\uFEFF|[\u200B-\u200D\u2060]/g, "").trim();
 }
 
+/** Optional "(note)" after a dollar range only — keeps margin formulas intact. */
+function splitFinancialValueAndSub(fullVal) {
+  const val = stripMdLight(fullVal).trim();
+  if (!val) return { mainVal: "", sub: "" };
+  if (/=/.test(val) && /[()]/.test(val)) return { mainVal: val, sub: "" };
+  const tailNote = val.match(/^(.+)\s+\(([^)]+)\)\s*$/);
+  if (!tailNote) return { mainVal: val, sub: "" };
+  let mainVal = tailNote[1].trim();
+  const sub = tailNote[2].trim();
+  if (mainVal.includes("(") || /^[\s(]+$/.test(mainVal)) return { mainVal: val, sub: "" };
+  if (mainVal.length > 72) return { mainVal: val, sub: "" };
+  return { mainVal, sub };
+}
+
 function parseFinancialDarkCard(text) {
   const raw = stripMdLight(text);
   let highlight =
@@ -203,25 +211,28 @@ function parseFinancialDarkCard(text) {
   const lines = [];
   for (const part of text.split(/\n+/).map((l) => l.trim()).filter(Boolean)) {
     const t = stripMdLight(part).replace(/^[-*•\d.]+\s*/, "");
-    const m = t.match(/^([^:]{2,55}):\s*(.+)$/);
-    if (m) {
-      let val = m[2].trim();
-      let sub = "";
-      const paren = val.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
-      let mainVal = val;
-      if (paren) {
-        mainVal = paren[1].trim();
-        sub = paren[2].trim();
-      }
-      lines.push({ label: m[1].trim(), value: mainVal, sub });
-    }
+    const m = t.match(/^([^:]+):\s*(.+)$/);
+    if (!m) continue;
+    const label = m[1].trim();
+    if (label.length < 2 || label.length > 96) continue;
+    const rawVal = m[2].trim();
+    const { mainVal, sub } = splitFinancialValueAndSub(rawVal);
+    lines.push({ label, value: mainVal, sub });
+  }
+  if (!highlight && lines.length) {
+    const joined = lines.map((l) => l.value).join("\n");
+    const fromRows =
+      joined.match(/=\s*([\d.]+%)/)?.[1] ||
+      joined.match(/\b([\d.]+%)\b/)?.[1] ||
+      "";
+    highlight = sanitizePctHighlight(fromRows);
   }
   return { lines, highlight };
 }
 
 function MarketMdBody({ children }) {
   return (
-    <div className="text-[13px] sm:text-[14px] leading-relaxed text-[#232220] [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_strong]:font-semibold">
+    <div className="text-[13px] sm:text-[14px] font-normal leading-relaxed text-[#232220] [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:list-none [&_ul]:pl-0 [&_li]:mb-2 [&_strong]:font-normal">
       <ReactMarkdown
         components={{
           hr: () => null,
@@ -264,7 +275,7 @@ function DemographicMutedCard({ label, children, toneIndex = 0 }) {
     <div
       className={`flex min-h-[10rem] sm:min-h-[10.75rem] flex-col justify-center ${shell} text-center shadow-none`}
     >
-      <span className="font-sans text-[13px] font-bold text-[#292724]">
+      <span className="font-sans text-[13px] font-medium text-[#292724]">
         {label}
       </span>
       <div className="mt-4 text-[#1E1D1B]">{children}</div>
@@ -307,17 +318,14 @@ function AudienceDashboardFourGrid({ audienceByKey }) {
   );
 }
 
-function DarkFinancialCard({ title, parsed, fallbackText, showHighlight, palette = "charcoal" }) {
+function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
   const { lines, highlight } = parsed;
   const showHL = Boolean(showHighlight && highlight && lines.length > 0);
   const pct = sanitizePctHighlight(highlight);
 
+  /** Single tone for Margin + Wholesale cards (dark olive-brown, not navy). */
   const shell =
-    palette === "warm"
-      ? "rounded-[28px] sm:rounded-[30px] bg-[#3A362F] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_26px_60px_rgba(22,17,14,0.28)] ring-1 ring-[#faf9f7]/14"
-      : palette === "ink"
-        ? "rounded-[28px] sm:rounded-[30px] bg-[#2C3140] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_24px_58px_rgba(15,20,34,0.28)] ring-1 ring-[#e8eaf0]/10"
-        : "rounded-[28px] sm:rounded-[30px] bg-[#2D2D2A] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_22px_56px_rgba(0,0,0,0.22)]";
+    "rounded-[28px] sm:rounded-[30px] bg-[#2C2C26] px-7 sm:px-9 py-8 sm:py-10 text-white shadow-[0_24px_58px_rgba(20,19,14,0.26)] ring-1 ring-[#faf9f5]/10";
 
   return (
     <div className={shell}>
@@ -335,25 +343,25 @@ function DarkFinancialCard({ title, parsed, fallbackText, showHighlight, palette
                 <span className="max-w-[52%] text-[10px] sm:text-[11px] font-normal uppercase tracking-[0.2em] text-[#C9C5BE] leading-relaxed">
                   {row.label}:
                 </span>
-                <span className="text-right text-[14px] sm:text-[15px] font-normal italic text-white tabular-nums">
+                <span className="text-right text-[14px] sm:text-[15px] font-normal not-italic text-white tabular-nums">
                   {row.value}
                 </span>
               </div>
               {row.sub ? (
-                <p className="mt-2 text-right text-[11px] sm:text-[12px] text-[#A8A49C] italic tracking-tight">
+                <p className="mt-2 text-right text-[11px] sm:text-[12px] font-normal text-[#A8A49C] not-italic tracking-tight">
                   ({row.sub})
                 </p>
               ) : null}
             </div>
           ))}
           {showHL ? (
-            <div className="mt-8 pt-2 text-right font-heading text-[clamp(1.25rem,3.6vw,1.85rem)] font-light italic text-white tracking-tight tabular-nums">
+            <div className="mt-8 pt-2 text-right font-heading text-[clamp(1.25rem,3.6vw,1.85rem)] font-light not-italic text-white tracking-tight tabular-nums">
               {`= ${pct}`}
             </div>
           ) : null}
         </>
       ) : (
-        <div className="text-white/92 text-sm [&_p]:mb-3 [&_strong]:font-semibold">
+        <div className="text-white/92 text-sm font-normal [&_p]:mb-3 [&_strong]:font-normal">
           <ReactMarkdown
             components={{
               hr: () => null,
@@ -442,7 +450,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     const hash = hashParamsKey(paramsKey);
     return {
       rawAnswer: `productBreakdownRawAnswer_${hash}`, // Same as Step4Suggestions
-      parsedSections: `marketAnalysisParsed_v3_${hash}`, // bump when section shape changes
+      parsedSections: `marketAnalysisParsed_v4_${hash}`, // bump when section shape changes
     };
   }, [paramsKey, hashParamsKey]);
 
@@ -819,22 +827,12 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
     );
   }
 
-  const materialsMd = sections?.materials || "";
-  const companionMd = sections?.companionItems || "";
-  const salepricesMd = sections?.saleprices || "";
   const marketExamples = sections?.marketExamples || '';
   const targetInsight = sections?.targetInsight || '';
   const marginAnalysis = sections?.marginAnalysis || '';
   const pricing = sections?.pricing || '';
   const yieldConsumption = sections?.yieldConsumption || '';
   const leadTime = sections?.leadTime || '';
-
-  const recapMaterials = parseMaterialsForDisplay(materialsMd);
-  const recapCompanion = parseCompanionForDisplay(companionMd);
-  const recapSales = parseSalesPriceForDisplay(salepricesMd);
-  const recapSalesNarrative =
-    (recapSales.body && recapSales.body.trim()) ||
-    (!recapSales.retailValue ? salepricesMd.trim() : "");
 
   const yieldRows = parseLabelValueLines(yieldConsumption);
   const leadParts = splitLeadTimeSections(leadTime);
@@ -949,7 +947,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
 
         <div className="relative z-10 mx-auto max-w-[1100px] -mt-14 sm:-mt-20 lg:-mt-[5.25rem] px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-6">
           {/* Market summary — cream shell (PDF): category, hero title, blurb + nested white Yield */}
-          <div className="rounded-t-[36px] sm:rounded-t-[40px] bg-[#F2F1ED] shadow-[0_32px_80px_rgba(0,0,0,0.14)] px-6 pt-9 pb-8 sm:px-10 sm:pt-11 sm:pb-10 border border-black/[0.06] border-b-0">
+          <div className="rounded-t-[36px] sm:rounded-t-[40px] rounded-b-[36px] sm:rounded-b-[40px] bg-[#F2F1ED] shadow-[0_32px_80px_rgba(0,0,0,0.14)] px-6 pt-9 pb-8 sm:px-10 sm:pt-11 sm:pb-10 border border-black/[0.06]">
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
               {categoryLabel}
             </p>
@@ -967,8 +965,8 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
               <div className="mt-6 sm:mt-7 space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
                 {yieldRows.length ? (
                   yieldRows.map((r) => (
-                    <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0">
-                      <span className="font-semibold text-[#141312]">{r.label}: </span>
+                    <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0 font-normal">
+                      <span className="text-[#141312]">{r.label}: </span>
                       <span className="text-[#4a463f]">{r.value}</span>
                     </p>
                   ))
@@ -981,138 +979,31 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             </div>
           </div>
 
-          {/* Capsule recap */}
-          <div className="-mt-px rounded-b-[36px] sm:rounded-b-[40px] border border-black/[0.06] border-t-0 bg-[#F2F1ED] px-6 py-8 sm:px-10 sm:py-11 shadow-[0_22px_55px_rgba(0,0,0,0.08)]">
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.26em] text-[#6B6560] font-sans">
-              Capsule recap
-            </p>
-            <div className="mt-5 flex flex-col gap-4 sm:gap-5">
-              <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
-                <h3 className="font-heading text-xl sm:text-2xl text-[#1E1D1B] tracking-tight">
-                  Materials
-                </h3>
-                {recapMaterials.mode === "blocks" && recapMaterials.blocks.length > 0 ? (
-                  <div className="mt-6 space-y-8">
-                    {recapMaterials.blocks.map((b, i) => (
-                      <div key={`${b.title}-${i}`}>
-                        <div className="font-heading text-[17px] sm:text-[19px] text-[#1E1D1B] tracking-tight">
-                          {b.title}
-                        </div>
-                        <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">
-                          {b.body}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : materialsMd ? (
-                  <div className="mt-5 text-[13px] sm:text-[14px] leading-relaxed text-[#232220] [&_p]:mb-3">
-                    <ReactMarkdown components={{ hr: () => null }}>{materialsMd}</ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="mt-4 text-sm text-[#756F68] font-sans">No data available</p>
-                )}
-              </div>
-
-              <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-8 shadow-sm">
-                <h3 className="font-heading text-xl sm:text-2xl text-[#1E1D1B] tracking-tight">
-                  Companion Pieces
-                </h3>
-                {recapCompanion.mode === "blocks" && recapCompanion.blocks.length > 0 ? (
-                  <div className="mt-6 space-y-8">
-                    {recapCompanion.blocks.map((b, i) => (
-                      <div key={`${b.title}-${i}`}>
-                        <div
-                          className={
-                            b.body?.trim()
-                              ? "font-heading text-[17px] sm:text-[19px] text-[#1E1D1B] tracking-tight"
-                              : "font-sans font-semibold text-[14px] uppercase tracking-[0.12em] text-[#5c5349]"
-                          }
-                        >
-                          {b.title}
-                        </div>
-                        <div className="mt-2 text-[13px] sm:text-[14px] leading-[1.55] text-[#4a4744] whitespace-pre-wrap">
-                          {b.body}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : companionMd ? (
-                  <div className="mt-5 text-[13px] sm:text-[14px] leading-relaxed text-[#232220] [&_p]:mb-3">
-                    <ReactMarkdown components={{ hr: () => null }}>{companionMd}</ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="mt-4 text-sm text-[#756F68] font-sans">No data available</p>
-                )}
-              </div>
-
-              <div className="rounded-[24px] sm:rounded-[28px] bg-[#262624] p-6 sm:p-10 text-white shadow-md">
-                <h3 className="font-heading text-xl sm:text-2xl text-white tracking-tight">
-                  Sales Price
-                </h3>
-                <div className="mt-5 text-sm sm:text-[15px] leading-relaxed text-white/90 [&_p]:mb-3 [&_p:last-child]:mb-0">
-                  {recapSalesNarrative ? (
-                    <ReactMarkdown components={{ hr: () => null }}>{recapSalesNarrative}</ReactMarkdown>
-                  ) : recapSales.retailValue ? null : (
-                    <p className="text-white/80 text-sm">No data available.</p>
-                  )}
-                </div>
-                {recapSales.retailValue ? (
-                  <div className="mt-8 text-left" role="region" aria-label="Retail price">
-                    <p className="font-sans text-[13px] sm:text-[14px] font-semibold tracking-wide text-white">
-                      Retail Price
-                    </p>
-                    <p className="mt-3 font-heading text-[clamp(1.5rem,5vw,2.15rem)] font-medium tabular-nums leading-tight tracking-tight text-white">
-                      {recapSales.retailValue}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-            {/* Lead Time — PDF layout: serif title, bold label/value rows, hairline proportional bars */}
+            {/* Lead Time — label + detail rows, subtle dividers, regular-weight body */}
             <section className="rounded-[20px] sm:rounded-[22px] bg-[#F9F8F3] px-6 py-8 sm:px-10 sm:py-11 shadow-[0_14px_40px_rgba(0,0,0,0.055)] border border-black/[0.05]">
               <h3 className="font-heading text-[1.625rem] sm:text-[1.875rem] text-[#1E1D1B] tracking-tight leading-tight mb-7 sm:mb-8">
                 Lead Time
               </h3>
               {leadRows.length ? (
                 <div className="space-y-0">
-                  {(() => {
-                    let samplingSeen = 0;
-                    return leadRows.map((r, i) => {
-                      const isSampling = /^sampling/i.test(r.label.trim());
-                      if (isSampling) samplingSeen += 1;
-                      const showTimelineDot = isSampling && samplingSeen === 2;
-                      return (
-                        <div key={`${r.label}-${i}`} className="mb-6 sm:mb-7 last:mb-0 relative">
-                          {showTimelineDot ? (
-                            <span
-                              className="absolute -top-2 left-[0.125rem] h-2 w-2 rounded-full bg-emerald-600 shadow-sm ring-2 ring-emerald-600/25"
-                              aria-hidden
-                              title=""
-                            />
-                          ) : null}
-                          <div className="flex justify-between gap-3 items-baseline text-[13px] sm:text-[14px] font-sans text-[#141312]">
-                            <span className="font-bold">{r.label}:</span>
-                            <span className="shrink-0 font-bold text-[#1a1816] tabular-nums">
-                              {r.value}
-                            </span>
-                          </div>
-                          <div className="relative mt-2 h-px w-full bg-[#D4D0C8]">
-                            <div
-                              className="absolute left-0 top-0 h-px bg-[#1a1918]"
-                              style={{ width: `${r.pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    });
-                  })()}
+                  {leadRows.map((r, i) => (
+                    <div
+                      key={`${r.label}-${i}`}
+                      className="border-b border-[#bfb8ae] pb-5 mb-5 last:border-b-0 last:pb-0 last:mb-0"
+                    >
+                      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-6 text-[13px] sm:text-[14px] font-sans font-normal text-[#2a2825]">
+                        <span className="text-[#353330] shrink-0 sm:max-w-[42%]">
+                          {r.label}:
+                        </span>
+                        <span className="sm:text-right sm:flex-1 sm:min-w-0">{r.value}</span>
+                      </div>
+                    </div>
+                  ))}
                   {leadSummaryRows.length > 0 ? (
-                    <div className="mt-8 rounded-[14px] sm:rounded-2xl bg-[#D9D6D0] px-5 py-5 sm:px-6 sm:py-6 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-2.5">
+                    <div className="mt-8 rounded-[14px] sm:rounded-2xl bg-[#D9D6D0] px-5 py-5 sm:px-6 sm:py-6 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-2.5 font-normal">
                       {leadSummaryRows.map((row) => (
                         <p key={row.label} className="m-0">
-                          <span className="font-bold">{row.label}: </span>
+                          <span className="text-[#1a1816]">{row.label}: </span>
                           {row.value}
                         </p>
                       ))}
@@ -1152,14 +1043,12 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 parsed={marginParsed}
                 fallbackText={marginAnalysis}
                 showHighlight
-                palette="charcoal"
               />
               <DarkFinancialCard
                 title="Wholesale vs DTC Pricing"
                 parsed={wholesaleParsed}
                 fallbackText={pricing}
                 showHighlight={false}
-                palette="ink"
               />
             </div>
 
