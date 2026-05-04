@@ -197,14 +197,14 @@ export default function Step1Vision({
               </div>
 
               {/* Bottom controls */}
-              <div className="mt-10 flex items-center justify-between">
+              <div className="mt-10 flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                 <button
                   type="button"
                   onClick={onBack}
-                  className="flex items-center gap-3"
+                  className="flex shrink-0 touch-manipulation items-center gap-3 self-start hover:opacity-90 active:opacity-80 transition-opacity"
                   aria-label="Back"
                 >
-                  <span className="h-11 w-11 rounded-full border border-[#2B2A25] flex items-center justify-center text-[#2B2A25] text-[18px] leading-none">
+                  <span className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#2B2A25] text-[18px] leading-none text-[#2B2A25]">
                     ←
                   </span>
                   <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium text-[#2B2A25]">
@@ -214,12 +214,14 @@ export default function Step1Vision({
 
                 <button
                   type="submit"
-                  className="relative h-[52px] w-[248px] rounded-full bg-[#2B2A25] text-white"
+                  className="flex min-h-[52px] w-full shrink-0 touch-manipulation items-center justify-center gap-3 rounded-full bg-[#2B2A25] px-6 py-3 text-white sm:w-auto sm:min-w-[220px] sm:max-w-md hover:bg-[#1f1d1a] active:bg-[#181716] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2B2A25]"
                 >
-                  <span className="block w-full text-center font-sans text-[12px] tracking-[0.24em] uppercase">
+                  <span className="font-sans text-[11px] sm:text-[12px] tracking-[0.16em] sm:tracking-[0.22em] uppercase text-center px-1">
                     CONTINUE TO STEP 2
                   </span>
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[16px] leading-none">→</span>
+                  <span className="text-[16px] leading-none shrink-0" aria-hidden>
+                    →
+                  </span>
                 </button>
               </div>
             </form>

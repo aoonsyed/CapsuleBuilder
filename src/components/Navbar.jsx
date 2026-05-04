@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 
 const STORE_HOMEPAGE = "https://formdepartment.com";
 
-export default function Navbar() {
+export default function Navbar({ showTrialBanner = false }) {
     // Preserve customer_id when redirecting to store so user stays in logged-in context
     const storeHref = useMemo(() => {
         const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
@@ -17,7 +17,15 @@ export default function Navbar() {
 
     return (
         <div>
-            <nav className="bg-[#E8E8E8] font-sans sticky text-black leading-[1.2] px-4 md:px-6 py-4 md:py-6">
+            {showTrialBanner ? (
+                <div
+                    className="bg-[#25221D] py-2 text-center font-sans text-[10px] uppercase leading-snug tracking-[0.22em] text-[#EBDCC5] sm:text-[11px] sm:tracking-[0.24em]"
+                    role="status"
+                >
+                    You are currently using a free trial. Upgrade to unlock all features
+                </div>
+            ) : null}
+            <nav className="bg-[#E8E8E8] font-sans sticky top-0 z-50 text-black leading-[1.2] px-4 md:px-6 py-4 md:py-6">
                 <div className="max-w-7xl mx-auto">
                     {/* Centered Logo */}
                     <div className="flex items-center justify-center">

@@ -1313,21 +1313,26 @@ const generatePrompt = () => {
                     )}
                   </div>
 
-                  <div className="mt-8 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+                  <div className="mt-8 flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                     <button
                       type="button"
                       onClick={onBack}
-                      className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-full border border-[#302D29] text-lg sm:text-xl leading-none text-[#302D29] hover:bg-black/5 transition-colors"
+                      className="flex shrink-0 touch-manipulation items-center gap-3 self-start text-[#302D29] hover:opacity-90 active:opacity-80 transition-opacity"
                       aria-label="Back"
                     >
-                      ←
+                      <span className="flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#302D29] text-lg leading-none sm:h-12 sm:w-12 sm:text-xl">
+                        ←
+                      </span>
+                      <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium">
+                        BACK
+                      </span>
                     </button>
                     {userPlan === "tier1" ? (
                       <a
                         href="https://formdepartment.com/pages/about?view=subscription-plans"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-[44px] flex-1 min-w-[12rem] sm:max-w-md items-center justify-center rounded-full bg-[#2D2A25] px-4 sm:px-6 text-[11px] sm:text-[12px] uppercase tracking-[0.18em] text-white text-center"
+                        className="flex min-h-[52px] w-full shrink-0 touch-manipulation items-center justify-center gap-3 rounded-full bg-[#2D2A25] px-6 py-3 text-[11px] sm:text-[12px] uppercase tracking-[0.18em] text-white text-center hover:bg-[#1a1816] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D2A25] sm:w-auto sm:min-w-[240px] sm:max-w-md"
                       >
                         Upgrade To Tier 2
                       </a>
@@ -1346,9 +1351,14 @@ const generatePrompt = () => {
                           );
                           if (onNext) onNext();
                         }}
-                        className="min-h-[44px] flex-1 min-w-[12rem] sm:max-w-md rounded-full bg-[#2D2A25] px-4 sm:px-6 text-[11px] sm:text-[12px] uppercase tracking-[0.18em] text-white hover:bg-[#1a1816] transition-colors"
+                        className="flex min-h-[52px] w-full shrink-0 touch-manipulation items-center justify-center gap-2 rounded-full bg-[#2D2A25] px-5 py-3 text-[10px] sm:text-[11px] md:text-[12px] uppercase tracking-[0.14em] sm:tracking-[0.18em] text-white hover:bg-[#1a1816] active:bg-[#141210] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D2A25] sm:w-auto sm:min-w-[min(100%,260px)] sm:max-w-md"
                       >
-                        Continue To Market Analysis →
+                        <span className="text-center leading-tight px-0.5">
+                          Continue To Market Analysis
+                        </span>
+                        <span className="text-base leading-none shrink-0" aria-hidden>
+                          →
+                        </span>
                       </button>
                     )}
                   </div>

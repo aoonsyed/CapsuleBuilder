@@ -933,13 +933,13 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
             </div>
 
             {/* Footer actions */}
-            <div className="mt-11 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 border-t border-black/[0.08] pt-9">
+            <div className="mt-11 flex w-full flex-col gap-4 border-t border-black/[0.08] pt-9 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
               <button
                 type="button"
                 onClick={onBack}
-                className="inline-flex items-center gap-3 text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.2em] text-[#282522] hover:opacity-80 transition-opacity font-sans"
+                className="flex shrink-0 touch-manipulation items-center gap-3 self-start text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.2em] text-[#282522] hover:opacity-80 active:opacity-70 transition-opacity font-sans"
               >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#282522]/80 text-base">
+                <span className="inline-flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#282522]/80 text-base leading-none">
                   ←
                 </span>
                 Back
@@ -948,13 +948,18 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                 type="button"
                 onClick={handleScheduleClick}
                 disabled={sendingEmail}
-                className={`inline-flex min-h-[46px] w-full sm:w-auto sm:min-w-[220px] items-center justify-center rounded-full px-8 text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.16em] text-white transition-colors sm:ml-auto ${
+                className={`flex min-h-[48px] w-full shrink-0 touch-manipulation items-center justify-center gap-2 rounded-full px-6 py-3 text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.16em] text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:ml-auto sm:w-auto sm:min-w-[220px] sm:max-w-md ${
                   sendingEmail
-                    ? "bg-neutral-400 cursor-not-allowed"
-                    : "bg-[#1a1918] hover:bg-black"
+                    ? "cursor-not-allowed bg-neutral-400"
+                    : "bg-[#1a1918] hover:bg-black focus-visible:outline-white/40"
                 }`}
               >
-                {sendingEmail ? "Sending details…" : "Schedule Call →"}
+                <span>{sendingEmail ? "Sending details…" : "Schedule Call"}</span>
+                {!sendingEmail ? (
+                  <span className="text-base leading-none shrink-0" aria-hidden>
+                    →
+                  </span>
+                ) : null}
               </button>
             </div>
           </div>

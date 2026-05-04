@@ -82,6 +82,7 @@ export default function CapsuleBuilderFlow() {
           console.error("Failed to parse backend response as JSON:", e);
           // If can't parse response, allow access (Shopify already validated login)
           setIsValidated(true);
+          setIsTrial(true); // keep trial stripe visible when plan status unknown
           setIsValidating(false);
           return;
         }
@@ -97,14 +98,19 @@ export default function CapsuleBuilderFlow() {
           // Store user's plan/tier for access control
           setUserPlan(data.plan || null);
 
-          // Show trial banner if trial hasn't been used yet
-          if (data.show_trial_banner || !data.trial_used) {
-            console.log("User is on free trial. Trial used:", data.trial_used);
-            setIsTrial(true);
-          } else {
-            console.log("User has already used trial. Has subscription:", data.has_subscription, "Plan:", data.plan);
-            setIsTrial(false);
-          }
+          // Top trial stripe: show for anyone who is not a confirmed Tier 2 subscriber
+          const plan = String(data.plan || "").toLowerCase();
+          const subscribedTier2 =
+            plan === "tier2" && data.has_subscription === true;
+          setIsTrial(!subscribedTier2);
+          console.log(
+            "Trial banner:",
+            !subscribedTier2 ? "visible" : "hidden",
+            "plan:",
+            data.plan,
+            "has_subscription:",
+            data.has_subscription
+          );
           setIsValidated(true);
           setIsValidating(false);
           return; // Important: return to prevent any further execution
@@ -115,6 +121,7 @@ export default function CapsuleBuilderFlow() {
           console.error("Backend error:", data.reason, data.message);
           // Still allow access but log the error
           setIsValidated(true);
+          setIsTrial(true);
           setIsValidating(false);
           return;
         }
@@ -167,11 +174,14 @@ export default function CapsuleBuilderFlow() {
   return (
     <div className="bg-white min-h-screen bg-cover bg-center font-sans text-white relative">
       <div className="absolute inset-0 bg-white z-0" />
-      {isTrial && (
-        <div className="relative z-20 bg-[#25221D] text-[#EBDCC5] text-center py-2 px-4 font-sans text-[11px] tracking-[0.24em] uppercase">
+      {isTrial ? (
+        <div
+          className="sticky top-0 z-[100] bg-[#25221D] text-[#EBDCC5] text-center py-2.5 px-4 font-sans text-[10px] sm:text-[11px] leading-snug tracking-[0.22em] sm:tracking-[0.24em] uppercase border-b border-black/40"
+          role="status"
+        >
           You are currently using a free trial. Upgrade to unlock all features
         </div>
-      )}
+      ) : null}
       <div className={`relative z-10 ${step === 1 ? "bg-white" : ""}`}>
         <AnimatePresence mode="wait">
           <motion.div
