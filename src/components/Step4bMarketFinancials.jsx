@@ -913,13 +913,6 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
         className="bg-[#f5f4f1] min-h-screen w-full overflow-x-hidden pb-10 sm:pb-12"
         data-capsule-step="market-analysis"
       >
-        {/* PDF / product mock: thin trial announcement */}
-        <div className="w-full bg-[#2a2928] py-2.5 px-4 text-center">
-          <p className="font-sans text-[9px] sm:text-[10px] font-normal uppercase tracking-[0.22em] text-[#b5b3ae] leading-snug">
-            You are currently using a free trial. Upgrade to unlock all features
-          </p>
-        </div>
-
         {/* Hero — full-bleed image + overlay (Market Analysis screen) */}
         <section
           className="relative flex w-full flex-col items-center justify-end min-h-[min(52vh,420px)] sm:min-h-[min(52vh,480px)] pt-14 pb-12 sm:pt-16 sm:pb-14 px-4 text-center text-white"
