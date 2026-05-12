@@ -11,6 +11,8 @@ import {
     setMaterialError,
 } from "../formSlice";
 
+import { StepProgressBar } from "./StepFormChrome";
+
 export default function Step3ProductFocus({ email, onNext, onBack, embedded = false, validating = false }) {
     const dispatch = useDispatch();
     const {
@@ -55,7 +57,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
                     </div>
                     <div>
                         <label className="block text-[14px] font-sans font-medium leading-[1.2] mb-2">Are there any key features of your product?</label>
-                        <textarea className="w-full border border-black bg-transparent px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/40 focus:outline-none rounded-md" placeholder="Any key features? (color, fit, construction, etc.)" value={keyFeatures} onChange={(e) => dispatch(setKeyFeatures(e.target.value))} />
+                        <textarea className="w-full border border-black bg-transparent px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/40 focus:outline-none rounded-md" placeholder="Color, fit, construction, etc." value={keyFeatures} onChange={(e) => dispatch(setKeyFeatures(e.target.value))} />
                     </div>
                 </form>
             </div>
@@ -66,7 +68,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
         <div className="w-full bg-white">
             <section className="relative w-full min-h-[420px] h-[min(52vh,500px)] sm:min-h-[460px] sm:h-[min(56vh,560px)] flex flex-col items-center justify-end pb-10 sm:pb-12 px-6 text-center" style={{ backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.65) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")', backgroundSize: "cover", backgroundPosition: "center" }}>
                 <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
-                    <img src="/assets/form-logo-white-transparent.png" alt="Form Department logo" className="w-[210px] h-auto" />
+                    <img src="/assets/form-logo-white-reference.png" alt="Form Department logo" className="w-[210px] h-auto" />
                 </div>
                 <h2 className="mt-10 font-heading text-[34px] leading-[1.15] text-[#C7A15E]">Your Curated Capsule</h2>
             </section>
@@ -76,12 +78,12 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
                     <form onSubmit={handleSubmit} className="space-y-11 text-[#2B2A25]">
                         <div className="pt-1">
                             <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">Step 3 of 5</p>
-                            <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
+                            <StepProgressBar step={3} total={5} />
                             <h2 className="mt-9 text-[46px] font-heading leading-[1.05]">Product Focus</h2>
                         </div>
                         <div className="pt-1">
                             <label className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-3">WHAT ARTICLE OF CLOTHING WOULD YOU LIKE TO DEVELOP FIRST?</label>
-                            <input className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans text-[#2B2A25] focus:outline-none rounded-md" placeholder="Type a clothing item to begin" value={productType} onChange={(e) => dispatch(setProductType(e.target.value))} required />
+                            <input className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans text-[#2B2A25] focus:outline-none rounded-md" placeholder="Clothing item" value={productType} onChange={(e) => dispatch(setProductType(e.target.value))} required />
                         </div>
                         <div className="pt-1">
                             <label className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-3">AT WHAT PRICE WOULD YOU LIKE TO SELL THIS ITEM?</label>
@@ -93,7 +95,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
                         </div>
                         <div>
                             <label className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-3">ARE THERE ANY KEY FEATURES OF YOUR PRODUCT?</label>
-                            <textarea className="w-full min-h-[120px] resize-none border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans text-[#2B2A25] focus:outline-none rounded-md" placeholder="Any key features? (color, fit, construction, etc.)" value={keyFeatures} onChange={(e) => dispatch(setKeyFeatures(e.target.value))} />
+                            <textarea className="w-full min-h-[120px] resize-none border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans text-[#2B2A25] focus:outline-none rounded-md" placeholder="Color, fit, construction, etc." value={keyFeatures} onChange={(e) => dispatch(setKeyFeatures(e.target.value))} />
                         </div>
 
                         <div className="pt-1">
@@ -183,7 +185,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
                                 className={`flex min-h-[44px] max-w-[min(9rem,calc(100%-7rem))] shrink touch-manipulation items-center justify-center gap-2 rounded-full px-4 py-2 text-white sm:max-w-none sm:min-h-[46px] sm:gap-3 sm:px-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 transition-colors ${validating ? "cursor-not-allowed bg-neutral-400" : "bg-[#2B2A25] hover:bg-[#1f1d1a] active:bg-[#181716] focus-visible:outline-[#2B2A25]"}`}
                             >
                                 <span className="whitespace-nowrap font-sans text-[10px] tracking-[0.18em] uppercase sm:text-[12px] sm:tracking-[0.22em]">
-                                    {validating ? "VALIDATING..." : "CONTINUE"}
+                                    {validating ? "ANALIZING..." : "CONTINUE"}
                                 </span>
                                 <span className="shrink-0 text-[14px] leading-none sm:text-[16px]" aria-hidden>
                                     →

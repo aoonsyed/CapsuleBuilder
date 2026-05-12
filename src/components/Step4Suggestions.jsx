@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
@@ -27,6 +27,7 @@ function parseCostProductionRows(text) {
       t.match(/^(.+?)\s+(\d{1,3})\s*%$/);
     if (m) {
       const label = m[1].replace(/^[\d.)]+\s*/, "").trim();
+      if (/overseas/i.test(label)) return;
       const pct = Math.min(100, Math.max(0, parseInt(m[2], 10)));
       if (label.length > 1 && label.length < 56) {
         const key = label.toLowerCase();
@@ -50,15 +51,28 @@ function parseCostProductionRows(text) {
   return rows;
 }
 
-export default function Step4Suggestions({ onNext, onBack, userPlan }) {
+function normalizeCostRows(rows) {
+  if (!rows.length) return rows;
+  const total = rows.reduce((sum, row) => sum + row.pct, 0);
+  if (total <= 0) return rows;
+  if (total === 100) return rows;
+  return rows.map((row) => ({
+    ...row,
+    pct: Math.round((row.pct / total) * 100),
+  }));
+}
+
+export default function Step4Suggestions({ onNext, userPlan, outputSessionKey }) {
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
+  const loadedParamsRef = useRef(null);
 
   const formData = useSelector((state) => state.form);
   const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
   const {
     idea,
     brand2,
+    localBrand,
     sharedPrefernce,
     productType,
     targetPrice,
@@ -72,12 +86,19 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
   // Debug logging for form data
   console.log('Form data from Redux:', formData);
 
+  const clientBrand = (localBrand || brand2 || "").trim();
+  const scheduleUrl =
+    process.env.REACT_APP_SCHEDULING_URL ||
+    "https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137";
+
   // Create paramsKey based on all inputs that affect AI output
   const paramsKey = useMemo(
     () =>
       JSON.stringify({
+        outputSessionKey,
         idea,
         brand2,
+        localBrand,
         sharedPrefernce,
         productType,
         targetPrice,
@@ -88,7 +109,7 @@ export default function Step4Suggestions({ onNext, onBack, userPlan }) {
         manufacturingPreference,
         savedAnswers,
       }),
-    [idea, brand2, sharedPrefernce, productType, targetPrice, quantity, category, keyFeatures, materialPreferenceOptions, manufacturingPreference, savedAnswers]
+    [outputSessionKey, idea, brand2, localBrand, sharedPrefernce, productType, targetPrice, quantity, category, keyFeatures, materialPreferenceOptions, manufacturingPreference, savedAnswers]
   );
 
   // Hash function to create consistent localStorage keys
@@ -661,7 +682,7 @@ const generatePrompt = () => {
   return `
     Act as a fashion design assistant. Based on the following details:
     - Idea: ${idea}
-    - Brand: ${brand2}
+    - Brand: ${clientBrand || brand2}
     - Shared Preferences: ${sharedPrefernce}
     - Product Type: ${productType}
     - Target Price: ${targetPrice}
@@ -675,7 +696,7 @@ const generatePrompt = () => {
     Please provide your response in EXACTLY this format with these exact headings:
 
     **Materials**
-    You MUST output exactly four (4) different materials or fabrics. Repeat this block four times — no fewer than four.
+    Output exactly three (3) different materials or fabrics. Repeat this block three times — no fewer than three.
     For EACH material use a bold sub-heading on its own line in this exact shape (then a blank line, then the copy):
     **Full fabric name (NNN GSM)**
     Two or three sentences on fiber content, hand feel, durability, breathability, sustainability, or performance. Do not run all four fabrics in one paragraph. Do not prefix body lines with hyphens.
@@ -696,15 +717,15 @@ const generatePrompt = () => {
     DO NOT include any descriptions or additional text, ONLY the format above.
 
     **Cost Production**
-    Provide a detailed production cost breakdown:
+    Provide a domestic production cost breakdown only. Do not include overseas production.
+    Output percentage rows that sum to 100% across materials, manufacturing, finishing, and logistics.
     - Cost per unit (specific number)
     - Brief breakdown of major cost components (materials %, labor %, overhead %)
     - Mention any economies of scale considerations
     - Note factors that could affect cost (complexity, special finishes, etc.)
-    - Include comparison between domestic vs overseas production costs if relevant
 
     **Companion Items**
-    You MUST output exactly four (4) different companion pieces. Repeat this block four times — no fewer than four:
+    Output exactly three (3) different companion pieces. Repeat this block three times — no fewer than three:
     **Piece name**
     Two or three sentences explaining how it complements the hero product, styling, layering, and the target customer. Do not prefix lines with hyphens.
 
@@ -778,6 +799,11 @@ const generatePrompt = () => {
   // Fetch AI suggestions (check cache first)
   useEffect(() => {
     const fetchSuggestions = async () => {
+      if (loadedParamsRef.current === paramsKey && suggestions) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       
       // First, try to load from cache
@@ -819,6 +845,7 @@ const generatePrompt = () => {
         localStorage.setItem('answer', cached.rawAnswer);
         localStorage.setItem('parsedSuggestions', JSON.stringify(cleanedSuggestions));
         setSuggestions(cleanedSuggestions);
+        loadedParamsRef.current = paramsKey;
         setLoading(false);
         toast.success('Product Breakdown loaded from cache', {
           style: { backgroundColor: '#3A3A3D', color: '#fff' },
@@ -850,6 +877,7 @@ const generatePrompt = () => {
         const parsed = parseAIResponse(answer);
         console.log('Parsed Suggestions:', parsed);
         setSuggestions(parsed);
+        loadedParamsRef.current = paramsKey;
 
         // Store parsed suggestions for the next screen (legacy)
         localStorage.setItem('parsedSuggestions', JSON.stringify(parsed));
@@ -886,10 +914,11 @@ const generatePrompt = () => {
         <p className="mb-4">No Suggestions For Now</p>
         {userPlan === 'tier2' && (
           <button
-            onClick={onBack}
+            type="button"
+            onClick={() => onNext && onNext()}
             className="px-6 py-2 text-lg font-bold text-white bg-black hover:bg-gray-600 rounded-md transition"
           >
-            ← Back
+            Continue
           </button>
         )}
       </div>
@@ -909,28 +938,22 @@ const generatePrompt = () => {
           }}
         >
           <img
-            src="/assets/form-logo-white-transparent.png"
+            src="/assets/form-logo-white-reference.png"
             alt="Form Department"
             className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 w-[min(42vw,210px)] sm:w-[200px] md:w-[220px] h-auto"
           />
           <div className="mt-24 sm:mt-28 md:mt-24 text-center max-w-xl">
             <h2 className="font-heading text-[clamp(1.65rem,4.5vw,2.625rem)] leading-tight tracking-tight">
-              Your Results
+              Product Breakdown
             </h2>
           </div>
         </section>
 
         <section className="relative -mt-6 sm:-mt-10 pb-12 sm:pb-16 px-3 sm:px-5 lg:px-8">
           <div className="mx-auto w-full max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[28px] sm:rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-4 py-8 sm:px-6 sm:py-10 md:px-8 md:py-11">
-            <p className="text-[11px] sm:text-[12px] uppercase tracking-[0.28em] text-[#6B6560]">
-              Your capsule focus
-            </p>
             <h3 className="mt-3 sm:mt-4 font-heading text-[clamp(1.75rem,5vw,2.75rem)] leading-[1.05] text-[#1E1D1B] break-words">
-              {productType?.trim() || category?.trim() || "Your product"}
+              {clientBrand || productType?.trim() || category?.trim() || "Your product"}
             </h3>
-            <p className="mt-3 sm:mt-4 font-sans text-sm sm:text-base text-[#1E1D1B] leading-relaxed max-w-prose">
-              A technical overview of construction, sourcing, positioning, and economics for this capsule concept—generated from your inputs and questionnaire.
-            </p>
 
             {(() => {
               const titleSerif =
@@ -945,8 +968,8 @@ const generatePrompt = () => {
               const materials = parseMaterialsForDisplay(
                 suggestions.materials || ""
               );
-              const costRows = parseCostProductionRows(
-                suggestions.productionCosts || ""
+              const costRows = normalizeCostRows(
+                parseCostProductionRows(suggestions.productionCosts || "")
               );
               const sales = parseSalesPriceForDisplay(suggestions.saleprices || "");
               const salesNarrative =
@@ -1026,7 +1049,7 @@ const generatePrompt = () => {
 
                   {/* Cost Production — label / % / bar rows */}
                   <div className="mt-4 sm:mt-5 rounded-[24px] sm:rounded-[28px] bg-[#F2F0E9] p-6 sm:p-8 border border-black/[0.05]">
-                    <h4 className={titleSerif}>Cost Production</h4>
+                    <h4 className={titleSerif}>Production Cost</h4>
                     {costRows.length >= 1 ? (
                       <div className="mt-7 space-y-7">
                         {costRows.map((row) => (
@@ -1075,7 +1098,7 @@ const generatePrompt = () => {
                                 aria-label={name}
                               />
                               <span className="text-left text-[11px] sm:text-[12px] font-mono tracking-wide text-[#232220] uppercase truncate">
-                                {name.trim() || hex}
+                                {name.trim() || hex} {hex}
                               </span>
                             </div>
                           ))}
@@ -1138,20 +1161,7 @@ const generatePrompt = () => {
                     )}
                   </div>
 
-                  <div className="mt-8 flex w-full flex-row flex-nowrap items-center justify-between gap-2 sm:gap-4">
-                    <button
-                      type="button"
-                      onClick={onBack}
-                      className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 text-[#302D29] hover:opacity-90 active:opacity-80 transition-opacity sm:gap-3"
-                      aria-label="Back"
-                    >
-                      <span className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#302D29] text-base leading-none sm:h-11 sm:w-11 sm:text-lg md:h-12 md:w-12 md:text-xl">
-                        ←
-                      </span>
-                      <span className="text-[11px] tracking-[0.18em] uppercase font-sans font-medium sm:text-[12px] sm:tracking-[0.2em]">
-                        BACK
-                      </span>
-                    </button>
+                  <div className="mt-8 flex w-full flex-row flex-nowrap items-center justify-end gap-2 sm:gap-4">
                     {userPlan === "tier1" ? (
                       <a
                         href="https://formdepartment.com/pages/about?view=subscription-plans"
@@ -1162,29 +1172,30 @@ const generatePrompt = () => {
                         Upgrade To Tier 2
                       </a>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          toast.info(
-                            "Continue to view production timelines and market analysis",
-                            {
-                              style: {
-                                backgroundColor: "#3A3A3D",
-                                color: "#fff",
-                              },
-                            }
-                          );
-                          if (onNext) onNext();
-                        }}
-                        className="flex min-h-[44px] max-w-[min(10.75rem,calc(100%-6.5rem))] shrink touch-manipulation items-center justify-center gap-1.5 rounded-full bg-[#2D2A25] px-2.5 py-2 uppercase tracking-[0.1em] text-white hover:bg-[#1a1816] active:bg-[#141210] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D2A25] sm:max-w-none sm:min-h-[46px] sm:gap-2 sm:px-4 sm:tracking-[0.15em]"
-                      >
-                        <span className="text-center font-sans text-[8px] leading-tight sm:text-[10px] sm:leading-snug">
-                          Continue To Market Analysis
-                        </span>
-                        <span className="shrink-0 text-[13px] leading-none sm:text-[14px]" aria-hidden>
-                          →
-                        </span>
-                      </button>
+                      <>
+                        <a
+                          href={scheduleUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex min-h-[44px] shrink touch-manipulation items-center justify-center rounded-full border border-[#2D2A25] px-4 py-2 text-[10px] uppercase tracking-[0.14em] text-[#2D2A25] hover:bg-[#2D2A25] hover:text-white transition-colors sm:min-h-[46px] sm:px-5"
+                        >
+                          Schedule call
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onNext) onNext();
+                          }}
+                          className="flex min-h-[44px] shrink touch-manipulation items-center justify-center gap-1.5 rounded-full bg-[#2D2A25] px-2.5 py-2 uppercase tracking-[0.1em] text-white hover:bg-[#1a1816] active:bg-[#141210] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D2A25] sm:min-h-[46px] sm:gap-2 sm:px-4 sm:tracking-[0.15em]"
+                        >
+                          <span className="text-center font-sans text-[8px] leading-tight sm:text-[10px] sm:leading-snug">
+                            Continue To Market Analysis
+                          </span>
+                          <span className="shrink-0 text-[13px] leading-none sm:text-[14px]" aria-hidden>
+                            →
+                          </span>
+                        </button>
+                      </>
                     )}
                   </div>
                 </>
@@ -1192,25 +1203,6 @@ const generatePrompt = () => {
             })()}
           </div>
 
-          <div
-            className="mx-auto mt-8 sm:mt-10 w-full max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[22px] sm:rounded-[26px] overflow-hidden px-4 py-10 sm:px-8 sm:py-12 text-center text-white"
-            style={{
-              backgroundImage:
-                'linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.35) 100%), url("/assets/pesce-huang-k7DQy4YaVXk-unsplash_DARK.jpg")',
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          >
-            <h3 className="font-heading text-[clamp(1.25rem,4vw,2.75rem)] leading-snug max-w-xl mx-auto">
-              Refine your ideas and move forward with purpose
-            </h3>
-            <button
-              type="button"
-              className="mt-6 sm:mt-8 inline-flex min-h-[44px] w-full max-w-sm mx-auto items-center justify-center rounded-full border border-white/80 px-6 text-[11px] sm:text-[12px] uppercase tracking-[0.22em]"
-            >
-              Start Your Capsule Collection
-            </button>
-          </div>
         </section>
       </div>
     )}

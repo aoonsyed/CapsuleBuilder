@@ -58,12 +58,14 @@ function leadRowWeekWeight(value) {
 }
 
 function finalizeLeadRowsWithPct(temp) {
-  let maxWeeks = 20;
-  for (const r of temp) maxWeeks = Math.max(maxWeeks, r.w);
-  return temp.map((r) => ({
+  const domesticTotal = temp.reduce((sum, row) => sum + row.w, 0) || 1;
+  return temp.map((r, index) => ({
     label: r.label,
     value: r.value,
-    pct: Math.min(100, Math.round((r.w / maxWeeks) * 100)),
+    pct:
+      index === 0
+        ? 100
+        : Math.min(100, Math.round((r.w / domesticTotal) * 100)),
   }));
 }
 
@@ -454,7 +456,7 @@ function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
   );
 }
 
-export default function Step4bMarketFinancials({ onNext, onBack }) {
+export default function Step4bMarketFinancials({ onBack, onRestart, outputSessionKey }) {
   const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
@@ -1016,7 +1018,7 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
           }}
         >
           <img
-            src="/assets/form-logo-white-transparent.png"
+            src="/assets/form-logo-white-reference.png"
             alt="Form Department"
             className="absolute top-8 sm:top-10 left-1/2 z-10 w-[min(40vw,200px)] sm:w-[208px] md:w-[220px] h-auto -translate-x-1/2"
           />
@@ -1153,6 +1155,18 @@ export default function Step4bMarketFinancials({ onNext, onBack }) {
                   <p className="text-sm text-[#756F68] font-sans">No data available</p>
                 )}
               </section>
+
+              {onRestart ? (
+                <div className="mt-10 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={onRestart}
+                    className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#2B2A25] px-8 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#2B2A25] hover:bg-[#2B2A25] hover:text-white transition-colors"
+                  >
+                    Build a new item
+                  </button>
+                </div>
+              ) : null}
 
               <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
                 <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug mb-6 sm:mb-8">

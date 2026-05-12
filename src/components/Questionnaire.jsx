@@ -1,3 +1,4 @@
+import { StepProgressBar } from "./StepFormChrome";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
@@ -22,7 +23,7 @@ function StepFormShell({ children }) {
       >
         <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
           <img
-            src="/assets/form-logo-white-transparent.png"
+            src="/assets/form-logo-white-reference.png"
             alt="Form Department logo"
             className="w-[210px] h-auto"
           />
@@ -436,7 +437,6 @@ Only return the JSON. No markdown. No explanation.
     loadCachedAnswers,
     matchAnswersToQuestions,
     getStorageKeys,
-    questionsData,
   ]);
 
   useEffect(() => {
@@ -480,7 +480,7 @@ Only return the JSON. No markdown. No explanation.
               <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">
                 Step 4 of 5
               </p>
-              <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
+            <StepProgressBar step={4} total={5} />
               <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">
                 Clarifying Questions
               </h1>
@@ -529,7 +529,7 @@ Only return the JSON. No markdown. No explanation.
       >
         <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
           <img
-            src="/assets/form-logo-white-transparent.png"
+            src="/assets/form-logo-white-reference.png"
             alt="Form Department logo"
             className="w-[210px] h-auto"
           />
@@ -546,20 +546,18 @@ Only return the JSON. No markdown. No explanation.
               <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">
                 Step 4 of 5
               </p>
-              <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
+            <StepProgressBar step={4} total={5} />
               <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">
                 Clarifying Questions
               </h1>
             </div>
 
             {questionsData.map((category, ci) => (
-              <div key={ci} className="space-y-8">
-                <div className="pt-1">
-                  <p className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-semibold mb-4">
-                    {category.title}
-                  </p>
-                </div>
-
+              <div key={ci} className="space-y-6">
+                <h2 className="font-heading text-[28px] sm:text-[34px] leading-[1.05] text-[#2B2A25]">
+                  {category.title}
+                </h2>
+                <div className="rounded-[18px] bg-white border border-[#DFDDD6] px-5 py-6 sm:px-6 sm:py-7 space-y-8">
                 {category.questions.map((q, qi) => (
                   <div key={qi} className="pt-1">
                     {q.type === "multiple-choice" &&
@@ -616,6 +614,7 @@ Only return the JSON. No markdown. No explanation.
                     )}
                   </div>
                 ))}
+                </div>
               </div>
             ))}
 

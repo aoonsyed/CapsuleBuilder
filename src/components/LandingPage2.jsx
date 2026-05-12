@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Step1Vision from "./Step1Vision";
 import Step2Inspiration from "./Step2Inspiration";
 import Step3ProductFocus from "./Step3ProductFocus";
+import { FD_LOGO_WHITE_SRC, fdHeaderClass, fdSubheaderClass } from "./fdTypography";
+import { FD_HOME_SPACING, FD_PAGE_GUTTER } from "./fdLayout";
 
 const ADMIN_DASHBOARD_TOKEN =
   process.env.REACT_APP_ADMIN_DASHBOARD_TOKEN ||
@@ -10,489 +12,384 @@ const ADMIN_DASHBOARD_TOKEN =
     import.meta.env.VITE_ADMIN_DASHBOARD_TOKEN);
 
 const CAROUSEL_ITEMS = [
-    { label: "Outerwear", value: "Outerwear", image: "/assets/laura-chouette-9_KGtIF-hUk-unsplash.jpg" },
-    { label: "Tee Shirt", value: "Tee Shirt", image: "/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg" },
-    { label: "Pants", value: "Pants", image: "/assets/armin-rastgar-06jxXFyuJhc-unsplash.jpg" },
-    { label: "Dresses", value: "Dresses", image: "/assets/eve-maier-u1OuYQa0WtQ-unsplash.jpg" },
-    { label: "Outerwear", value: "Outerwear", image: "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg" },
+  { label: "Outerwear", image: "/assets/laura-chouette-9_KGtIF-hUk-unsplash.jpg" },
+  { label: "Tops", image: "/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg" },
+  { label: "Bottoms", image: "/assets/armin-rastgar-06jxXFyuJhc-unsplash.jpg" },
+  { label: "Dresses", image: "/assets/eve-maier-u1OuYQa0WtQ-unsplash.jpg" },
 ];
 
-// Hero image framing controls (easy custom placement)
-const HERO_IMAGE_PLACEMENT = {
-    x: "50%",   // horizontal anchor: 0% (left) -> 100% (right)
-    y: "70%",    // vertical anchor: 0% (top) -> 100% (bottom)
-    size: "cover", // cover | contain | custom size like "110%"
-};
+const RECEIVE_ITEMS = [
+  {
+    title: "Curated Materials",
+    body: "Thoughtfully selected fabrics tailored to your aesthetic, function and brand goals",
+    iconSrc: "/assets/SVG/icon1.svg",
+  },
+  {
+    title: "Color Direction",
+    body: "A colour palette shaped by your feedback and market position",
+    iconSrc: "/assets/SVG/icon2.svg",
+  },
+  {
+    title: "Design Framework",
+    body: "A strategic breakdown of categories and silhouettes aligned with your vision",
+    iconSrc: "/assets/SVG/icon3.svg",
+  },
+  {
+    title: "Cost Transparency",
+    body: "Real-time production estimates to guide planning and investment",
+    iconSrc: "/assets/SVG/icon4.svg",
+  },
+];
+
+const COST_ROWS = [
+  { label: "Materials", value: "$15" },
+  { label: "Manufacturing", value: "$35" },
+  { label: "Finishing and logistics", value: "$4" },
+];
+
+const PALETTE = ["#151515", "#F1EFEA", "#D9D5CE", "#6F6E6A"];
 
 export default function LandingPage2({ onNext, onContinue, startInGrid = false, isAdmin = false }) {
-    const receiveHeadingStyle = {
-        fontFamily: '"Montserrat", "Futura", "Gotham", "Avenir Next", "Segoe UI", sans-serif',
-        fontWeight: 600,
-        fontStyle: "normal",
-        letterSpacing: "0.01em",
-    };
-    const receiveBodyStyle = {
-        fontFamily: '"Montserrat", "Futura", "Gotham", "Avenir Next", "Segoe UI", sans-serif',
-        fontWeight: 400,
-        fontStyle: "normal",
-        letterSpacing: "0.01em",
-    };
+  const heroImage = "/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg";
+  const previewImage = "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg";
 
-    const heroImage = "/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg";
+  const [activeFormStep, setActiveFormStep] = useState(startInGrid ? 1 : 0);
+  const [validating, setValidating] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
 
-    // Local wizard for the 3-form grid.
-    // When started, we show one step at a time (Step 1 -> Step 2 -> Step 3).
-    const [activeFormStep, setActiveFormStep] = useState(startInGrid ? 1 : 0);
-    const [validating, setValidating] = useState(false);
+  useEffect(() => {
+    if (startInGrid) setActiveFormStep(1);
+  }, [startInGrid]);
 
-    const previewImage = "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg";
-    const [activeSlide, setActiveSlide] = useState(0);
+  const handleGetStarted = () => setActiveFormStep(1);
+  const goPrevSlide = () =>
+    setActiveSlide((prev) => (prev - 1 + CAROUSEL_ITEMS.length) % CAROUSEL_ITEMS.length);
+  const goNextSlide = () => setActiveSlide((prev) => (prev + 1) % CAROUSEL_ITEMS.length);
 
-    useEffect(() => {
-        if (startInGrid) setActiveFormStep(1);
-    }, [startInGrid]);
+  const handleAdminDashboardClick = () => {
+    if (!ADMIN_DASHBOARD_TOKEN) {
+      alert("Admin dashboard token is not configured. Please set it in the deployment environment.");
+      return;
+    }
+    const currentParams = new URLSearchParams(window.location.search);
+    const customerId = currentParams.get("customer_id");
+    const nextParams = new URLSearchParams();
+    if (customerId) nextParams.set("customer_id", customerId);
+    nextParams.set("token", ADMIN_DASHBOARD_TOKEN);
+    window.location.href = `/admin?${nextParams.toString()}`;
+  };
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setActiveSlide((prev) => (prev + 1) % CAROUSEL_ITEMS.length);
-        }, 3500);
-        return () => clearInterval(timer);
-    }, []);
-    // Customer validation is now handled at the CapsuleBuilderFlow level
-    // No need to validate here anymore
-
-    const handleGetStarted = () => setActiveFormStep(1);
-
-    const handleAdminDashboardClick = () => {
-        if (!ADMIN_DASHBOARD_TOKEN) {
-            console.error(
-                "Missing admin dashboard token. Set REACT_APP_ADMIN_DASHBOARD_TOKEN or VITE_ADMIN_DASHBOARD_TOKEN in the environment."
-            );
-            alert("Admin dashboard token is not configured. Please set it in the deployment environment.");
-            return;
-        }
-
-        // Preserve current customer_id so admin can return to the tool without being logged out
-        const currentParams = new URLSearchParams(window.location.search);
-        const customerId = currentParams.get("customer_id");
-
-        const nextParams = new URLSearchParams();
-        if (customerId) {
-            nextParams.set("customer_id", customerId);
-        }
-        nextParams.set("token", ADMIN_DASHBOARD_TOKEN);
-
-        // Navigate within this SPA to the admin dashboard route; the page itself calls the backend
-        window.location.href = `/admin?${nextParams.toString()}`;
-    };
-
-    const handleContinue = async () => {
-        // DEV BYPASS:
-        // When running locally, skip subscription validation and continue in the flow.
-        const hostname =
-            typeof window !== "undefined" ? window.location.hostname : "";
-        const isLocalhost =
-            hostname === "localhost" ||
-            hostname === "127.0.0.1" ||
-            hostname === "0.0.0.0";
-        if (isLocalhost) {
-            if (typeof onContinue === "function") {
-                onContinue();
-            } else if (onNext) {
-                onNext();
-            }
-            return;
-        }
-
-        // Get customer_id from URL
-        const params = new URLSearchParams(window.location.search);
-        const customerId = params.get("customer_id");
-        
-        if (!customerId) {
-            alert("Customer ID not found. Please try again.");
-            return;
-        }
-
-        // Validate subscription before proceeding
-        try {
-            setValidating(true);
-            const response = await fetch(
-                `https://backend-capsule-builder.onrender.com/proxy/validate-submission?logged_in_customer_id=${customerId}`
-            );
-            
-            const data = await response.json();
-            
-            if (!data.ok) {
-                // User is not subscribed - redirect smoothly to subscription page
-                if (data.redirect) {
-                    // Smooth redirect to subscription page
-                    window.location.href = data.redirect;
-                    return;
-                } else {
-                    alert(data.message || "Unable to validate. Please try again.");
-                    setValidating(false);
-                    return;
-                }
-            }
-            
-            // Validation passed - proceed to next step
-            if (typeof onContinue === "function") {
-                onContinue();
-            } else if (onNext) {
-                onNext();
-            }
-        } catch (err) {
-            console.error("Validation error:", err);
-            alert("We encountered an error. Please try again.");
-        } finally {
-            setValidating(false);
-        }
-    };
-
-    /* ================= FULL-PAGE: THREE FORMS ONLY ================= */
-    /* ================= FULL-PAGE: THREE FORMS ONLY ================= */
-    if (activeFormStep > 0) {
-        if (activeFormStep === 1) {
-            return (
-                <Step1Vision
-                    onNext={() => setActiveFormStep(2)}
-                    onBack={() => setActiveFormStep(0)}
-                />
-            );
-        }
-
-        if (activeFormStep === 2) {
-            return (
-                <Step2Inspiration
-                    onNext={() => setActiveFormStep(3)}
-                    onBack={() => setActiveFormStep(1)}
-                />
-            );
-        }
-
-        if (activeFormStep === 3) {
-            return (
-                <Step3ProductFocus
-                    onBack={() => setActiveFormStep(2)}
-                    onNext={handleContinue}
-                    validating={validating}
-                />
-            );
-        }
+  const handleContinue = async () => {
+    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+    const isLocalhost =
+      hostname === "localhost" || hostname === "127.0.0.1" || hostname === "0.0.0.0";
+    if (isLocalhost) {
+      if (typeof onContinue === "function") onContinue();
+      else if (onNext) onNext();
+      return;
     }
 
+    const params = new URLSearchParams(window.location.search);
+    const customerId = params.get("customer_id");
+    if (!customerId) {
+      alert("Customer ID not found. Please try again.");
+      return;
+    }
 
-    /* ================= DEFAULT LANDING ================= */
+    try {
+      setValidating(true);
+      const response = await fetch(
+        `https://backend-capsule-builder.onrender.com/proxy/validate-submission?logged_in_customer_id=${customerId}`
+      );
+      const data = await response.json();
+      if (!data.ok) {
+        if (data.redirect) window.location.href = data.redirect;
+        else alert(data.message || "Unable to validate. Please try again.");
+        return;
+      }
+      if (typeof onContinue === "function") onContinue();
+      else if (onNext) onNext();
+    } catch (err) {
+      console.error("Validation error:", err);
+      alert("We encountered an error. Please try again.");
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  if (activeFormStep > 0) {
+    if (activeFormStep === 1) {
+      return (
+        <Step1Vision onNext={() => setActiveFormStep(2)} onBack={() => setActiveFormStep(0)} />
+      );
+    }
+    if (activeFormStep === 2) {
+      return (
+        <Step2Inspiration onNext={() => setActiveFormStep(3)} onBack={() => setActiveFormStep(1)} />
+      );
+    }
     return (
-        <div className="min-h-screen w-full font-sans overflow-x-hidden bg-[#EAE7E1] text-black">
-            {/* HERO */}
-            <section
-                className="relative w-full min-h-[640px] flex flex-col items-center justify-end pb-10 px-6 text-center"
-                style={{
-                    backgroundImage:
-                        `linear-gradient(180deg, rgba(0,0,0,0.007) 0%, rgba(0,0,0,0.027) 55%, rgba(0,0,0,0.053) 100%), url("${heroImage}")`,
-                    backgroundSize: HERO_IMAGE_PLACEMENT.size,
-                    backgroundPosition: `${HERO_IMAGE_PLACEMENT.x} ${HERO_IMAGE_PLACEMENT.y}`,
-                }}
-            >
-                <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
-                    <img
-                        src="/assets/form-logo-white-transparent.png"
-                        alt="Form Department logo"
-                        className="w-[210px] sm:w-[260px] md:w-[300px] h-auto"
-                    />
-                </div>
-
-                <h1 className="font-heading font-medium text-[34px] leading-[1.15] text-[#E7D4BF] max-w-[24ch]">
-                    Refine your ideas and move forward with purpose
-                </h1>
-
-                <button
-                    type="button"
-                    onClick={handleGetStarted}
-                    className="mt-8 inline-flex items-center justify-center w-full max-w-[360px] h-[56px] rounded-full bg-[#3A3A3A]/70 text-white text-[12px] tracking-[0.18em] uppercase"
-                >
-                    Start your capsule collection
-                </button>
-
-                {isAdmin && (
-                    <button
-                        type="button"
-                        onClick={handleAdminDashboardClick}
-                        className="mt-3 inline-flex items-center justify-center w-full max-w-[360px] h-[48px] rounded-full bg-white/90 text-black text-[12px] tracking-[0.14em] uppercase"
-                    >
-                        Admin dashboard
-                    </button>
-                )}
-            </section>
-
-            {/* WHAT YOU'LL RECEIVE (icon grid, directly below hero) */}
-            <section className="bg-white py-14 px-6">
-                <div className="mx-auto max-w-[920px]">
-                    <h2 className="text-center font-heading font-medium text-[34px] leading-[1.2] text-black">
-                        What you&apos;ll receive
-                    </h2>
-
-                    <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-y-16 gap-x-16 place-items-center">
-                        {[
-                            {
-                                title: "Curated Materials",
-                                body:
-                                    "Thoughtfully selected fabrics tailored to your aesthetic, function and brand goals",
-                                icon: (
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55">
-                                        <path d="M4 7l3-3 3 3 3-3 3 3 3-3 2 2-3 3 3 3-3 3 3 3-2 2-3-3-3 3-3-3-3 3-3-3 3-3-3-3 3-3-3-3z" />
-                                        <path d="M7 4l10 10M17 4L7 14M4 10l10 10M14 10l6 6" />
-                                    </svg>
-                                ),
-                            },
-                            {
-                                title: "Color Direction",
-                                body:
-                                    "A colour palette shaped by your feedback and market position",
-                                icon: (
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55">
-                                        <path d="M12 3a9 9 0 109 9c0 3-2 3-3.5 3H15c-1.1 0-2 .9-2 2s.9 2 2 2h1" />
-                                        <path d="M7.5 11.5h0M10 8.5h0M14 8.5h0M16.5 11.5h0" strokeLinecap="round" />
-                                    </svg>
-                                ),
-                            },
-                            {
-                                title: "Design Framework",
-                                body:
-                                    "A strategic breakdown of categories and silhouettes aligned with your vision",
-                                icon: (
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55">
-                                        <path d="M12 3l-4.5 7L10 15h4l2.5-5L12 3z" />
-                                        <path d="M12 3v16" />
-                                        <rect x="8" y="19" width="8" height="2.5" rx="0.8" />
-                                    </svg>
-                                ),
-                            },
-                            {
-                                title: "Cost Transparency",
-                                body:
-                                    "Real-time production estimates to guide planning and investment",
-                                icon: (
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55">
-                                        <path d="M12 2v20" />
-                                        <path d="M17 7.5c0-2-2.2-3.5-5-3.5s-5 1.5-5 3.5S9.2 11 12 11s5 1.5 5 3.5S14.8 18 12 18s-5-1.5-5-3.5" />
-                                    </svg>
-                                ),
-                            },
-                        ].map((card) => (
-                            <div key={card.title} className="w-full max-w-[340px] text-center">
-                                <div className="mx-auto w-[94px] h-[94px] rounded-full bg-[#E9E8E5] flex items-center justify-center text-[#1B1B1B]">
-                                    {card.icon}
-                                </div>
-                                <div className="mt-5 text-[14px] leading-[1.2] text-black" style={receiveHeadingStyle}>
-                                    {card.title}
-                                </div>
-                                <div className="mt-2 text-[13px] leading-[1.45] text-[#2F2F2F]" style={receiveBodyStyle}>
-                                    {card.body}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* SINGLE EXTENDED CREAM CONTAINER */}
-            <section className="bg-white pt-12 pb-14 px-6">
-                <div className="mx-auto max-w-[1120px] rounded-[34px] bg-[#E8E6E2] px-8 sm:px-12 pt-14 pb-12 shadow-[18px_18px_36px_rgba(0,0,0,0.10)]">
-                    <div className="text-center text-[12px] tracking-[0.32em] uppercase text-[#6F6A61] font-sans">
-                        Selection
-                    </div>
-                    <h2 className="mt-6 text-center font-heading font-medium text-[56px] leading-[1.08] text-[#171614]">
-                        What Category Are You Designing?
-                    </h2>
-
-                    <div className="mt-14 mx-auto max-w-[620px]">
-                        <div className="relative overflow-hidden rounded-[22px] bg-[#F5F3EF] border border-[#E2DFDA]">
-                            <div className="relative aspect-[4/5] w-full">
-                                {CAROUSEL_ITEMS.map((item, idx) => (
-                                    <div
-                                        key={`${item.value}-${idx}`}
-                                        className={`absolute inset-0 bg-center bg-cover transition-opacity duration-700 ${idx === activeSlide ? "opacity-100" : "opacity-0"}`}
-                                        style={{ backgroundImage: `url("${item.image}")` }}
-                                    />
-                                ))}
-                            </div>
-                            <div className="absolute inset-x-0 bottom-5 flex justify-center">
-                                <span className="px-8 h-[42px] inline-flex items-center justify-center rounded-full text-[11px] tracking-[0.2em] uppercase border bg-[#1B1B1B] text-white border-[#1B1B1B]">
-                                    {CAROUSEL_ITEMS[activeSlide].label}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-14 flex justify-center">
-                        <div className="w-full max-w-[760px] h-px bg-[#BEBBB5] relative">
-                            <div
-                                className="absolute top-0 h-px w-[82px] bg-[#4A4741] transition-all duration-500"
-                                style={{
-                                    left: `${(activeSlide / (CAROUSEL_ITEMS.length - 1)) * 100}%`,
-                                    transform: `translateX(-${(activeSlide / (CAROUSEL_ITEMS.length - 1)) * 100}%)`,
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-14 text-center text-[12px] tracking-[0.32em] uppercase text-[#6B645C] font-sans">
-                        Live preview
-                    </div>
-                    <h2 className="mt-4 text-center font-heading font-medium text-[62px] leading-[1.12] text-[#171614]">
-                        Your Curated Capsule
-                    </h2>
-
-                    <div className="mt-10 rounded-[34px] bg-[#F7F7F6] border border-[#E8E4DE] p-8 sm:p-10">
-                        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 items-start">
-                            <div className="rounded-2xl bg-[#F1EFEB] aspect-[4/3] overflow-hidden flex items-center justify-center">
-                                <img src={previewImage} alt="Curated capsule preview" className="w-full h-full object-cover" />
-                            </div>
-                            <div>
-                                <div className="text-[11px] tracking-[0.24em] uppercase text-[#6B645C] font-sans">Fabric selection</div>
-                                <div className="mt-5 space-y-6 text-[#2B2B2B] leading-[1.3]">
-                                    <div>
-                                        <div className="font-sans font-semibold text-[16px] leading-[1.2]">Organic Cotton</div>
-                                        <div className="text-[#6B645C] text-[12px] leading-[1.35]">Share a quick overview of your ideal</div>
-                                    </div>
-                                    <div>
-                                        <div className="font-sans font-semibold uppercase text-[16px] leading-[1.2]">Recycled Poly</div>
-                                        <div className="text-[#6B645C] text-[12px] leading-[1.35]">Share a quick overview of your ideal</div>
-                                    </div>
-                                    <div>
-                                        <div className="font-sans font-semibold uppercase text-[16px] leading-[1.2]">Recycled Poly</div>
-                                        <div className="text-[#6B645C] text-[12px] leading-[1.35]">Share a quick overview of your ideal</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-10">
-                            <div className="text-[11px] tracking-[0.28em] uppercase text-[#6B645C] font-sans">Seasonal palette</div>
-                            <div className="mt-5 flex items-center gap-4">
-                                {["#151515", "#F1EFEA", "#D9D5CE", "#6F6E6A"].map((c) => (
-                                    <div key={c} className="w-[54px] h-[78px] rounded-[18px] border border-black/5" style={{ backgroundColor: c }} />
-                                ))}
-                                <button
-                                    type="button"
-                                    className="w-[54px] h-[78px] rounded-[18px] border border-dashed border-[#6B645C] text-[#6B645C] flex items-center justify-center"
-                                    aria-label="Add palette color"
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div className="mt-12 rounded-[34px] bg-[#2C2A27] px-5 py-8 sm:px-10 sm:py-12 text-white overflow-hidden">
-                            <div className="text-center text-[11px] sm:text-[12px] tracking-[0.22em] sm:tracking-[0.32em] uppercase text-white/90 font-sans px-1">
-                                Estimated cost breakdown
-                            </div>
-
-                            <div className="mt-8 sm:mt-10 space-y-6 sm:space-y-8 text-[11px] sm:text-[12px] tracking-[0.08em] uppercase font-sans">
-                                {[
-                                    { label: "Materials", value: "$40.00" },
-                                    { label: "Labor & manufacturing", value: "$40.00" },
-                                    { label: "Finishing & logistics", value: "$40.00" },
-                                ].map((row, idx) => (
-                                    <div key={idx}>
-                                        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 min-w-0">
-                                            <span className="text-white/95 min-w-0 flex-1 sm:flex-none pr-2 leading-snug">
-                                                {row.label}
-                                            </span>
-                                            <span className="text-white text-[clamp(1rem,4.2vw,1.25rem)] font-medium normal-case tracking-normal tabular-nums shrink-0 text-right">
-                                                {row.value}
-                                            </span>
-                                        </div>
-                                        <div className="mt-4 sm:mt-5 h-px bg-white/70" />
-                                    </div>
-                                ))}
-                                <div className="pt-4 sm:pt-2 border-t border-white/15 sm:border-0">
-                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4 min-w-0">
-                                        <span className="text-white/95 text-[11px] sm:text-[12px] tracking-[0.06em] sm:tracking-[0.08em] uppercase leading-snug shrink-0 max-w-[14rem] sm:max-w-none">
-                                            Total est. production
-                                        </span>
-                                        <span className="text-white text-[clamp(1.85rem,9.5vw,2.75rem)] sm:text-[44px] leading-[1.05] font-semibold normal-case tracking-tight tabular-nums text-right sm:text-right w-full sm:w-auto break-words">
-                                            $120.00
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="mt-8 sm:mt-12 mx-auto flex w-full max-w-[560px] min-h-[52px] sm:min-h-[60px] items-center justify-center rounded-full bg-white text-[#1B1B1B] px-5 sm:px-8 py-3.5 sm:py-4 text-[12px] sm:text-[15px] md:text-[17px] tracking-[0.08em] sm:tracking-[0.1em] md:tracking-[0.12em] uppercase font-sans font-semibold leading-tight text-center whitespace-normal"
-                            >
-                                Schedule call
-                            </button>
-                    </div>
-                </div>
-            </section>
-
-            {/* WHAT YOU'LL RECEIVE */}
-            <section className="bg-white py-14 px-6">
-                <div className="mx-auto max-w-[1120px]">
-                    <h2 className="text-center font-heading font-medium text-[44px] leading-[1.12] text-[#171614]">
-                        What you&apos;ll receive
-                    </h2>
-
-                    <div className="mt-10 relative rounded-[42px] overflow-hidden px-8 sm:px-12 py-12 text-white">
-                        <div
-                            className="absolute inset-0"
-                            style={{
-                                backgroundImage: 'url("/assets/pesce-huang-k7DQy4YaVXk-unsplash_DARK.jpg")',
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                            }}
-                        />
-                        <div
-                            className="absolute inset-0"
-                            style={{
-                                background:
-                                    "linear-gradient(90deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.00) 50%, rgba(0,0,0,0.05) 100%)",
-                            }}
-                        />
-
-                        <div className="relative z-10 max-w-[760px] pl-4 sm:pl-8 space-y-8">
-                            <div>
-                                <h3 className="text-[20px] leading-[1.2]" style={receiveHeadingStyle}>Curated Materials</h3>
-                                <p className="mt-1 text-[14px] leading-[1.45] tracking-[0.01em] text-white/95" style={receiveBodyStyle}>Thoughtfully selected fabrics tailored to your aesthetic, function and brand goals</p>
-                            </div>
-                            <div>
-                                <h3 className="text-[20px] leading-[1.2]" style={receiveHeadingStyle}>Color Direction</h3>
-                                <p className="mt-1 text-[14px] leading-[1.45] tracking-[0.01em] text-white/95" style={receiveBodyStyle}>A colour palette shaped by your feedback and market position</p>
-                            </div>
-                            <div>
-                                <h3 className="text-[20px] leading-[1.2]" style={receiveHeadingStyle}>Design Framework</h3>
-                                <p className="mt-1 text-[14px] leading-[1.45] tracking-[0.01em] text-white/95" style={receiveBodyStyle}>A strategic breakdown of categories and silhouettes aligned with your vision</p>
-                            </div>
-                            <div>
-                                <h3 className="text-[20px] leading-[1.2]" style={receiveHeadingStyle}>Cost Transparency</h3>
-                                <p className="mt-1 text-[14px] leading-[1.45] tracking-[0.01em] text-white/95" style={receiveBodyStyle}>Real-time production estimates to guide planning and investment</p>
-                            </div>
-                        </div>
-
-                        <div className="relative z-10 mt-10 mx-auto w-full max-w-[700px] rounded-none bg-white overflow-hidden">
-                            <img
-                                src="/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg"
-                                alt="Creative studio"
-                                className="block w-full h-[760px] object-cover rounded-none"
-                            />
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={handleGetStarted}
-                            className="relative z-10 mt-10 mx-auto block w-full max-w-[820px] h-[68px] rounded-full border border-white/90 text-white text-[14px] tracking-[0.12em] uppercase font-sans"
-                        >
-                            Start your capsule collection
-                        </button>
-                    </div>
-                </div>
-            </section>
-        </div>
+      <Step3ProductFocus
+        onBack={() => setActiveFormStep(2)}
+        onNext={handleContinue}
+        validating={validating}
+      />
     );
+  }
+
+  const pageGutter = { paddingLeft: FD_PAGE_GUTTER, paddingRight: FD_PAGE_GUTTER };
+
+  return (
+    <div className="min-h-screen w-full overflow-x-hidden bg-white font-sans text-black">
+      <section
+        className="relative w-full text-center text-white"
+        style={{
+          ...pageGutter,
+          backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.58) 100%), url("${heroImage}")`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 32%",
+          paddingTop: FD_HOME_SPACING.heroTop + FD_HOME_SPACING.heroLogoTop,
+          paddingBottom: FD_HOME_SPACING.heroBottom,
+        }}
+      >
+        <img
+          src={FD_LOGO_WHITE_SRC}
+          alt="Form Department logo"
+          className="mx-auto h-auto w-[min(72vw,300px)]"
+        />
+        <h1
+          className={`mx-auto max-w-[18ch] text-[#E7D4BF] ${fdHeaderClass} normal-case`}
+          style={{ marginTop: FD_HOME_SPACING.heroLogoToHeading, minHeight: FD_HOME_SPACING.headingBlock }}
+        >
+          Refine your ideas and move forward with purpose
+        </h1>
+        <p
+          className={`mx-auto mt-4 max-w-[28ch] text-white/90 ${fdSubheaderClass}`}
+          style={{ marginTop: 70 }}
+        >
+          With Form Capsule Builder
+        </p>
+        <button
+          type="button"
+          onClick={handleGetStarted}
+          className="mx-auto inline-flex h-[56px] w-full max-w-[360px] items-center justify-center rounded-full bg-[#3A3A3A]/80 text-[12px] uppercase tracking-[0.18em] text-white"
+          style={{ marginTop: FD_HOME_SPACING.heroHeadingToCta }}
+        >
+          Build your capsule
+        </button>
+        {isAdmin ? (
+          <button
+            type="button"
+            onClick={handleAdminDashboardClick}
+            className="mx-auto mt-3 inline-flex h-[48px] w-full max-w-[360px] items-center justify-center rounded-full bg-white/90 text-[12px] uppercase tracking-[0.14em] text-black"
+          >
+            Admin dashboard
+          </button>
+        ) : null}
+      </section>
+
+      <section
+        className="bg-white"
+        style={{
+          ...pageGutter,
+          paddingTop: FD_HOME_SPACING.sectionTop,
+          paddingBottom: FD_HOME_SPACING.sectionBottom,
+        }}
+      >
+        <h2
+          className={`text-center ${fdHeaderClass} normal-case`}
+          style={{ minHeight: FD_HOME_SPACING.headingBlock }}
+        >
+          What you&apos;ll receive
+        </h2>
+        <div
+          className="mx-auto grid max-w-[1180px] grid-cols-1 gap-y-12 gap-x-10 sm:grid-cols-2 lg:grid-cols-4"
+          style={{ marginTop: FD_HOME_SPACING.headingToContent }}
+        >
+          {RECEIVE_ITEMS.map((card) => (
+            <div key={card.title} className="text-center">
+              <img
+                src={card.iconSrc}
+                alt=""
+                className="mx-auto h-[94px] w-[94px] object-contain"
+              />
+              <p className="mt-5 font-sans text-[14px] font-medium leading-[1.2]">{card.title}</p>
+              <p className="mt-2 font-sans text-[13px] leading-[1.45] text-[#2F2F2F]">{card.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section
+        className="bg-white"
+        style={{
+          ...pageGutter,
+          paddingTop: FD_HOME_SPACING.carouselTop,
+          paddingBottom: FD_HOME_SPACING.carouselBottom,
+        }}
+      >
+        <h2
+          className={`text-center ${fdHeaderClass} normal-case`}
+          style={{ minHeight: FD_HOME_SPACING.headingBlock }}
+        >
+          What Category Are You Designing?
+        </h2>
+        <div
+          className="relative mx-auto mt-[110px] flex max-w-[1180px] items-center gap-4"
+          style={{ height: FD_HOME_SPACING.carouselHeight }}
+        >
+          <button
+            type="button"
+            onClick={goPrevSlide}
+            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1B1B1B] text-white lg:flex"
+            aria-label="Previous category"
+          >
+            ←
+          </button>
+          <div className="grid h-full flex-1 grid-cols-1 gap-4 md:grid-cols-3">
+            {[-1, 0, 1].map((offset) => {
+              const index = (activeSlide + offset + CAROUSEL_ITEMS.length) % CAROUSEL_ITEMS.length;
+              const item = CAROUSEL_ITEMS[index];
+              const isActive = offset === 0;
+              return (
+                <div
+                  key={`${item.label}-${index}-${offset}`}
+                  className={`relative overflow-hidden rounded-[22px] border border-[#E2DFDA] bg-[#F5F3EF] transition-opacity ${
+                    isActive ? "opacity-100" : "hidden opacity-70 md:block"
+                  }`}
+                >
+                  <div
+                    className="h-full w-full bg-cover bg-center"
+                    style={{ backgroundImage: `url("${item.image}")` }}
+                  />
+                  <div className="absolute inset-x-0 bottom-5 flex justify-center">
+                    <span className="inline-flex h-[42px] items-center justify-center rounded-full border border-[#1B1B1B] bg-[#1B1B1B] px-8 text-[11px] uppercase tracking-[0.2em] text-white">
+                      {item.label}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            onClick={goNextSlide}
+            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1B1B1B] text-white lg:flex"
+            aria-label="Next category"
+          >
+            →
+          </button>
+        </div>
+      </section>
+
+      <section
+        className="bg-white"
+        style={{
+          ...pageGutter,
+          paddingTop: FD_HOME_SPACING.curatedTop,
+          paddingBottom: FD_HOME_SPACING.curatedBottom,
+        }}
+      >
+        <h2
+          className={`text-center ${fdHeaderClass} normal-case`}
+          style={{ minHeight: FD_HOME_SPACING.headingBlock }}
+        >
+          Your Curated Capsule
+        </h2>
+        <div
+          className="mx-auto mt-[110px] grid max-w-[1180px] grid-cols-1 gap-6 lg:grid-cols-2"
+          style={{ minHeight: FD_HOME_SPACING.curatedCardsHeight }}
+        >
+          <div className="flex h-full flex-col rounded-[28px] border border-[#E8E4DE] bg-white p-8">
+            <div className="overflow-hidden rounded-[18px] bg-[#F1EFEB]">
+              <img src={previewImage} alt="Curated capsule preview" className="h-[220px] w-full object-cover" />
+            </div>
+            <p className="mt-6 font-sans text-[16px] font-semibold">Organic Cotton</p>
+            <p className="mt-1 font-sans text-[12px] text-[#6B645C]">100% Cotton</p>
+            <p className="mt-8 text-[11px] uppercase tracking-[0.24em] text-[#6B645C]">Color palette</p>
+            <div className="mt-4 flex items-center gap-4">
+              {PALETTE.map((color) => (
+                <div
+                  key={color}
+                  className="h-[78px] w-[54px] rounded-[18px] border border-black/5"
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex h-full flex-col justify-between rounded-[28px] bg-[#2C2A27] px-8 py-10 text-white">
+            <div>
+              <p className="text-center text-[11px] uppercase tracking-[0.28em] text-white/90">
+                Estimated production costs
+              </p>
+              <div className="mt-10 space-y-6 text-[12px] uppercase tracking-[0.08em]">
+                {COST_ROWS.map((row) => (
+                  <div key={row.label} className="flex items-baseline justify-between gap-4 border-b border-white/20 pb-4">
+                    <span>{row.label}</span>
+                    <span className="text-[18px] font-medium normal-case tabular-nums">{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-8 flex items-end justify-between gap-4">
+              <span className="text-[12px] uppercase tracking-[0.08em]">Total est. production</span>
+              <span className="font-heading text-[44px] leading-none tabular-nums">$54</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          ...pageGutter,
+          paddingBottom: FD_HOME_SPACING.footerBottom,
+        }}
+      >
+        <div className="relative overflow-hidden rounded-[42px] px-8 py-12 text-white sm:px-12">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: 'url("/assets/pesce-huang-k7DQy4YaVXk-unsplash_DARK.jpg")',
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="relative z-10">
+            <h2
+              className={`${fdHeaderClass} normal-case`}
+              style={{ minHeight: FD_HOME_SPACING.headingBlock }}
+            >
+              What you&apos;ll receive
+            </h2>
+            <div
+              className="mt-[110px] grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]"
+            >
+              <div className="space-y-8">
+                {RECEIVE_ITEMS.map((item) => (
+                  <div key={`footer-${item.title}`}>
+                    <h3 className="font-sans text-[20px] font-medium leading-[1.2]">{item.title}</h3>
+                    <p className="mt-1 text-[14px] leading-[1.45] text-white/95">{item.body}</p>
+                  </div>
+                ))}
+              </div>
+              <img
+                src="/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg"
+                alt="Creative studio"
+                className="h-[360px] w-full object-cover"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleGetStarted}
+              className="mx-auto mt-10 flex h-[68px] w-full max-w-[820px] items-center justify-center rounded-full border border-white/90 text-[14px] uppercase tracking-[0.12em]"
+            >
+              Build your capsule
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

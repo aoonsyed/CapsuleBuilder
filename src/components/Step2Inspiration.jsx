@@ -2,6 +2,8 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setBrand2, setSharedPreference, toggleBrandPreference } from "../formSlice";
 
+import { StepProgressBar } from "./StepFormChrome";
+
 export default function Step2Inspiration({ email = "demo@example.com", onNext, onBack, embedded = false }) {
   const dispatch = useDispatch();
   const brand2 = useSelector((state) => state.form.brand2);
@@ -29,7 +31,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
             <input
               type="text"
               className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/50 focus:outline-none rounded-md"
-              placeholder="Enter a similar fashion brand here"
+              placeholder="Enter a similar brand here"
               value={brand2}
               onChange={(e) => dispatch(setBrand2(e.target.value))}
               required
@@ -77,7 +79,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
             <input
               type="text"
               className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/40 focus:outline-none rounded-md"
-              placeholder="Preferred brand (optional)"
+              placeholder="Tell us more about why this brand resonates with you"
               value={sharedPreference}
               onChange={(e) => dispatch(setSharedPreference(e.target.value))}
             />
@@ -99,7 +101,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
         }}
       >
         <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
-          <img src="/assets/form-logo-white-transparent.png" alt="Form Department logo" className="w-[210px] h-auto" />
+          <img src="/assets/form-logo-white-reference.png" alt="Form Department logo" className="w-[210px] h-auto" />
         </div>
         <h2 className="mt-10 font-heading text-[34px] leading-[1.15] text-[#C7A15E]">Your Curated Capsule</h2>
       </section>
@@ -109,7 +111,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
           <form onSubmit={handleSubmit} className="space-y-11 text-[#2B2A25]">
             <div className="pt-1">
               <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">Step 2 of 5</p>
-              <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
+              <StepProgressBar step={2} total={5} />
               <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">Reference Brand</h1>
             </div>
 
@@ -120,7 +122,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
               <input
                 type="text"
                 className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans font-normal leading-[1.2] text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md"
-                placeholder="Enter a similar fashion brand here"
+                placeholder="Enter a similar brand here"
                 value={brand2}
                 onChange={(e) => dispatch(setBrand2(e.target.value))}
                 required
@@ -155,7 +157,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
               <input
                 type="text"
                 className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans font-normal leading-[1.2] text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md"
-                placeholder="Preferred brand (optional)"
+                placeholder="Tell us more about why this brand resonates with you"
                 value={sharedPreference}
                 onChange={(e) => dispatch(setSharedPreference(e.target.value))}
               />

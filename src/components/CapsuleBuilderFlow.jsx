@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import LandingPage2 from "./LandingPage2";
 import Step1Vision from "./Step1Vision";
@@ -20,6 +20,8 @@ export default function CapsuleBuilderFlow() {
 
   // Track if the user began via the 3-form grid on Landing
   const [startedWithGrid, setStartedWithGrid] = useState(false);
+  const [outputSessionKey, setOutputSessionKey] = useState(null);
+  const outputSessionKeyRef = useRef(null);
 
   // Control whether Landing should immediately open in the 3-form grid view
   const [startLandingInGrid, setStartLandingInGrid] = useState(false);
@@ -172,29 +174,31 @@ export default function CapsuleBuilderFlow() {
   }
 
   return (
-    <div className="bg-white min-h-screen bg-cover bg-center font-sans text-white relative">
-      <div className="absolute inset-0 bg-white z-0" />
+    <div className="min-h-screen bg-transparent font-sans text-white relative">
       {isTrial ? (
         <div
           className="sticky top-0 z-[100] bg-[#25221D] text-[#EBDCC5] text-center py-2.5 px-4 font-sans text-[10px] sm:text-[11px] leading-snug tracking-[0.22em] sm:tracking-[0.24em] uppercase border-b border-black/40"
           role="status"
         >
-          You are currently using a free trial. Upgrade to unlock all features
+          You are currently using a free trial.{" "}
+          <a
+            href="https://formdepartment.com/pages/about?view=subscription-plans"
+            className="underline underline-offset-2 hover:opacity-90"
+          >
+            Upgrade
+          </a>{" "}
+          to design more capsules
         </div>
       ) : null}
-      <div className={`relative z-10 ${step === 1 ? "bg-white" : ""}`}>
+      <div className="relative z-10 w-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
-            className={
-              step === 1
-                ? "mx-auto flex flex-col md:flex-row items-start"
-                : "w-full"
-            }
+            className="w-full overflow-visible"
           >
             {/* Step 1 — Landing */}
             {step === 1 && (
@@ -202,10 +206,11 @@ export default function CapsuleBuilderFlow() {
                 isAdmin={isAdmin}
                 startInGrid={startLandingInGrid} // tells Landing to open directly in 3-form grid (when coming back)
                 onContinue={() => {
-                  // User used the 3-form grid "Continue"
                   setStartedWithGrid(true);
-                  setStartLandingInGrid(false); // reset hint after leaving landing
-                  setStep(5); // Clarifying questions (AI questionnaire)
+                  setStartLandingInGrid(false);
+                  outputSessionKeyRef.current = null;
+                  setOutputSessionKey(null);
+                  setStep(5);
                 }}
                 onNext={() => {
                   // Fallback: treat like continue to questionnaire
@@ -236,13 +241,21 @@ export default function CapsuleBuilderFlow() {
               <Step3ProductFocus
                 email={email}
                 onNext={() => setStep(5)}
+                onBack={() => setStep(3)}
               />
             )}
 
             {/* Step 5 — Questionnaire */}
             {step === 5 && (
               <Questionaire
-                onNext={() => setStep(6)}
+                onNext={() => {
+                  if (!outputSessionKeyRef.current) {
+                    const key = `run_${Date.now()}`;
+                    outputSessionKeyRef.current = key;
+                    setOutputSessionKey(key);
+                  }
+                  setStep(6);
+                }}
                 onBack={() => {
                   if (startedWithGrid) {
                     // Return to Landing and auto-open the 3-form grid
@@ -261,8 +274,8 @@ export default function CapsuleBuilderFlow() {
                 email={email}
                 brand={brand}
                 userPlan={userPlan}
+                outputSessionKey={outputSessionKey}
                 onNext={() => setStep(7)}
-                onBack={() => setStep(5)}
               />
             )}
 
@@ -271,7 +284,13 @@ export default function CapsuleBuilderFlow() {
               <Step4bMarketFinancials
                 email={email}
                 brand={brand}
-                onNext={() => setStep(7)}
+                outputSessionKey={outputSessionKey}
+                onRestart={() => {
+                  outputSessionKeyRef.current = null;
+                  setOutputSessionKey(null);
+                  setStartLandingInGrid(true);
+                  setStep(1);
+                }}
                 onBack={() => setStep(6)}
               />
             )}
