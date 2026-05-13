@@ -37,6 +37,8 @@ export default function Questionaire({ onNext, onBack }) {
 
   const lastKeyRef = useRef(null);
   const saveTimeoutRef = useRef(null);
+  const questionsDataRef = useRef(questionsData);
+  questionsDataRef.current = questionsData;
 
   const hashParamsKey = useCallback((key) => {
     let hash = 0;
@@ -274,13 +276,13 @@ Only return the JSON. No markdown. No explanation.
 
     if (
       lastKeyRef.current === paramsKey &&
-      questionsData.length > 0 &&
+      questionsDataRef.current.length > 0 &&
       !shouldForceRefresh
     ) {
       setLoading(false);
       const cachedAnswers = loadCachedAnswers();
       if (cachedAnswers) {
-        const matched = matchAnswersToQuestions(cachedAnswers, questionsData);
+        const matched = matchAnswersToQuestions(cachedAnswers, questionsDataRef.current);
         if (Object.keys(matched).length > 0) {
           setAnswers(matched);
         }
