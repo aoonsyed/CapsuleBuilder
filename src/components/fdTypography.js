@@ -19,6 +19,14 @@ export const fdStepLabelClass =
 export const fdFieldLabelClass =
   "font-sans font-medium uppercase text-[11px] sm:text-[12px] tracking-[0.22em] text-[#8C7152]";
 
+/** Line Strategy–style field labels (desktop steps 1–5). */
+export const fdStepFieldLabelClass =
+  "block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium";
+
+/** Line Strategy–style text inputs / textareas on cream steps. */
+export const fdStepInputClass =
+  "mt-3 w-full border border-[#7C7C7C] bg-[#F5F5F5] px-4 py-2.5 text-[14px] font-sans text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md";
+
 export const fdFormShellClass =
   "mx-auto w-full max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-6 py-10 sm:px-10 sm:py-12";
 

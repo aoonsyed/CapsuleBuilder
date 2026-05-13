@@ -1,41 +1,12 @@
-import { StepProgressBar } from "./StepFormChrome";
+import FdStepDesktopLayout from "./FdStepDesktopLayout";
+import { fdStepFieldLabelClass, fdStepInputClass } from "./fdTypography";
+import { FD_STEP1_SPACING } from "./fdLayout";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
-
-const HERO_STYLE = {
-  backgroundImage:
-    'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.65) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-};
-
-/** Same chrome as Step1Vision / Step2Inspiration / Step3ProductFocus (full-bleed hero) */
-function StepFormShell({ children }) {
-  return (
-    <div className="w-full min-w-0 min-h-screen bg-white">
-      <section
-        className="relative w-full min-w-0 h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
-        style={HERO_STYLE}
-      >
-        <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
-          <img
-            src="/assets/form-logo-white-reference.png"
-            alt="Form Department logo"
-            className="w-[210px] h-auto"
-          />
-        </div>
-        <h2 className="mt-10 font-heading text-[34px] leading-[1.15] text-[#C7A15E]">
-          Your Curated Capsule
-        </h2>
-      </section>
-      <section className="relative -mt-[110px] w-full px-6 pb-10">{children}</section>
-    </div>
-  );
-}
 
 export default function Questionaire({ onNext, onBack }) {
   const {
@@ -449,153 +420,109 @@ Only return the JSON. No markdown. No explanation.
 
   if (loading) {
     return (
-      <StepFormShell>
-        <div className="mx-auto max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12 text-[#2B2A25]">
-          <div className="pt-1">
-            <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">
-              Step 4 of 5
-            </p>
-            <div className="mt-5 h-px w-[190px] bg-[#7B6B55]" />
-            <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">
-              Clarifying Questions
-            </h1>
-          </div>
-          <div className="mt-10 flex flex-col items-center justify-center py-4">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#7B6B55] border-t-transparent mb-6" />
-            <p className="font-sans text-[15px] leading-[1.4] text-[#8C7152] text-center">
-              Generating your clarifying questions…
-            </p>
-          </div>
+      <FdStepDesktopLayout
+        step={4}
+        total={5}
+        title="Clarifying Questions"
+        intro="We are preparing a short set of questions on fit, fabric, and comfort from what you shared."
+        formPanelClassName="lg:max-h-[min(85vh,960px)] lg:overflow-y-auto"
+      >
+        <div className="flex flex-col items-center justify-center py-10 text-[#2B2A25]">
+          <div className="mb-6 h-10 w-10 animate-spin rounded-full border-2 border-[#7B6B55] border-t-transparent" />
+          <p className="text-center font-sans text-[14px] leading-[1.45] text-[#8C7152]">
+            Generating your clarifying questions…
+          </p>
         </div>
-      </StepFormShell>
+      </FdStepDesktopLayout>
     );
   }
 
   if (error) {
     return (
-      <StepFormShell>
-        <div className="mx-auto max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12">
-          <form className="space-y-11 text-[#2B2A25]">
-            <div className="pt-1">
-              <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">
-                Step 4 of 5
-              </p>
-            <StepProgressBar step={4} total={5} />
-              <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">
-                Clarifying Questions
-              </h1>
-              <p className="mt-5 font-sans text-[15px] leading-[1.4] text-[#8C7152]">
-                {error}
-              </p>
-            </div>
-            <div className="mt-10 flex w-full flex-row flex-nowrap items-center justify-between gap-2 sm:gap-4">
-              <button
-                type="button"
-                onClick={onBack}
-                className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 hover:opacity-90 active:opacity-80 transition-opacity sm:gap-3"
-                aria-label="Back"
-              >
-                <span className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#2B2A25] text-[16px] leading-none text-[#2B2A25] sm:h-11 sm:w-11 sm:text-[18px]">
-                  ←
-                </span>
-                <span className="text-[11px] tracking-[0.18em] uppercase font-sans font-medium text-[#2B2A25] sm:text-[12px] sm:tracking-[0.2em]">
-                  BACK
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setReloadTick((t) => t + 1)}
-                className="flex min-h-[44px] shrink touch-manipulation items-center justify-center gap-2 rounded-full bg-[#2B2A25] px-4 py-2 text-white hover:bg-[#1f1d1a] active:bg-[#181716] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2B2A25] sm:min-h-[46px] sm:gap-2.5 sm:px-5"
-              >
-                <span className="font-sans text-[10px] tracking-[0.18em] uppercase sm:text-[12px] sm:tracking-[0.22em]">
-                  TRY AGAIN
-                </span>
-                <span className="shrink-0 text-[14px] leading-none sm:text-[16px]" aria-hidden>
-                  →
-                </span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </StepFormShell>
+      <FdStepDesktopLayout
+        step={4}
+        total={5}
+        title="Clarifying Questions"
+        intro="We could not load your questions this time."
+        formPanelClassName="lg:max-h-[min(85vh,960px)] lg:overflow-y-auto"
+      >
+        <form className="text-[#2B2A25]" onSubmit={(e) => e.preventDefault()}>
+          <p className="font-sans text-[14px] leading-[1.45] text-[#8C7152]">{error}</p>
+          <div
+            className="flex w-full flex-row flex-nowrap items-center justify-between gap-3"
+            style={{
+              marginTop: FD_STEP1_SPACING.navTopGap,
+              minHeight: FD_STEP1_SPACING.navHeight,
+            }}
+          >
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex min-w-0 shrink-0 items-center gap-2 hover:opacity-90"
+              aria-label="Back"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2B2A25] text-[16px] leading-none">
+                ←
+              </span>
+              <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium">BACK</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setReloadTick((t) => t + 1)}
+              className="flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-[#2B2A25] px-5 text-white hover:bg-[#1f1d1a]"
+            >
+              <span className="font-sans text-[10px] tracking-[0.16em] uppercase">TRY AGAIN</span>
+              <span className="text-[15px]" aria-hidden>
+                →
+              </span>
+            </button>
+          </div>
+        </form>
+      </FdStepDesktopLayout>
     );
   }
 
+  const questionIntro =
+    "Answer each section below. Your selections help us refine recommendations before the next step.";
+
   return (
-    <div className="w-full min-w-0 bg-white">
-      <section
-        className="relative w-full min-w-0 h-[350px] flex flex-col items-center justify-end pb-10 px-6 text-center"
-        style={HERO_STYLE}
-      >
-        <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
-          <img
-            src="/assets/form-logo-white-reference.png"
-            alt="Form Department logo"
-            className="w-[210px] h-auto"
-          />
-        </div>
-        <h2 className="mt-10 font-heading text-[34px] leading-[1.15] text-[#C7A15E]">
-          Your Curated Capsule
-        </h2>
-      </section>
-
-      <section className="relative -mt-[110px] w-full px-6 pb-10">
-        <div className="mx-auto w-full max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12">
-          <form onSubmit={handleSubmit} className="space-y-11 text-[#2B2A25]">
-            <div className="pt-1">
-              <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">
-                Step 4 of 5
-              </p>
-            <StepProgressBar step={4} total={5} />
-              <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">
-                Clarifying Questions
-              </h1>
-            </div>
-
-            {questionsData.map((category, ci) => (
-              <div key={ci} className="space-y-6">
-                <h2 className="font-heading text-[28px] sm:text-[34px] leading-[1.05] text-[#2B2A25]">
-                  {category.title}
-                </h2>
-                <div className="rounded-[18px] bg-white border border-[#DFDDD6] px-5 py-6 sm:px-6 sm:py-7 space-y-8">
+    <FdStepDesktopLayout
+      step={4}
+      total={5}
+      title="Clarifying Questions"
+      intro={questionIntro}
+      formPanelClassName="lg:max-h-[min(85vh,960px)] lg:overflow-y-auto"
+    >
+      <form onSubmit={handleSubmit} className="text-[#2B2A25]">
+        <div className="space-y-8">
+          {questionsData.map((category, ci) => (
+            <div key={ci} className="space-y-4">
+              <h2 className="font-heading text-[22px] leading-[1.1] text-[#2B2A25] sm:text-[26px]">{category.title}</h2>
+              <div className="space-y-6 rounded-[16px] border border-[#DFDDD6] bg-[#F5F5F5] px-4 py-5 sm:px-5 sm:py-6">
                 {category.questions.map((q, qi) => (
-                  <div key={qi} className="pt-1">
-                    {q.type === "multiple-choice" &&
-                    Array.isArray(q.options) ? (
-                      <p className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4">
-                        {q.question}
-                      </p>
+                  <div key={qi}>
+                    {q.type === "multiple-choice" && Array.isArray(q.options) ? (
+                      <p className={`${fdStepFieldLabelClass} mb-3`}>{q.question}</p>
                     ) : (
-                      <label
-                        htmlFor={`q-${ci}-${qi}-text`}
-                        className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4"
-                      >
+                      <label htmlFor={`q-${ci}-${qi}-text`} className={`${fdStepFieldLabelClass} mb-3 block`}>
                         {q.question}
                       </label>
                     )}
 
-                    {q.type === "multiple-choice" &&
-                    Array.isArray(q.options) ? (
+                    {q.type === "multiple-choice" && Array.isArray(q.options) ? (
                       <div className="space-y-2">
                         {q.options.map((opt, oi) => (
-                          <label
-                            key={oi}
-                            className="flex items-center gap-3 text-[#2B2A25]"
-                          >
+                          <label key={oi} className="flex items-center gap-3 text-[#2B2A25]">
                             <input
                               type="radio"
                               name={`q-${ci}-${qi}`}
                               value={opt}
                               checked={answers[q.question] === opt}
-                              onChange={(e) =>
-                                handleAnswerChange(q.question, e.target.value)
-                              }
-                              className="accent-[#3A3A3D] w-[18px] h-[18px] shrink-0"
+                              onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                              className="h-[18px] w-[18px] shrink-0 accent-[#3A3A3D]"
                               required={oi === 0 && !answers[q.question]}
                             />
-                            <span className="text-[14px] font-sans leading-[1.2]">
-                              {opt}
-                            </span>
+                            <span className="text-[14px] font-sans leading-[1.2]">{opt}</span>
                           </label>
                         ))}
                       </div>
@@ -603,51 +530,50 @@ Only return the JSON. No markdown. No explanation.
                       <input
                         id={`q-${ci}-${qi}-text`}
                         type="text"
-                        className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans font-normal leading-[1.2] text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md"
+                        className={fdStepInputClass}
                         placeholder="Your answer"
                         value={answers[q.question] || ""}
-                        onChange={(e) =>
-                          handleAnswerChange(q.question, e.target.value)
-                        }
+                        onChange={(e) => handleAnswerChange(q.question, e.target.value)}
                         required
                       />
                     )}
                   </div>
                 ))}
-                </div>
               </div>
-            ))}
-
-            <div className="mt-10 flex w-full flex-row flex-nowrap items-center justify-between gap-2 sm:gap-4">
-              <button
-                type="button"
-                onClick={onBack}
-                className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 hover:opacity-90 active:opacity-80 transition-opacity sm:gap-3"
-                aria-label="Back"
-              >
-                <span className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#2B2A25] text-[16px] leading-none text-[#2B2A25] sm:h-11 sm:w-11 sm:text-[18px]">
-                  ←
-                </span>
-                <span className="text-[11px] tracking-[0.18em] uppercase font-sans font-medium text-[#2B2A25] sm:text-[12px] sm:tracking-[0.2em]">
-                  BACK
-                </span>
-              </button>
-
-              <button
-                type="submit"
-                className="flex min-h-[44px] max-w-[min(9rem,calc(100%-7rem))] shrink touch-manipulation items-center justify-center gap-2 rounded-full bg-[#2B2A25] px-4 py-2 text-white hover:bg-[#1f1d1a] active:bg-[#181716] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2B2A25] sm:max-w-none sm:min-h-[46px] sm:gap-2.5 sm:px-6"
-              >
-                <span className="font-sans text-[10px] tracking-[0.2em] uppercase sm:text-[12px]">
-                  CONTINUE
-                </span>
-                <span className="shrink-0 text-[14px] leading-none sm:text-[16px]" aria-hidden>
-                  →
-                </span>
-              </button>
             </div>
-          </form>
+          ))}
         </div>
-      </section>
-    </div>
+
+        <div
+          className="flex w-full flex-row flex-nowrap items-center justify-between gap-3"
+          style={{
+            marginTop: FD_STEP1_SPACING.navTopGap,
+            minHeight: FD_STEP1_SPACING.navHeight,
+          }}
+        >
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex min-w-0 shrink-0 items-center gap-2 hover:opacity-90"
+            aria-label="Back"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2B2A25] text-[16px] leading-none">
+              ←
+            </span>
+            <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium">BACK</span>
+          </button>
+
+          <button
+            type="submit"
+            className="flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-[#2B2A25] px-5 text-white hover:bg-[#1f1d1a]"
+          >
+            <span className="font-sans text-[10px] tracking-[0.16em] uppercase">CONTINUE</span>
+            <span className="text-[15px]" aria-hidden>
+              →
+            </span>
+          </button>
+        </div>
+      </form>
+    </FdStepDesktopLayout>
   );
 }

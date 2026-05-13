@@ -1,8 +1,9 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setBrand2, setSharedPreference, toggleBrandPreference } from "../formSlice";
-
-import { StepProgressBar } from "./StepFormChrome";
+import FdStepDesktopLayout from "./FdStepDesktopLayout";
+import { fdStepFieldLabelClass, fdStepInputClass } from "./fdTypography";
+import { FD_STEP1_SPACING } from "./fdLayout";
 
 export default function Step2Inspiration({ email = "demo@example.com", onNext, onBack, embedded = false }) {
   const dispatch = useDispatch();
@@ -82,6 +83,8 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
               placeholder="Tell us more about why this brand resonates with you"
               value={sharedPreference}
               onChange={(e) => dispatch(setSharedPreference(e.target.value))}
+              required={false}
+              aria-required={false}
             />
           </div>
         </form>
@@ -89,109 +92,87 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
     );
   }
 
+  const intro =
+    "Share a reference brand that captures the direction you want so we can align aesthetic, positioning, and craft.";
+
   return (
-    <div className="w-full bg-white">
-      <section
-        className="relative w-full min-h-[420px] h-[min(52vh,500px)] sm:min-h-[460px] sm:h-[min(56vh,560px)] flex flex-col items-center justify-end pb-10 sm:pb-12 px-6 text-center"
-        style={{
-          backgroundImage:
-            'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.65) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
-          <img src="/assets/form-logo-white-reference.png" alt="Form Department logo" className="w-[210px] h-auto" />
+    <FdStepDesktopLayout step={2} total={5} title="Reference Brand" intro={intro}>
+      <form onSubmit={handleSubmit} className="text-[#2B2A25]" noValidate>
+        <label htmlFor="brand2" className={fdStepFieldLabelClass}>
+          WHAT CURRENT BRAND MOST CLOSELY ALIGNS WITH WHAT YOU ARE TRYING TO CREATE?
+        </label>
+        <input
+          id="brand2"
+          type="text"
+          className={fdStepInputClass}
+          placeholder="Enter a similar brand here"
+          value={brand2}
+          onChange={(e) => dispatch(setBrand2(e.target.value))}
+          required
+        />
+
+        <div className={fdStepFieldLabelClass} style={{ marginTop: FD_STEP1_SPACING.fieldGap }}>
+          WHAT DRAWS YOU TO THIS REFERENCE BRAND?
         </div>
-        <h2 className="mt-10 font-heading text-[34px] leading-[1.15] text-[#C7A15E]">Your Curated Capsule</h2>
-      </section>
-
-      <section className="relative -mt-[110px] px-6 pb-10">
-        <div className="mx-auto max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-10 py-12">
-          <form onSubmit={handleSubmit} className="space-y-11 text-[#2B2A25]">
-            <div className="pt-1">
-              <p className="text-[12px] tracking-[0.32em] uppercase text-[#C7A15E] font-sans">Step 2 of 5</p>
-              <StepProgressBar step={2} total={5} />
-              <h1 className="mt-9 text-[46px] font-heading leading-[1.05]">Reference Brand</h1>
-            </div>
-
-            <div className="pt-1">
-              <label className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4">
-                WHAT CURRENT BRAND MOST CLOSELY ALIGNS WITH WHAT YOU ARE TRYING TO CREATE?
-              </label>
+        <div className="mt-3 grid grid-cols-2 gap-y-2 gap-x-4 text-[#2B2A25]">
+          {["fit", "price", "material", "aesthetic", "brand_ethics"].map((key) => (
+            <label key={key} className="flex items-center">
               <input
-                type="text"
-                className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans font-normal leading-[1.2] text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md"
-                placeholder="Enter a similar brand here"
-                value={brand2}
-                onChange={(e) => dispatch(setBrand2(e.target.value))}
-                required
+                type="checkbox"
+                checked={brandPreference[key]}
+                onChange={() => dispatch(toggleBrandPreference(key))}
+                className="accent-[#3A3A3D]"
               />
-            </div>
-
-            <div className="pt-1">
-              <label className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4">
-                WHAT DRAWS YOU TO THIS REFERENCE BRAND?
-              </label>
-              <div className="grid grid-cols-2 gap-y-2 text-[#2B2A25]">
-                {["fit", "price", "material", "aesthetic", "brand_ethics"].map((key) => (
-                  <label key={key} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={brandPreference[key]}
-                      onChange={() => dispatch(toggleBrandPreference(key))}
-                      className="accent-[#3A3A3D]"
-                    />
-                    <span className="ml-2 capitalize text-[14px] font-sans">
-                      {key === "brand_ethics" ? "Brand Ethics" : key}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium mb-4">
-                TELL US A LITTLE MORE ABOUT WHY THIS BRAND RESONATES WITH YOU:
-              </label>
-              <input
-                type="text"
-                className="w-full border border-[#7C7C7C] bg-white px-5 py-3 text-[14px] font-sans font-normal leading-[1.2] text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md"
-                placeholder="Tell us more about why this brand resonates with you"
-                value={sharedPreference}
-                onChange={(e) => dispatch(setSharedPreference(e.target.value))}
-              />
-            </div>
-
-            <div className="mt-10 flex w-full flex-row flex-nowrap items-center justify-between gap-2 sm:gap-4">
-              <button
-                type="button"
-                onClick={onBack}
-                className="flex min-w-0 shrink-0 touch-manipulation items-center gap-2 hover:opacity-90 active:opacity-80 transition-opacity sm:gap-3"
-                aria-label="Back"
-              >
-                <span className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border border-[#2B2A25] text-[16px] leading-none text-[#2B2A25] sm:h-11 sm:w-11 sm:text-[18px]">
-                  ←
-                </span>
-                <span className="text-[11px] tracking-[0.18em] uppercase font-sans font-medium text-[#2B2A25] sm:text-[12px] sm:tracking-[0.2em]">
-                  BACK
-                </span>
-              </button>
-              <button
-                type="submit"
-                className="flex min-h-[44px] max-w-[min(11.5rem,calc(100%-6.75rem))] shrink touch-manipulation items-center justify-center gap-1.5 rounded-full bg-[#2B2A25] px-3 py-2 text-white sm:max-w-none sm:min-h-[46px] sm:gap-2 sm:px-5 hover:bg-[#1f1d1a] active:bg-[#181716] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2B2A25]"
-              >
-                <span className="whitespace-normal text-center font-sans text-[9px] leading-tight tracking-[0.1em] uppercase sm:text-[10px] sm:leading-snug sm:tracking-[0.16em]">
-                  CONTINUE TO STEP 3
-                </span>
-                <span className="shrink-0 text-[13px] leading-none sm:text-[15px]" aria-hidden>
-                  →
-                </span>
-              </button>
-            </div>
-          </form>
+              <span className="ml-2 capitalize text-[14px] font-sans">
+                {key === "brand_ethics" ? "Brand Ethics" : key}
+              </span>
+            </label>
+          ))}
         </div>
-      </section>
-    </div>
+
+        <label htmlFor="sharedPreference" className={fdStepFieldLabelClass} style={{ marginTop: FD_STEP1_SPACING.fieldGap }}>
+          TELL US A LITTLE MORE ABOUT WHY THIS BRAND RESONATES WITH YOU:
+        </label>
+        <input
+          id="sharedPreference"
+          type="text"
+          className={fdStepInputClass}
+          placeholder="Tell us more about why this brand resonates with you"
+          value={sharedPreference}
+          onChange={(e) => dispatch(setSharedPreference(e.target.value))}
+          required={false}
+          aria-required={false}
+        />
+
+        <div
+          className="flex w-full flex-row flex-nowrap items-center justify-between gap-3"
+          style={{
+            marginTop: FD_STEP1_SPACING.navTopGap,
+            minHeight: FD_STEP1_SPACING.navHeight,
+          }}
+        >
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex min-w-0 shrink-0 items-center gap-2 hover:opacity-90"
+            aria-label="Back"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[#2B2A25] text-[16px] leading-none">
+              ←
+            </span>
+            <span className="text-[12px] tracking-[0.2em] uppercase font-sans font-medium">BACK</span>
+          </button>
+          <button
+            type="submit"
+            className="flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-[#2B2A25] px-5 text-white hover:bg-[#1f1d1a]"
+          >
+            <span className="font-sans text-[10px] tracking-[0.16em] uppercase">CONTINUE TO STEP 3</span>
+            <span className="text-[15px]" aria-hidden>
+              →
+            </span>
+          </button>
+        </div>
+      </form>
+    </FdStepDesktopLayout>
   );
 }

@@ -131,15 +131,23 @@ function leadDetailSansLeadingCue(fullValue) {
     .trim();
 }
 
-/** One cream oval + one white inner panel for the whole market block (no per-section halos). */
-function MarketUnifiedShell({ children, className = "" }) {
+/** White rounded card (mockup: discrete left-column panels). */
+function MarketWhiteCard({ title, children }) {
   return (
-    <div
-      className={`rounded-[30px] sm:rounded-[36px] bg-[#F2F1ED] border border-black/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.08)] px-4 py-5 sm:px-7 sm:py-8 ${className}`}
-    >
-      <div className="rounded-[22px] sm:rounded-[28px] bg-white border border-black/[0.065] shadow-[0_12px_40px_rgba(0,0,0,0.055)] px-5 py-7 sm:px-9 sm:py-10">
-        {children}
-      </div>
+    <section className="rounded-[22px] sm:rounded-[26px] bg-white border border-black/[0.07] shadow-[0_10px_36px_rgba(0,0,0,0.055)] px-5 py-6 sm:px-7 sm:py-8">
+      <h3 className="font-heading text-[1.3125rem] sm:text-xl text-[#1E1D1B] tracking-tight leading-snug mb-5 sm:mb-6">
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+/** Cream column for Lead Time (mockup: tall right rail). */
+function MarketLeadTimeShell({ children }) {
+  return (
+    <div className="rounded-[26px] sm:rounded-[30px] bg-[#E8E6E1] border border-[#D4D0C8] shadow-[0_16px_44px_rgba(0,0,0,0.08)] px-5 py-7 sm:px-7 sm:py-9">
+      {children}
     </div>
   );
 }
@@ -944,7 +952,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     productType?.trim() || category?.trim() || "Your product";
 
   const marketBlurb =
-    "A technical deep-dive into the construction, sourcing and economic blueprint of this performance silhouette.";
+    "A technical deep-dive into the construction, sourcing and economic blueprint of your performance silhouette.";
 
   // Build email params
   const buildEmailParams = () => {
@@ -1032,170 +1040,166 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
           </p>
         </section>
 
-        <div className="relative z-10 mx-auto max-w-[1100px] -mt-5 sm:-mt-7 lg:-mt-9 px-3 sm:px-5 lg:px-8 space-y-8 sm:space-y-10">
-          <MarketUnifiedShell>
-            <div className="flex flex-col">
-              <section>
-                <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
-                  {categoryLabel}
-                </p>
-                <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
-                  {productTitle}
-                </h2>
-                <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2a2825] font-sans font-normal">
-                  {marketBlurb}
-                </p>
-              </section>
+        <div className="relative z-10 mx-auto max-w-[1100px] -mt-5 sm:-mt-7 lg:-mt-9 px-3 sm:px-5 lg:px-8">
+          <section className="pb-8 sm:pb-10">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
+              {categoryLabel}
+            </p>
+            <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
+              {productTitle}
+            </h2>
+            <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2a2825] font-sans font-normal">
+              {marketBlurb}
+            </p>
+          </section>
 
-              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
-                <h3 className="font-heading text-[1.3125rem] sm:text-xl text-[#1E1D1B] tracking-tight leading-snug">
-                  Yield &amp; Consumption Estimates
-                </h3>
-                <div className="mt-6 sm:mt-7 space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
-                  {yieldRows.length ? (
-                    yieldRows.map((r) => (
-                      <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0 font-normal">
-                        <span className="text-[#141312]">{r.label}: </span>
-                        <span className="text-[#4a463f]">{r.value}</span>
-                      </p>
-                    ))
-                  ) : yieldConsumption ? (
-                    <MarketMdBody>{yieldConsumption}</MarketMdBody>
+          <div className="flex flex-col gap-8 lg:gap-10">
+            <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:gap-x-10 lg:items-start">
+              <div className="flex min-w-0 flex-col gap-6 lg:gap-8">
+                <MarketWhiteCard title="Yield & Consumption Estimates">
+                  <div className="space-y-3.5 text-[13px] sm:text-[14px] font-sans text-[#232220] leading-relaxed">
+                    {yieldRows.length ? (
+                      yieldRows.map((r) => (
+                        <p key={`${r.label}-${r.value.slice(0, 40)}`} className="m-0 font-normal">
+                          <span className="text-[#141312]">{r.label}: </span>
+                          <span className="text-[#4a463f]">{r.value}</span>
+                        </p>
+                      ))
+                    ) : yieldConsumption ? (
+                      <MarketMdBody>{yieldConsumption}</MarketMdBody>
+                    ) : (
+                      <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                    )}
+                  </div>
+                </MarketWhiteCard>
+
+                <MarketWhiteCard title="Comparable Market Examples">
+                  {comparableBrands.length ? (
+                    <div className="flex flex-col gap-3 sm:gap-3.5 font-sans text-[14px] sm:text-[15px] text-[#3a3834] text-left">
+                      {comparableBrands.map((b, i) => (
+                        <div key={`${i}-${b.slice(0, 24)}`}>{b}</div>
+                      ))}
+                    </div>
+                  ) : marketExamples ? (
+                    <div className="[&_.font-heading]:text-[#3a3834]">
+                      <MarketMdBody>{marketExamples}</MarketMdBody>
+                    </div>
                   ) : (
                     <p className="text-sm text-[#756F68] font-sans">No data available</p>
                   )}
-                </div>
-              </section>
+                </MarketWhiteCard>
 
-              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
-                <h3 className="font-heading text-[1.625rem] sm:text-[1.875rem] md:text-[2rem] text-[#1E1D1B] font-medium tracking-tight leading-tight mb-7 sm:mb-9">
-                  Lead Time
-                </h3>
-                {leadRows.length ? (
-                  <div className="space-y-0">
-                    {(() => {
-                      let samplingSeen = 0;
-                      return leadRows.map((r, i) => {
-                        const cue = extractLeadWeekCue(r.value);
-                        const detail = leadDetailSansLeadingCue(r.value);
-                        const plain = stripMdLight(r.value);
-                        const showDetail =
-                          detail.length > 0 && (!cue ? detail !== plain : true);
-                        const isSampling = /^sampling/i.test(r.label.trim());
-                        if (isSampling) samplingSeen += 1;
-                        const showSamplingDot = isSampling && samplingSeen === 2;
-                        return (
-                          <div
-                            key={`${r.label}-${i}`}
-                            className="pb-9 sm:pb-10 mb-2 sm:mb-1 last:pb-4 last:mb-0"
-                          >
-                            <p className="m-0 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816]">
-                              {r.label.replace(/:+\s*$/, "")}:
-                            </p>
-                            <p className="mt-2 m-0 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816] tabular-nums">
-                              {cue ? cue : plain}
-                            </p>
-                            {showDetail ? (
-                              <p className="mt-3 text-[12px] sm:text-[13px] font-normal leading-relaxed text-[#4a463e]">
-                                {detail}
+                <section>
+                  <h3 className="mb-5 font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug sm:mb-6">
+                    Target Audience
+                  </h3>
+                  <AudienceDashboardFourGrid audienceByKey={audienceByKey} />
+                </section>
+              </div>
+
+              <aside className="min-w-0 w-full lg:sticky lg:top-8 lg:self-start">
+                <MarketLeadTimeShell>
+                  <h3 className="mb-7 font-heading text-[1.625rem] font-medium leading-tight tracking-tight text-[#1E1D1B] sm:mb-9 sm:text-[1.875rem] md:text-[2rem]">
+                    Lead Time
+                  </h3>
+                  {leadRows.length ? (
+                    <div className="space-y-0">
+                      {(() => {
+                        let samplingSeen = 0;
+                        return leadRows.map((r, i) => {
+                          const cue = extractLeadWeekCue(r.value);
+                          const detail = leadDetailSansLeadingCue(r.value);
+                          const plain = stripMdLight(r.value);
+                          const showDetail =
+                            detail.length > 0 && (!cue ? detail !== plain : true);
+                          const isSampling = /^sampling/i.test(r.label.trim());
+                          if (isSampling) samplingSeen += 1;
+                          const showSamplingDot = isSampling && samplingSeen === 2;
+                          return (
+                            <div
+                              key={`${r.label}-${i}`}
+                              className="pb-9 sm:pb-10 mb-2 sm:mb-1 last:pb-4 last:mb-0"
+                            >
+                              <p className="m-0 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816]">
+                                {r.label.replace(/:+\s*$/, "")}:
                               </p>
-                            ) : null}
-                            <div className="relative mt-5">
-                              {showSamplingDot ? (
-                                <span
-                                  className="absolute left-[42%] -top-3 z-[1] inline-block h-2 w-2 rounded-full bg-emerald-600 shadow-sm ring-2 ring-emerald-500/35"
-                                  aria-hidden
-                                />
+                              <p className="mt-2 m-0 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816] tabular-nums">
+                                {cue ? cue : plain}
+                              </p>
+                              {showDetail ? (
+                                <p className="mt-3 text-[12px] sm:text-[13px] font-normal leading-relaxed text-[#4a463e]">
+                                  {detail}
+                                </p>
                               ) : null}
-                              <LeadDurationBar pct={r.pct} />
+                              <div className="relative mt-5">
+                                {showSamplingDot ? (
+                                  <span
+                                    className="absolute left-[42%] -top-3 z-[1] inline-block h-2 w-2 rounded-full bg-emerald-600 shadow-sm ring-2 ring-emerald-500/35"
+                                    aria-hidden
+                                  />
+                                ) : null}
+                                <LeadDurationBar pct={r.pct} />
+                              </div>
                             </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                    {leadSummaryRows.length > 0 ? (
-                      <div className="mt-6 sm:mt-8 rounded-[16px] sm:rounded-[18px] bg-[#DAD6D0] px-5 py-6 sm:px-7 sm:py-7 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-3 border border-black/[0.06]">
-                        {leadSummaryRows.map((row) => (
-                          <p key={row.label} className="m-0">
-                            <span className="font-bold text-[#1a1816]">{row.label}: </span>
-                            <span className="font-normal">{row.value}</span>
-                          </p>
-                        ))}
-                      </div>
-                    ) : leadParts.summary?.trim() ? (
-                      <div className="mt-6 sm:mt-8 rounded-[16px] sm:rounded-[18px] bg-[#DAD6D0] px-5 py-6 sm:px-7 sm:py-7 border border-black/[0.06] text-[#292724]">
-                        <MarketMdBody>{leadParts.summary}</MarketMdBody>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : leadTime ? (
-                  <div className="text-[#232220] text-[14px] sm:text-[15px] font-normal leading-relaxed whitespace-pre-wrap">
-                    <MarketMdBody>{leadTime}</MarketMdBody>
-                  </div>
-                ) : (
-                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
-                )}
-              </section>
-
-              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
-                <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug mb-6 sm:mb-8">
-                  Comparable Market Examples
-                </h3>
-                {comparableBrands.length ? (
-                  <div className="flex flex-col gap-3 sm:gap-3.5 font-sans text-[14px] sm:text-[15px] text-[#3a3834] text-left">
-                    {comparableBrands.map((b, i) => (
-                      <div key={`${i}-${b.slice(0, 24)}`}>{b}</div>
-                    ))}
-                  </div>
-                ) : marketExamples ? (
-                  <div className="[&_.font-heading]:text-[#3a3834]">
-                    <MarketMdBody>{marketExamples}</MarketMdBody>
-                  </div>
-                ) : (
-                  <p className="text-sm text-[#756F68] font-sans">No data available</p>
-                )}
-              </section>
-
-              {onRestart ? (
-                <div className="mt-10 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={onRestart}
-                    className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#2B2A25] px-8 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#2B2A25] hover:bg-[#2B2A25] hover:text-white transition-colors"
-                  >
-                    Build a new item
-                  </button>
-                </div>
-              ) : null}
-
-              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
-                <h3 className="font-heading text-[1.3125rem] sm:text-xl md:text-[1.375rem] text-[#1E1D1B] tracking-tight leading-snug mb-6 sm:mb-8">
-                  Target Audience
-                </h3>
-                <AudienceDashboardFourGrid audienceByKey={audienceByKey} />
-              </section>
-
-              <section className="mt-8 sm:mt-10 border-t border-black/[0.08] pt-8 sm:pt-10">
-                <div className="flex flex-col gap-4 sm:gap-5">
-                  <DarkFinancialCard
-                    title="Margin Analysis"
-                    parsed={marginParsed}
-                    fallbackText={marginForCard}
-                    showHighlight
-                  />
-                  <DarkFinancialCard
-                    title="Wholesale vs DTC Pricing"
-                    parsed={wholesaleParsed}
-                    fallbackText={pricingForCard}
-                    showHighlight={false}
-                  />
-                </div>
-              </section>
+                          );
+                        });
+                      })()}
+                      {leadSummaryRows.length > 0 ? (
+                        <div className="mt-6 sm:mt-8 rounded-[16px] sm:rounded-[18px] bg-[#DAD6D0] px-5 py-6 sm:px-7 sm:py-7 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-3 border border-black/[0.06]">
+                          {leadSummaryRows.map((row) => (
+                            <p key={row.label} className="m-0">
+                              <span className="font-bold text-[#1a1816]">{row.label}: </span>
+                              <span className="font-normal">{row.value}</span>
+                            </p>
+                          ))}
+                        </div>
+                      ) : leadParts.summary?.trim() ? (
+                        <div className="mt-6 sm:mt-8 rounded-[16px] sm:rounded-[18px] bg-[#DAD6D0] px-5 py-6 sm:px-7 sm:py-7 border border-black/[0.06] text-[#292724]">
+                          <MarketMdBody>{leadParts.summary}</MarketMdBody>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : leadTime ? (
+                    <div className="text-[#232220] text-[14px] sm:text-[15px] font-normal leading-relaxed whitespace-pre-wrap">
+                      <MarketMdBody>{leadTime}</MarketMdBody>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-[#756F68] font-sans">No data available</p>
+                  )}
+                </MarketLeadTimeShell>
+              </aside>
             </div>
-          </MarketUnifiedShell>
 
-            {/* Footer actions */}
-            <div className="mt-11 flex w-full flex-row flex-nowrap items-center justify-between gap-2 border-t border-black/[0.08] pt-9 sm:gap-6">
+            <section className="flex flex-col gap-4 sm:gap-5">
+              <DarkFinancialCard
+                title="Margin Analysis"
+                parsed={marginParsed}
+                fallbackText={marginForCard}
+                showHighlight
+              />
+              <DarkFinancialCard
+                title="Wholesale vs DTC Pricing"
+                parsed={wholesaleParsed}
+                fallbackText={pricingForCard}
+                showHighlight={false}
+              />
+            </section>
+
+            {onRestart ? (
+              <div className="flex justify-center pt-2">
+                <button
+                  type="button"
+                  onClick={onRestart}
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#2B2A25] px-8 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#2B2A25] hover:bg-[#2B2A25] hover:text-white transition-colors"
+                >
+                  Build a new item
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Footer actions */}
+          <div className="mt-11 flex w-full flex-row flex-nowrap items-center justify-between gap-2 border-t border-black/[0.08] pt-9 sm:gap-6">
               <button
                 type="button"
                 onClick={onBack}
