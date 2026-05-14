@@ -12,6 +12,91 @@ import {
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
+/** Minimum counts for structured sections (prompt + validation + retries). */
+const MIN_MATERIAL_BLOCKS = 4;
+const MIN_COMPANION_BLOCKS = 4;
+const MIN_COMPARABLE_MARKET_LINES = 4;
+const CAPSULE_FETCH_MAX_ATTEMPTS = 4;
+
+function countComparableMarketExamples(text) {
+  const t = (text || "").replace(/\*\*/g, "").trim();
+  const lines = t
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^[-*•\d.]+\s*/, "").trim())
+    .filter(Boolean);
+  if (lines.length >= 1) return lines.length;
+  const comma = t.split(/(?:,|•|\/)\s*/).map((s) => s.trim()).filter(Boolean);
+  return comma.length;
+}
+
+function marginSectionLooksUsable(text) {
+  const s = (text || "").replace(/\*\*/g, "").trim();
+  if (s.length < 36) return false;
+  if (!/\$/.test(s)) return false;
+  return (
+    /retail\s*price/i.test(s) &&
+    /production\s*cost|cost\s*per\s*unit|landed/i.test(s) &&
+    /%/.test(s)
+  );
+}
+
+function pricingSectionLooksUsable(text) {
+  const s = (text || "").replace(/\*\*/g, "").trim();
+  if (s.length < 36) return false;
+  if (!/\$/.test(s)) return false;
+  return (
+    /wholesale/i.test(s) &&
+    /(dtc|direct-to-consumer|retail\s*\/\s*dtc)/i.test(s) &&
+    /%/.test(s)
+  );
+}
+
+/**
+ * Validates parsed capsule output so we can retry the model when counts/content are thin.
+ * @param {Record<string, string>} parsed
+ * @returns {{ ok: boolean, failures: string[] }}
+ */
+function validateCapsuleOutput(parsed) {
+  const failures = [];
+  const safe = parsed && typeof parsed === "object" ? parsed : {};
+
+  const mat = parseMaterialsForDisplay(safe.materials || "");
+  const matCount = mat.mode === "blocks" ? mat.blocks.length : 0;
+  if (matCount < MIN_MATERIAL_BLOCKS) {
+    failures.push(
+      `Materials: need at least ${MIN_MATERIAL_BLOCKS} distinct **Fabric (NNN GSM)** blocks with body text; counted ${matCount}.`
+    );
+  }
+
+  const comp = parseCompanionForDisplay(safe.companionItems || "");
+  const compCount = comp.mode === "blocks" ? comp.blocks.length : 0;
+  if (compCount < MIN_COMPANION_BLOCKS) {
+    failures.push(
+      `Companion Items: need at least ${MIN_COMPANION_BLOCKS} distinct **Piece name** blocks; counted ${compCount}.`
+    );
+  }
+
+  const mktCount = countComparableMarketExamples(safe.marketExamples || "");
+  if (mktCount < MIN_COMPARABLE_MARKET_LINES) {
+    failures.push(
+      `Comparable Market Examples: need at least ${MIN_COMPARABLE_MARKET_LINES} separate brand/line names (one per line); counted ${mktCount}.`
+    );
+  }
+
+  if (!marginSectionLooksUsable(safe.marginAnalysis || "")) {
+    failures.push(
+      "Margin Analysis: must include Retail price, Production cost (landed), and Gross margin with $ amounts and a % (see prompt)."
+    );
+  }
+  if (!pricingSectionLooksUsable(safe.pricing || "")) {
+    failures.push(
+      "Wholesale vs. DTC Pricing: must include wholesale range, retail/DTC range, and both margin lines with $ and %."
+    );
+  }
+
+  return { ok: failures.length === 0, failures };
+}
+
 /** e.g. "Materials 50%" or "Materials: 50%" or one line "Materials 50%, Labour 30%" */
 function parseCostProductionRows(text) {
   if (!text || typeof text !== "string") return [];
@@ -401,7 +486,9 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
         /(\*\*)?All ranges should be realistic:\s*minimum 8 weeks, maximum 24 weeks\.?(\*\*)?\s*/gi,
       ],
       'Comparable Market Examples': [
-        /(\*\*)?List 2–3 comparable market references\.?(\*\*)?\s*/gi,
+        /(\*\*)?List 2[–-]3 comparable market references\.?(\*\*)?\s*/gi,
+        /(\*\*)?List exactly four[^\n]*\.?(\*\*)?\s*/gi,
+        /(\*\*)?Output exactly four[^\n]*\.?(\*\*)?\s*/gi,
         /(\*\*)?Select brands at similar quality and price points to the user's concept\.?(\*\*)?\s*/gi,
       ],
       'Target Consumer Insight': [
@@ -760,7 +847,8 @@ const generatePrompt = () => {
     **Market & Brand Positioning**
 
     **Comparable Market Examples**
-    List 2–3 comparable market references. Select brands at similar quality and price points to the user's concept.
+    List exactly four (4) comparable brands or product lines — no fewer than four, no merged run-on sentence listing.
+    Output four separate lines (numbered 1–4 or plain lines), one brand/line per line, at similar quality and price points to the user's concept. If you output fewer than four, the response is invalid.
 
     **Target Consumer Insight**
     Output EXACTLY four lines (no headings, bullets, numbered lists, or extra paragraphs inside this section). Each line MUST use this shape: Label, colon, single space, then content.
@@ -849,53 +937,115 @@ const generatePrompt = () => {
           });
         }
         
-        // Also save to legacy keys for backward compatibility
-        localStorage.setItem('answer', cached.rawAnswer);
-        localStorage.setItem('parsedSuggestions', JSON.stringify(cleanedSuggestions));
-        setSuggestions(cleanedSuggestions);
-        loadedParamsRef.current = paramsKey;
-        setLoading(false);
-        toast.success('Product Breakdown loaded from cache', {
-          style: { backgroundColor: '#3A3A3D', color: '#fff' },
-        });
-        return;
-      }
-
-      // Cache miss - fetch from API
-      try {
-        const prompt = generatePrompt();
-        const response = await axios.post('/api/openai', { prompt });
-
-        console.log("OpenAI Response:", response.data); // Log the full response
-
-        if (response?.data?.error) {
-          throw new Error(`OpenAI API error: ${response.data.error}`);
+        const cacheValidation = validateCapsuleOutput(cleanedSuggestions);
+        if (cacheValidation.ok) {
+          // Also save to legacy keys for backward compatibility
+          localStorage.setItem('answer', cached.rawAnswer);
+          localStorage.setItem(
+            'parsedSuggestions',
+            JSON.stringify(cleanedSuggestions)
+          );
+          setSuggestions(cleanedSuggestions);
+          loadedParamsRef.current = paramsKey;
+          setLoading(false);
+          toast.success('Product Breakdown loaded from cache', {
+            style: { backgroundColor: '#3A3A3D', color: '#fff' },
+          });
+          return;
         }
 
-        let answer = response?.data?.choices?.[0]?.message?.content ?? response?.data?.choices?.[0]?.text ?? '';
-        
-        // Clean the response to remove any prompt text that might be included
-        answer = removePromptFromResponse(answer);
-        
-        console.log("Parsed Answer:", answer); // Log parsed answer
+        console.warn(
+          'Cached Product Breakdown failed validation; refetching.',
+          cacheValidation.failures
+        );
+        try {
+          const { rawAnswer: rawKey, parsedSuggestions: parsedKey } =
+            getStorageKeys();
+          localStorage.removeItem(rawKey);
+          localStorage.removeItem(parsedKey);
+        } catch (_) {
+          /* ignore */
+        }
+      }
+
+      // Cache miss or stale/invalid cache — fetch from API (with validation retries)
+      try {
+        let lastFailures = [];
+        let answer = '';
+        let parsed = {};
+
+        for (let attempt = 0; attempt < CAPSULE_FETCH_MAX_ATTEMPTS; attempt++) {
+          const retryNote =
+            attempt > 0
+              ? `\n\n---\nREWRITE REQUIRED — prior output failed validation:\n${lastFailures
+                  .map((f) => `- ${f}`)
+                  .join(
+                    "\n"
+                  )}\nOutput the COMPLETE response again from **Materials** through **Wholesale vs. DTC Pricing**. Every section must be present. Do not truncate **Business & Financial Tools**. Use real numbers (not bracket placeholders). Do not merge multiple fabrics or companion pieces into one block.\n---\n`
+              : "";
+          const prompt = generatePrompt() + retryNote;
+
+          if (attempt > 0) {
+            toast.message(
+              `Regenerating Product Breakdown (attempt ${attempt + 1}/${CAPSULE_FETCH_MAX_ATTEMPTS})…`,
+              {
+                duration: 4500,
+                style: { backgroundColor: '#3A3A3D', color: '#fff' },
+              }
+            );
+          }
+
+          const response = await axios.post('/api/openai', { prompt });
+
+          console.log("OpenAI Response:", response.data);
+
+          if (response?.data?.error) {
+            throw new Error(`OpenAI API error: ${response.data.error}`);
+          }
+
+          answer =
+            response?.data?.choices?.[0]?.message?.content ??
+            response?.data?.choices?.[0]?.text ??
+            "";
+
+          answer = removePromptFromResponse(answer);
+          console.log("Parsed Answer:", answer);
+
+          parsed = parseAIResponse(answer);
+          console.log('Parsed Suggestions:', parsed);
+
+          const v = validateCapsuleOutput(parsed);
+          if (v.ok) {
+            lastFailures = [];
+            break;
+          }
+          lastFailures = v.failures;
+          console.warn(
+            `Product Breakdown attempt ${attempt + 1} failed validation:`,
+            v.failures
+          );
+        }
 
         // Save to legacy keys for backward compatibility
         localStorage.setItem('answer', answer);
         console.log('Raw AI Response:', answer);
-        const parsed = parseAIResponse(answer);
-        console.log('Parsed Suggestions:', parsed);
         setSuggestions(parsed);
         loadedParamsRef.current = paramsKey;
 
-        // Store parsed suggestions for the next screen (legacy)
         localStorage.setItem('parsedSuggestions', JSON.stringify(parsed));
 
-        // Save to cache with timestamp
         saveSuggestionsToCache(answer, parsed);
 
-        toast.success('Product Breakdown generated successfully!', {
-          style: { backgroundColor: '#3A3A3D', color: '#fff' },
-        });
+        if (validateCapsuleOutput(parsed).ok) {
+          toast.success('Product Breakdown generated successfully!', {
+            style: { backgroundColor: '#3A3A3D', color: '#fff' },
+          });
+        } else {
+          toast.warning(
+            `Product Breakdown finished after ${CAPSULE_FETCH_MAX_ATTEMPTS} attempts; some sections may still be incomplete.`,
+            { style: { backgroundColor: '#3A3A3D', color: '#fff' } }
+          );
+        }
       } catch (err) {
         console.error('OpenAI error:', err);
         toast.error('Something went wrong while fetching suggestions.', {
