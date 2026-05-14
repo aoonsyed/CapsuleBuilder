@@ -333,6 +333,9 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
     const instructionPatterns = {
       'Materials': [
         /(\*\*)?You MUST output exactly four \(4\) different materials[^\n]*\n?/gi,
+        /(\*\*)?Repeat this distinct block four times[^\n]*\n?/gi,
+        /(\*\*)?Output exactly three \(3\) different materials[^\n]*\n?/gi,
+        /(\*\*)?Repeat this block three times[^\n]*\n?/gi,
         /(\*\*)?Repeat this block four times[^\n]*\n?/gi,
         /(\*\*)?Suggest appropriate materials for the product based on the design requirements and target price point\.?(\*\*)?\s*/gi,
         /(\*\*)?Include fabric types, weights \(GSM\), texture, special properties \(stretch, breathability, etc\.\), and any special considerations for sustainability or performance\.?(\*\*)?\s*/gi,
@@ -366,6 +369,9 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
       ],
       'Companion Items': [
         /(\*\*)?You MUST output exactly four \(4\) different companion pieces[^\n]*\n?/gi,
+        /(\*\*)?Repeat this distinct block four times[^\n]*\n?/gi,
+        /(\*\*)?Output exactly three \(3\) different companion pieces[^\n]*\n?/gi,
+        /(\*\*)?Repeat this block three times[^\n]*\n?/gi,
         /(\*\*)?Suggest 4-6 complementary pieces that would work well with this product in a capsule collection\.?(\*\*)?\s*/gi,
         /(\*\*)?Suggest 6[–-]8 complementary pieces for a capsule with this product\.?(\*\*)?\s*/gi,
         /(\*\*)?Be specific with item names and briefly explain why each piece complements the main product\.?(\*\*)?\s*/gi,
@@ -696,10 +702,11 @@ const generatePrompt = () => {
     Please provide your response in EXACTLY this format with these exact headings:
 
     **Materials**
-    Output exactly three (3) different materials or fabrics. Repeat this block three times — no fewer than three.
+    You MUST output exactly four (4) different materials or fabrics — no fewer than four, no merged multi-fabric paragraphs.
+    Repeat this distinct block four times (four separate bold headings + body pairs) — if you output fewer than four, the response is invalid.
     For EACH material use a bold sub-heading on its own line in this exact shape (then a blank line, then the copy):
     **Full fabric name (NNN GSM)**
-    Two or three sentences on fiber content, hand feel, durability, breathability, sustainability, or performance. Do not run all four fabrics in one paragraph. Do not prefix body lines with hyphens.
+    Two or three sentences on fiber content, hand feel, durability, breathability, sustainability, or performance. Do not run multiple fabrics in one paragraph. Do not prefix body lines with hyphens.
 
     **Sales Price**
     Put the price range on its own line first, exactly:
@@ -725,7 +732,8 @@ const generatePrompt = () => {
     - Note factors that could affect cost (complexity, special finishes, etc.)
 
     **Companion Items**
-    Output exactly three (3) different companion pieces. Repeat this block three times — no fewer than three:
+    You MUST output exactly four (4) different companion pieces — no fewer than four.
+    Repeat this distinct block four times (four separate **Piece name** headings each followed by its paragraph) — if you output fewer than four, the response is invalid.
     **Piece name**
     Two or three sentences explaining how it complements the hero product, styling, layering, and the target customer. Do not prefix lines with hyphens.
 

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useLayoutEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import emailjs from '@emailjs/browser';
+import { FD_STEP1_COLORS, FD_STEP1_SPACING } from './fdLayout';
 /**
  * Testing only: skips Market Analysis subscription check (same path as localhost).
  * Set to `false` before any production deploy that should enforce Tier 2.
@@ -773,6 +774,31 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     }
   }, [hasAccess, paramsKey, saveSectionsToCache, buildMarketSections]);
 
+  /** Pull cream body up over hero (~30% overlap), same ratio as Line Strategy / input steps. */
+  const marketOverlapRef = useRef(null);
+  const [marketOverlapPx, setMarketOverlapPx] = useState(() =>
+    Math.round(520 * FD_STEP1_SPACING.cardOverlapRatio)
+  );
+
+  useLayoutEffect(() => {
+    if (!hasAccess || !sections) return undefined;
+    const el = marketOverlapRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const h = el.offsetHeight;
+      const next = Math.round(h * FD_STEP1_SPACING.cardOverlapRatio);
+      if (next > 0) setMarketOverlapPx((p) => (p === next ? p : next));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [hasAccess, sections]);
+
   // Show loading while checking access
   if (!accessChecked) {
     return (
@@ -1012,17 +1038,19 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     <>
       <Toaster position="top-right" richColors />
       <div
-        className="bg-[#f5f4f1] min-h-screen w-full overflow-x-hidden pb-10 sm:pb-12"
+        className="min-h-screen w-full overflow-x-hidden pb-10 sm:pb-12"
+        style={{ backgroundColor: FD_STEP1_COLORS.pageBottom }}
         data-capsule-step="market-analysis"
       >
-        {/* Hero — full-bleed image + overlay (Market Analysis screen) */}
+        {/* Hero — overlaps upward into cream body (same pattern as Line Strategy) */}
         <section
-          className="relative flex w-full flex-col items-center justify-end min-h-[min(52vh,420px)] sm:min-h-[min(52vh,480px)] pt-14 pb-[6.25rem] sm:pt-16 sm:pb-28 lg:pb-32 px-4 text-center text-white"
+          className="relative z-0 flex w-full min-h-[min(52vh,420px)] flex-col items-center justify-end px-4 pt-14 text-center text-white sm:min-h-[min(52vh,480px)] sm:pt-16"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.66) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
             backgroundSize: "cover",
             backgroundPosition: "center 28%",
+            paddingBottom: FD_STEP1_SPACING.heroTitleToCard + marketOverlapPx,
           }}
         >
           <img
@@ -1031,7 +1059,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
             className="absolute top-8 sm:top-10 left-1/2 z-10 w-[min(40vw,200px)] sm:w-[208px] md:w-[220px] h-auto -translate-x-1/2"
           />
 
-          <h1 className="relative z-10 mt-28 sm:mt-32 mb-8 sm:mb-10 lg:mb-14 pb-4 sm:pb-6 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)]">
+          <h1 className="relative z-10 mt-28 sm:mt-32 mb-0 pb-2 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)] sm:pb-4">
             Market Analysis
           </h1>
 
@@ -1040,7 +1068,18 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
           </p>
         </section>
 
-        <div className="relative z-10 mx-auto max-w-[1100px] -mt-5 sm:-mt-7 lg:-mt-9 px-3 sm:px-5 lg:px-8">
+        <div
+          ref={marketOverlapRef}
+          className="relative z-20 px-3 sm:px-5 lg:px-8"
+          style={{
+            marginTop: marketOverlapPx ? -marketOverlapPx : undefined,
+            backgroundColor: "#f5f4f1",
+            borderTopLeftRadius: "28px",
+            borderTopRightRadius: "28px",
+            paddingTop: "1.25rem",
+          }}
+        >
+        <div className="relative z-10 mx-auto max-w-[1100px] px-0 sm:px-0 lg:px-0">
           <section className="pb-8 sm:pb-10">
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
               {categoryLabel}
@@ -1230,6 +1269,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
                 ) : null}
               </button>
             </div>
+        </div>
         </div>
       </div>
     </>
