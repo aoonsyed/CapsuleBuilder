@@ -137,7 +137,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
           id="sharedPreference"
           type="text"
           className={fdStepInputClass}
-          placeholder="Tell us more about why this brand resonates with you"
+          placeholder="Optional"
           value={sharedPreference}
           onChange={(e) => dispatch(setSharedPreference(e.target.value))}
           required={false}
