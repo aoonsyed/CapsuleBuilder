@@ -34,16 +34,16 @@ function parseLabelValueLines(text) {
   return rows;
 }
 
+const LEAD_NOTE_HEADING_RE =
+  /^(?:#{1,4}\s*)?(?:Key factors?|Rush\s+(?:production|options?)|Seasonal\s+considerations?|Rush\s+time|Key\s+considerations?)\b/i;
+
 function splitLeadTimeSections(markdownText) {
   if (!markdownText?.trim()) return { main: "", summary: "" };
   const rawLines = markdownText.split(/\r?\n/);
   let cut = rawLines.length;
   for (let i = 0; i < rawLines.length; i++) {
     const L = stripMdLight(rawLines[i]);
-    if (
-      /^(?:#{1,4}\s*)?(?:Key factors|Rush production|Seasonal considerations)\s*:/i.test(L) ||
-      /^(?:#{1,4}\s*)(?:Key factors|Rush production|Seasonal considerations)\s*$/i.test(L)
-    ) {
+    if (LEAD_NOTE_HEADING_RE.test(L)) {
       cut = i;
       break;
     }
@@ -109,6 +109,7 @@ function leadRowsFromLabelValuePairs(rows) {
   const temp = [];
   for (const r of rows) {
     if (!r.value?.trim()) continue;
+    if (!/\d/.test(r.value) || !/weeks?|month/i.test(r.value)) continue;
     temp.push({
       label: r.label,
       value: r.value,
@@ -176,15 +177,42 @@ function LeadDurationBar({ pct }) {
 
 function parseLeadSummaryLines(text) {
   const rows = [];
-  for (const line of stripMdLight(text)
+  const lines = stripMdLight(text)
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter(Boolean)) {
-    const cleaned = line.replace(/^[-*•]\s*/, "");
-    const m = cleaned.match(/^([^:]{2,80}):\s*(.+)$/);
-    if (m) rows.push({ label: m[1].trim(), value: m[2].trim() });
+    .filter(Boolean);
+
+  let pendingLabel = null;
+  const pendingValues = [];
+
+  const flush = () => {
+    if (pendingLabel && pendingValues.length) {
+      rows.push({ label: pendingLabel, value: pendingValues.join(" ") });
+    }
+    pendingLabel = null;
+    pendingValues.length = 0;
+  };
+
+  for (const line of lines) {
+    const cleaned = line.replace(/^[-*•]\s*/, "").replace(/^#{1,4}\s*/, "");
+    // "Label: value on same line"
+    const mInline = cleaned.match(/^([^:]{2,80}):\s*(.+)$/);
+    // "Label:" heading only (value on next line(s))
+    const mHeading = !mInline && cleaned.match(/^([^:]{2,80}):\s*$/);
+
+    if (mInline) {
+      flush();
+      rows.push({ label: mInline[1].trim(), value: mInline[2].trim() });
+    } else if (mHeading) {
+      flush();
+      pendingLabel = mHeading[1].trim();
+    } else if (pendingLabel) {
+      pendingValues.push(cleaned);
+    }
   }
-  return rows;
+  flush();
+
+  return rows.filter((r) => r.value);
 }
 
 function parseComparableBrandsList(text) {
@@ -1192,30 +1220,24 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
                         let samplingSeen = 0;
                         return leadRows.map((r, i) => {
                           const cue = extractLeadWeekCue(r.value);
-                          const detail = leadDetailSansLeadingCue(r.value);
-                          const plain = stripMdLight(r.value);
-                          const showDetail =
-                            detail.length > 0 && (!cue ? detail !== plain : true);
+                          if (!cue) return null;
                           const isSampling = /^sampling/i.test(r.label.trim());
                           if (isSampling) samplingSeen += 1;
                           const showSamplingDot = isSampling && samplingSeen === 2;
                           return (
                             <div
                               key={`${r.label}-${i}`}
-                              className="pb-9 sm:pb-10 mb-2 sm:mb-1 last:pb-4 last:mb-0"
+                              className="pb-5 sm:pb-6 last:pb-2"
                             >
-                              <p className="m-0 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816]">
-                                {r.label.replace(/:+\s*$/, "")}:
-                              </p>
-                              <p className="mt-2 m-0 text-[13px] sm:text-[14px] font-sans font-bold text-[#1a1816] tabular-nums">
-                                {cue ? cue : plain}
-                              </p>
-                              {showDetail ? (
-                                <p className="mt-3 text-[12px] sm:text-[13px] font-normal leading-relaxed text-[#4a463e]">
-                                  {detail}
+                              <div className="flex items-baseline justify-between gap-2">
+                                <p className="m-0 text-[13px] sm:text-[14px] font-sans font-semibold text-[#1a1816] min-w-0 truncate">
+                                  {r.label.replace(/:+\s*$/, "")}
                                 </p>
-                              ) : null}
-                              <div className="relative mt-5">
+                                <p className="m-0 text-[12px] sm:text-[13px] font-sans font-normal text-[#4a463e] tabular-nums shrink-0">
+                                  {cue}
+                                </p>
+                              </div>
+                              <div className="relative mt-2">
                                 {showSamplingDot ? (
                                   <span
                                     className="absolute left-[42%] -top-3 z-[1] inline-block h-2 w-2 rounded-full bg-emerald-600 shadow-sm ring-2 ring-emerald-500/35"

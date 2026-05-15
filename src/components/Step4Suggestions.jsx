@@ -1176,7 +1176,7 @@ const generatePrompt = () => {
         data-capsule-step="your-results"
       >
         <section
-          className="relative flex flex-col items-center justify-end min-h-[min(42vw,260px)] sm:min-h-[280px] pt-10 pb-10 sm:pb-12 px-4 text-white"
+          className="relative flex flex-col items-center justify-end min-h-[min(28vw,180px)] sm:min-h-[195px] pt-5 pb-6 sm:pb-8 px-4 text-white"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.58) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
@@ -1187,16 +1187,16 @@ const generatePrompt = () => {
           <img
             src={FD_LOGO_WHITE_SRC}
             alt="Form Department"
-            className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 w-[min(42vw,210px)] sm:w-[200px] md:w-[220px] h-auto"
+            className="absolute top-5 sm:top-6 left-1/2 -translate-x-1/2 w-[min(36vw,170px)] sm:w-[160px] md:w-[180px] h-auto"
           />
-          <div className="mt-24 sm:mt-28 md:mt-24 text-center max-w-xl">
+          <div className="mt-12 sm:mt-14 text-center max-w-xl">
             <h2 className="font-heading text-[clamp(1.65rem,4.5vw,2.625rem)] leading-tight tracking-tight">
-              Product Breakdown
+              Your Results
             </h2>
           </div>
         </section>
 
-        <section className="relative -mt-6 sm:-mt-10 pb-12 sm:pb-16 px-3 sm:px-5 lg:px-8">
+        <section className="relative -mt-8 sm:-mt-12 pb-12 sm:pb-16 px-3 sm:px-5 lg:px-8">
           <div className="mx-auto w-full max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[28px] sm:rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-4 py-8 sm:px-6 sm:py-10 md:px-8 md:py-11">
             <h3 className="mt-3 sm:mt-4 font-heading text-[clamp(1.75rem,5vw,2.75rem)] leading-[1.05] text-[#1E1D1B] break-words">
               {clientBrand || productType?.trim() || category?.trim() || "Your product"}
