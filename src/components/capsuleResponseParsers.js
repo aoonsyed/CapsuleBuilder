@@ -354,8 +354,14 @@ function followingCapsuleSectionTitles(orderKey) {
   if (i < 0) return CAPSULE_SECTION_ORDER_KEYS.slice(1);
   const tail = CAPSULE_SECTION_ORDER_KEYS.slice(i + 1);
   const out = [...tail];
-  if (orderKey === "Margin Analysis" && !out.includes("Wholesale vs DTC Pricing")) {
-    out.push("Wholesale vs DTC Pricing");
+  if (orderKey === "Margin Analysis") {
+    for (const h of [
+      "Wholesale vs. DTC Pricing",
+      "Wholesale vs DTC Pricing",
+      "Wholesale vs DTC",
+    ]) {
+      if (!out.includes(h)) out.push(h);
+    }
   }
   return out;
 }
@@ -426,4 +432,91 @@ export function expandComparableMarketItems(text) {
 
 export function countComparableMarketExamples(text) {
   return expandComparableMarketItems(text).length;
+}
+
+/** Prompt example palette — if all four appear, model likely copied the template. */
+export const CAPSULE_EXAMPLE_PALETTE_HEX = [
+  "#0066FF",
+  "#FF6347",
+  "#228B22",
+  "#36454F",
+];
+
+export function colorsLookLikePromptExamples(text) {
+  const upper = (text || "").toUpperCase();
+  if (!upper.trim()) return false;
+  return CAPSULE_EXAMPLE_PALETTE_HEX.every((h) => upper.includes(h));
+}
+
+const PRICING_START_LABELS = [
+  "Wholesale vs. DTC Pricing",
+  "Wholesale vs DTC Pricing",
+  "Wholesale vs DTC",
+  "Wholesale vs Direct-to-Consumer Pricing",
+  "Wholesale vs. Direct-to-Consumer (DTC) Pricing",
+  "Wholesale and DTC Pricing",
+];
+
+const MARGIN_START_LABELS = ["Margin Analysis"];
+
+/** Re-extract financial blocks from raw markdown when parsed keys are empty. */
+export function repairFinancialSections(parsed, rawText) {
+  const out = parsed && typeof parsed === "object" ? { ...parsed } : {};
+  const raw = (rawText || "").trim();
+  if (!raw) return out;
+
+  if (!out.marginAnalysis?.trim()) {
+    out.marginAnalysis = extractCapsuleSection(
+      raw,
+      MARGIN_START_LABELS,
+      "Margin Analysis"
+    );
+  }
+  if (!out.pricing?.trim()) {
+    out.pricing = extractCapsuleSection(
+      raw,
+      PRICING_START_LABELS,
+      "Wholesale vs. DTC Pricing"
+    );
+  }
+  if (!out.pricing?.trim()) {
+    const tail = raw.match(
+      /(?:^|\n)\s*Wholesale\s+price\s+range\s*:\s*[\s\S]*$/im
+    );
+    if (tail?.[0]?.trim()) {
+      out.pricing = tail[0].trim();
+    }
+  }
+  if (!out.marginAnalysis?.trim()) {
+    const tail = raw.match(
+      /(?:^|\n)\s*Retail\s+price\s*:\s*\$[\s\S]*?(?=\n\s*\*\*Wholesale|\n\s*Wholesale\s+price\s+range\s*:|$)/im
+    );
+    if (tail?.[0]?.trim()) {
+      out.marginAnalysis = tail[0].trim();
+    }
+  }
+  return out;
+}
+
+/** Fill missing parsed keys from raw answer (navigation cache / partial parses). */
+export function repairParsedCapsule(parsed, rawText) {
+  let out = repairFinancialSections(parsed, rawText);
+  const raw = (rawText || "").trim();
+  if (!raw) return out;
+
+  const fill = (key, labels, boundary) => {
+    if (out[key]?.trim()) return;
+    const slice = extractCapsuleSection(raw, labels, boundary);
+    if (slice.trim()) out[key] = slice;
+  };
+
+  fill("materials", ["Materials"], "Materials");
+  fill("companionItems", ["Companion Items"], "Companion Items");
+  fill(
+    "marketExamples",
+    ["Comparable Market Examples"],
+    "Comparable Market Examples"
+  );
+  fill("colors", ["Color Palette", "Color Palette with HEX Codes", "Colours", "Colors"], "Color Palette");
+  return out;
 }

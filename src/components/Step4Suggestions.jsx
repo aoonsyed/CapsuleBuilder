@@ -7,13 +7,14 @@ import {
   parseMaterialsForDisplay,
   parseSalesPriceForDisplay,
   parseCompanionForDisplay,
-  extractCapsuleSection,
   countComparableMarketExamples,
+  colorsLookLikePromptExamples,
+  repairParsedCapsule,
 } from "./capsuleResponseParsers";
 import { FD_LOGO_WHITE_SRC } from "./fdTypography";
 
-// Cache expiration time in milliseconds (5 minutes)
-const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
+// Cache TTL — survives back/forward navigation within a session (7 days)
+const CACHE_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Minimum counts for structured sections (prompt + validation + retries). */
 const MIN_MATERIAL_BLOCKS = 4;
@@ -34,13 +35,13 @@ function marginSectionLooksUsable(text) {
 
 function pricingSectionLooksUsable(text) {
   const s = (text || "").replace(/\*\*/g, "").trim();
-  if (s.length < 36) return false;
+  if (s.length < 28) return false;
   if (!/\$/.test(s)) return false;
-  return (
-    /wholesale/i.test(s) &&
-    /(dtc|direct-to-consumer|retail\s*\/\s*dtc)/i.test(s) &&
-    /%/.test(s)
-  );
+  const hasWholesale = /wholesale/i.test(s);
+  const hasRetailChannel =
+    /(dtc|direct-to-consumer|retail\s*\/\s*dtc|retail\s+price\s+range)/i.test(s);
+  const hasMarginLine = /margin|%\s*=|=.*%/i.test(s);
+  return hasWholesale && (hasRetailChannel || hasMarginLine);
 }
 
 /**
@@ -82,11 +83,29 @@ function validateCapsuleOutput(parsed) {
   }
   if (!pricingSectionLooksUsable(safe.pricing || "")) {
     failures.push(
-      "Wholesale vs. DTC Pricing: must include wholesale range, retail/DTC range, and both margin lines with $ and %."
+      "Wholesale vs. DTC Pricing: must include Wholesale price range, Retail/DTC price range, and margin lines with $ amounts (four labeled rows)."
+    );
+  }
+
+  if (colorsLookLikePromptExamples(safe.colors || "")) {
+    failures.push(
+      "Color Palette: do NOT copy template example hex codes (#0066FF, #FF6347, #228B22, #36454F). Invent 3–4 colors tailored to this product and brand."
     );
   }
 
   return { ok: failures.length === 0, failures };
+}
+
+/** Enough content to show cached breakdown without calling the API again. */
+function cacheHasDisplayableBreakdown(parsed, rawAnswer) {
+  const p = parsed && typeof parsed === "object" ? parsed : {};
+  if (rawAnswer && String(rawAnswer).length > 400) return true;
+  return Boolean(
+    p.materials?.trim() ||
+      p.companionItems?.trim() ||
+      p.saleprices?.trim() ||
+      p.colors?.trim()
+  );
 }
 
 /** e.g. "Materials 50%" or "Materials: 50%" or one line "Materials 50%, Labour 30%" */
@@ -456,8 +475,14 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
         /(\*\*)?Optional: you may add one short category line[^\n]*(\*\*)?\s*/gi,
       ],
       'Color Palette': [
-        /(\*\*)?Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format\s*\(one per line\):(\*\*)?\s*/gi,
-        /(\*\*)?DO NOT include any descriptions or additional text, ONLY the format above\.?(\*\*)?\s*/gi,
+        /(\*\*)?Provide ONLY 3-4 color suggestions[^\n]*\n?/gi,
+        /(\*\*)?Choose 3–4 colors that fit THIS product[^\n]*\n?/gi,
+        /(\*\*)?DO NOT use these example hex codes[^\n]*\n?/gi,
+        /(\*\*)?DO NOT include any descriptions or additional text[^\n]*\n?/gi,
+        /^[-*•]?\s*Electric Blue\s*\(#0066FF\)\s*$/gim,
+        /^[-*•]?\s*Sunset Orange\s*\(#FF6347\)\s*$/gim,
+        /^[-*•]?\s*Forest Green\s*\(#228B22\)\s*$/gim,
+        /^[-*•]?\s*Charcoal Gray\s*\(#36454F\)\s*$/gim,
       ],
       'Yield & Consumption Estimates': [
         /(\*\*)?Provide a comprehensive fabric consumption analysis:(\*\*)?\s*/gi,
@@ -807,9 +832,9 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
       ),
     };
 
-  // Debug logging for each section
-  console.log('Section parsing results:', result);
-  return result;
+  const repaired = repairParsedCapsule(result, text);
+  console.log("Section parsing results:", repaired);
+  return repaired;
 };
 
 
@@ -844,13 +869,11 @@ const generatePrompt = () => {
 
 
     **Color Palette**
-    Provide ONLY 3-4 color suggestions with color names and hex codes in this EXACT format (one per line):
-    - Electric Blue (#0066FF)
-    - Sunset Orange (#FF6347)
-    - Forest Green (#228B22)
-    - Charcoal Gray (#36454F)
-    
-    DO NOT include any descriptions or additional text, ONLY the format above.
+    Choose 3–4 colors that fit THIS product, category, brand aesthetic, and target customer — not generic defaults.
+    Output one line per color in this exact shape (no bullets required):
+    Color Name (#RRGGBB)
+    Use real hex codes you select for this brief. DO NOT use #0066FF, #FF6347, #228B22, or #36454F unless they truly match the concept.
+    No descriptions — only the color name and hex per line.
 
     **Cost Production**
     Provide a domestic production cost breakdown only. Do not include overseas production.
@@ -919,17 +942,17 @@ const generatePrompt = () => {
     Gross margin percentage: show the formula inline (for example (($[retail]-$[cost])/$[retail])*100) and finish with '= [XX.XX%]'
 
     **Wholesale vs. DTC Pricing**
-    Always fill this section. Output EXACTLY four labeled rows (same Label: value pattern, no headings or bullets between lines):
+    REQUIRED — never skip. Output EXACTLY four labeled rows on separate lines (Label: value). Use real dollar amounts, not brackets:
 
-    Wholesale price range: $[low]–$[high]
+    Wholesale price range: $XX–$YY
 
-    Retail / DTC price range: $[low]–$[high]
+    Retail / DTC price range: $XX–$YY
 
-    Wholesale gross margin percentage: formula showing ($[retail-wholesale])/($[retail]) * 100 '= [YY.YY%]' (explain any assumptions)
+    Wholesale gross margin percentage: (($[DTC retail mid]-$[wholesale mid])/$[DTC retail mid])*100 = [YY.YY%]
 
-    DTC gross margin percentage: formula linking DTC retail to production cost '= [ZZ.ZZ%]'
+    DTC gross margin percentage: (($[DTC retail mid]-$[production cost])/$[DTC retail mid])*100 = [ZZ.ZZ%]
 
-    Tie Wholesale and Retail/DTC ranges to industry markups and the retail price stated in Margin Analysis where possible.
+    Tie ranges to Margin Analysis retail and landed cost. This section must appear after Margin Analysis every time.
   `.trim();
 };
 
@@ -979,26 +1002,29 @@ const generatePrompt = () => {
           });
         }
         
-        const cacheValidation = validateCapsuleOutput(cleanedSuggestions);
-        if (cacheValidation.ok) {
-          // Also save to legacy keys for backward compatibility
-          localStorage.setItem('answer', cached.rawAnswer);
+        const repairedFromCache = repairParsedCapsule(
+          cleanedSuggestions,
+          cached.rawAnswer
+        );
+
+        if (cacheHasDisplayableBreakdown(repairedFromCache, cached.rawAnswer)) {
+          localStorage.setItem("answer", cached.rawAnswer);
           localStorage.setItem(
-            'parsedSuggestions',
-            JSON.stringify(cleanedSuggestions)
+            "parsedSuggestions",
+            JSON.stringify(repairedFromCache)
           );
-          setSuggestions(cleanedSuggestions);
+          setSuggestions(repairedFromCache);
           loadedParamsRef.current = paramsKey;
           setLoading(false);
-          toast.success('Product Breakdown loaded from cache', {
-            style: { backgroundColor: '#3A3A3D', color: '#fff' },
+          toast.success("Product Breakdown loaded from cache", {
+            style: { backgroundColor: "#3A3A3D", color: "#fff" },
           });
           return;
         }
 
         console.warn(
-          'Cached Product Breakdown failed validation; refetching.',
-          cacheValidation.failures
+          "Cached Product Breakdown too thin; refetching.",
+          repairedFromCache
         );
         try {
           const { rawAnswer: rawKey, parsedSuggestions: parsedKey } =
@@ -1008,6 +1034,26 @@ const generatePrompt = () => {
         } catch (_) {
           /* ignore */
         }
+      }
+
+      // Legacy fallback (same params) — avoids API when navigating back
+      try {
+        const legacyParsed = JSON.parse(
+          localStorage.getItem("parsedSuggestions") || "null"
+        );
+        const legacyRaw = localStorage.getItem("answer") || "";
+        if (legacyParsed && typeof legacyParsed === "object") {
+          const legacyRepaired = repairParsedCapsule(legacyParsed, legacyRaw);
+          if (cacheHasDisplayableBreakdown(legacyRepaired, legacyRaw)) {
+            setSuggestions(legacyRepaired);
+            loadedParamsRef.current = paramsKey;
+            setLoading(false);
+            saveSuggestionsToCache(legacyRaw, legacyRepaired);
+            return;
+          }
+        }
+      } catch (_) {
+        /* ignore */
       }
 
       // Cache miss or stale/invalid cache — fetch from API (with validation retries)
@@ -1053,8 +1099,8 @@ const generatePrompt = () => {
           answer = removePromptFromResponse(answer);
           console.log("Parsed Answer:", answer);
 
-          parsed = parseAIResponse(answer);
-          console.log('Parsed Suggestions:', parsed);
+          parsed = repairParsedCapsule(parseAIResponse(answer), answer);
+          console.log("Parsed Suggestions:", parsed);
 
           const v = validateCapsuleOutput(parsed);
           if (v.ok) {

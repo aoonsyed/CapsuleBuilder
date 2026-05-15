@@ -8,6 +8,7 @@ import { FD_LOGO_WHITE_SRC } from "./fdTypography";
 import {
   extractCapsuleSection,
   expandComparableMarketItems,
+  repairParsedCapsule,
 } from "./capsuleResponseParsers";
 /**
  * Testing only: skips Market Analysis subscription check (same path as localhost).
@@ -727,7 +728,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     } catch (_) {
       parsed = {};
     }
-    return buildMarketSections(raw, parsed);
+    return buildMarketSections(raw, repairParsedCapsule(parsed, raw));
   }, [paramsKey, buildMarketSections]);
 
   // Check page access on mount (no hard redirect — use in-app states)
@@ -800,7 +801,8 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
       parsed = {};
     }
 
-    const built = buildMarketSections(rawText, parsed);
+    const repaired = repairParsedCapsule(parsed, rawText);
+    const built = buildMarketSections(rawText, repaired);
     setSections(built);
     if (
       built.materials ||
