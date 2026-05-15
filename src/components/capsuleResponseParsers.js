@@ -327,3 +327,103 @@ export function parseCompanionForDisplay(text) {
     text: normalizeListMarkdownToParagraphs(text),
   };
 }
+
+/** Prompt order — slice content until the next **Heading** (avoids truncating on in-section **bold** lines). */
+const CAPSULE_SECTION_ORDER_KEYS = [
+  "Materials",
+  "Sales Price",
+  "Color Palette",
+  "Cost Production",
+  "Companion Items",
+  "Yield & Consumption Estimates",
+  "Production Lead Time Estimate",
+  "Market & Brand Positioning",
+  "Comparable Market Examples",
+  "Target Consumer Insight",
+  "Business & Financial Tools",
+  "Margin Analysis",
+  "Wholesale vs. DTC Pricing",
+];
+
+function escapeCapsuleRe(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function followingCapsuleSectionTitles(orderKey) {
+  const i = CAPSULE_SECTION_ORDER_KEYS.indexOf(orderKey);
+  if (i < 0) return CAPSULE_SECTION_ORDER_KEYS.slice(1);
+  const tail = CAPSULE_SECTION_ORDER_KEYS.slice(i + 1);
+  const out = [...tail];
+  if (orderKey === "Margin Analysis" && !out.includes("Wholesale vs DTC Pricing")) {
+    out.push("Wholesale vs DTC Pricing");
+  }
+  return out;
+}
+
+/**
+ * Extract one capsule section from raw AI markdown using the next major **Heading** as the end boundary.
+ * @param {string} text full response (after prompt strip)
+ * @param {string|string[]} startLabels **Label** variants to locate the section start
+ * @param {string} boundaryOrderKey key from CAPSULE_SECTION_ORDER_KEYS for "following" boundaries
+ */
+export function extractCapsuleSection(text, startLabels, boundaryOrderKey) {
+  if (!text?.trim()) return "";
+  const variants = Array.isArray(startLabels) ? startLabels : [startLabels];
+  let bestIdx = -1;
+  let headerLen = 0;
+  for (const lab of variants) {
+    const esc = escapeCapsuleRe(lab);
+    const re = new RegExp(`\\*\\*${esc}\\*\\*\\s*:?\\s*`, "i");
+    const m = text.match(re);
+    if (m && typeof m.index === "number" && (bestIdx < 0 || m.index < bestIdx)) {
+      bestIdx = m.index;
+      headerLen = m[0].length;
+    }
+  }
+  if (bestIdx < 0) return "";
+  const bodyStart = bestIdx + headerLen;
+  const following = followingCapsuleSectionTitles(boundaryOrderKey);
+  let end = text.length;
+  if (following.length) {
+    const inner = following.map((h) => escapeCapsuleRe(h)).join("|");
+    const endRe = new RegExp(`\\n\\s*\\*\\*(?:${inner})\\*\\*`, "i");
+    const sub = text.slice(bodyStart);
+    const hit = sub.search(endRe);
+    if (hit >= 0) end = bodyStart + hit;
+  }
+  return text.slice(bodyStart, end).trim();
+}
+
+/** Split comparable lines into brand tokens (handles one line "A, B, C, D"). */
+export function expandComparableMarketItems(text) {
+  const t = (text || "").replace(/\*\*/g, "").trim();
+  if (!t) return [];
+  const lines = t
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^[-*•\d.]+\s*/, "").trim())
+    .filter(Boolean);
+  const items = [];
+  for (const line of lines) {
+    if (/,|•|\/|;/.test(line)) {
+      for (const p of line.split(/(?:,|•|\/|;)\s*/)) {
+        const s = p.trim();
+        if (s) items.push(s);
+      }
+    } else if (line) {
+      items.push(line);
+    }
+  }
+  const dedup = [];
+  const seen = new Set();
+  for (const it of items) {
+    const k = it.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    dedup.push(it);
+  }
+  return dedup;
+}
+
+export function countComparableMarketExamples(text) {
+  return expandComparableMarketItems(text).length;
+}

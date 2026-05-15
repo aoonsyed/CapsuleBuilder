@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { FD_LOGO_WHITE_SRC } from "./fdTypography";
 
 const STORE_HOMEPAGE = "https://formdepartment.com";
 
@@ -37,9 +38,9 @@ export default function Navbar({ showTrialBanner = false }) {
                             aria-label="Form Department – go to store homepage"
                         >
                             <img
-                                src="/assets/11.png"
+                                src={FD_LOGO_WHITE_SRC}
                                 alt="Form Department Logo"
-                                className="h-16 md:h-20 lg:h-24 w-auto hover:opacity-90 transition-opacity"
+                                className="h-16 md:h-20 lg:h-24 w-auto invert hover:opacity-90 transition-opacity"
                             />
                         </a>
                     </div>

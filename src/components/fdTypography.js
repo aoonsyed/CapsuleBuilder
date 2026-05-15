@@ -1,5 +1,6 @@
 /** Form Department typography tokens from the brand guide. */
-export const FD_LOGO_WHITE_SRC = "/assets/form-logo-white-reference.png";
+/** White wordmark — hero + dark UI (FORM DEPT lockup). */
+export const FD_LOGO_WHITE_SRC = "/assets/FD-W.png";
 
 export const fdSubheaderClass =
   "font-sans font-light uppercase text-[18px] sm:text-[22px] md:text-[25px] tracking-[0.23em] leading-[1.2]";

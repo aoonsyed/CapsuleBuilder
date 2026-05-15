@@ -7,7 +7,10 @@ import {
   parseMaterialsForDisplay,
   parseSalesPriceForDisplay,
   parseCompanionForDisplay,
+  extractCapsuleSection,
+  countComparableMarketExamples,
 } from "./capsuleResponseParsers";
+import { FD_LOGO_WHITE_SRC } from "./fdTypography";
 
 // Cache expiration time in milliseconds (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
@@ -17,17 +20,6 @@ const MIN_MATERIAL_BLOCKS = 4;
 const MIN_COMPANION_BLOCKS = 4;
 const MIN_COMPARABLE_MARKET_LINES = 4;
 const CAPSULE_FETCH_MAX_ATTEMPTS = 4;
-
-function countComparableMarketExamples(text) {
-  const t = (text || "").replace(/\*\*/g, "").trim();
-  const lines = t
-    .split(/\r?\n/)
-    .map((l) => l.replace(/^[-*•\d.]+\s*/, "").trim())
-    .filter(Boolean);
-  if (lines.length >= 1) return lines.length;
-  const comma = t.split(/(?:,|•|\/)\s*/).map((s) => s.trim()).filter(Boolean);
-  return comma.length;
-}
 
 function marginSectionLooksUsable(text) {
   const s = (text || "").replace(/\*\*/g, "").trim();
@@ -692,78 +684,128 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
   const parseAIResponse = (text) => {
     // Note: text should already be cleaned by removePromptFromResponse before calling this function
     // But we'll use the text as-is here since it's already cleaned
-    
-  const getSection = (label) => {
-    const esc = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const patterns = [
-      new RegExp(
-        `\\*\\*${esc}\\*\\*\\s*:?\\s*\\n*([\\s\\S]*?)(?=\\n\\s*\\*\\*|\\n⸻|$)`,
-        "i"
-      ),
-      new RegExp(`\\*\\*${esc}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, "i"),
-      new RegExp(`\\*\\*${esc}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, "i"),
-      new RegExp(`${esc}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, "i"),
-    ];
-    
-    for (const pattern of patterns) {
-      const match = text.match(pattern);
-      if (match && match[1] && match[1].trim()) {
-        let sectionContent = match[1].trim();
-        
-        // Remove prompt instructions from the section content first
-        sectionContent = removePromptInstructions(sectionContent, label);
-        
-        // If after cleaning, content is completely empty, return empty
-        if (!sectionContent || sectionContent.trim().length === 0) {
-          console.log(`Section "${label}" is empty after cleaning instructions`);
-          return '';
-        }
-        
-        // Then sanitize (remove dashes, etc.)
-        const sanitized = sanitizeSectionText(sectionContent);
-        
-        // Only reject if sanitized content is extremely short (less than 10 chars) 
-        // AND starts with instruction keywords - this catches obvious instruction-only cases
-        const finalCheck = sanitized.replace(/\*\*/g, '').trim();
-        if (finalCheck.length < 10) {
-          const instructionStarters = /^(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief|Justify|Cost per unit)/i;
-          if (instructionStarters.test(finalCheck)) {
-            console.log(`Section "${label}" final content is too short and appears to be only instructions: "${finalCheck}"`);
-            return '';
-          }
-        }
-        
-        // Return the sanitized content - let removePromptInstructions handle the filtering
-        // If it passed that function, it likely has some content worth showing
-        return sanitized;
-      }
-    }
-    return '';
-  };
 
-  const result = {
-    materials: getSection('Materials'),
-    colors:
-      getSection('Color Palette') ||
-      getSection('Color Palette with HEX Codes') ||
-      getSection('Colours') ||
-      getSection('Colors'),
-    saleprices: getSection('Sales Price'),
-    productionCosts: getSection('Cost Production'),
-    companionItems: getSection('Companion Items'),
-    yieldConsumption: getSection('Yield & Consumption Estimates'),
-    leadTime: getSection('Production Lead Time Estimate'),
-    marketExamples: getSection('Comparable Market Examples'),
-    targetInsight: getSection('Target Consumer Insight'),
-    marginAnalysis: getSection('Margin Analysis'),
-    pricing:
-      getSection('Wholesale vs. DTC Pricing') ||
-      getSection('Wholesale vs DTC Pricing') ||
-      getSection('Wholesale vs DTC') ||
-      getSection('Wholesale vs Direct-to-Consumer Pricing') ||
-      getSection('Wholesale vs. Direct-to-Consumer (DTC) Pricing') ||
-      getSection('Wholesale and DTC Pricing'),
-  };
+    const finalizeSection = (rawSlice, sectionLabel) => {
+      if (!rawSlice?.trim()) return "";
+      let sectionContent = removePromptInstructions(rawSlice.trim(), sectionLabel);
+      if (!sectionContent || sectionContent.trim().length === 0) {
+        return "";
+      }
+      const sanitized = sanitizeSectionText(sectionContent);
+      const finalCheck = sanitized.replace(/\*\*/g, "").trim();
+      if (finalCheck.length < 10) {
+        const instructionStarters =
+          /^(Suggest|Provide|List|Include|Mention|Note|Explain|Select|Calculate|Be specific|DO NOT|Automatically generate|Recommended|Brief|Justify|Cost per unit)/i;
+        if (instructionStarters.test(finalCheck)) {
+          return "";
+        }
+      }
+      return sanitized;
+    };
+
+    /** Legacy regex when headings are nonstandard (no slice from extractCapsuleSection). */
+    const getSectionLegacy = (label) => {
+      const esc = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const patterns = [
+        new RegExp(
+          `\\*\\*${esc}\\*\\*\\s*:?\\s*\\n*([\\s\\S]*?)(?=\\n\\s*\\*\\*|\\n⸻|$)`,
+          "i"
+        ),
+        new RegExp(
+          `\\*\\*${esc}\\*\\*\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`,
+          "i"
+        ),
+        new RegExp(
+          `\\*\\*${esc}\\*\\*\\s*([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`,
+          "i"
+        ),
+        new RegExp(`${esc}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n\\*\\*|\\n⸻|$)`, "i"),
+      ];
+      for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match && match[1] && match[1].trim()) {
+          return finalizeSection(match[1].trim(), label);
+        }
+      }
+      return "";
+    };
+
+    const getSection = (sectionLabel, startVariants, boundaryKey) => {
+      const starts = startVariants?.length ? startVariants : [sectionLabel];
+      const boundary = boundaryKey || sectionLabel;
+      const bounded = finalizeSection(
+        extractCapsuleSection(text, starts, boundary),
+        sectionLabel
+      );
+      if (bounded) return bounded;
+      for (const lab of starts) {
+        const leg = getSectionLegacy(lab);
+        if (leg) return leg;
+      }
+      return "";
+    };
+
+    const result = {
+      materials: getSection("Materials", ["Materials"], "Materials"),
+      colors: getSection(
+        "Color Palette",
+        [
+          "Color Palette",
+          "Color Palette with HEX Codes",
+          "Colours",
+          "Colors",
+        ],
+        "Color Palette"
+      ),
+      saleprices: getSection("Sales Price", ["Sales Price"], "Sales Price"),
+      productionCosts: getSection(
+        "Cost Production",
+        ["Cost Production"],
+        "Cost Production"
+      ),
+      companionItems: getSection(
+        "Companion Items",
+        ["Companion Items"],
+        "Companion Items"
+      ),
+      yieldConsumption: getSection(
+        "Yield & Consumption Estimates",
+        ["Yield & Consumption Estimates"],
+        "Yield & Consumption Estimates"
+      ),
+      leadTime: getSection(
+        "Production Lead Time Estimate",
+        ["Production Lead Time Estimate", "Production Lead Time"],
+        "Production Lead Time Estimate"
+      ),
+      marketExamples: getSection(
+        "Comparable Market Examples",
+        ["Comparable Market Examples"],
+        "Comparable Market Examples"
+      ),
+      targetInsight: getSection(
+        "Target Consumer Insight",
+        ["Target Consumer Insight"],
+        "Target Consumer Insight"
+      ),
+      marginAnalysis: getSection(
+        "Margin Analysis",
+        ["Margin Analysis"],
+        "Margin Analysis"
+      ),
+      pricing: getSection(
+        "Wholesale vs. DTC Pricing",
+        [
+          "Wholesale vs. DTC Pricing",
+          "Wholesale vs DTC Pricing",
+          "Wholesale vs DTC",
+          "Wholesale vs Direct-to-Consumer Pricing",
+          "Wholesale vs. Direct-to-Consumer (DTC) Pricing",
+          "Wholesale and DTC Pricing",
+        ],
+        "Wholesale vs. DTC Pricing"
+      ),
+    };
 
   // Debug logging for each section
   console.log('Section parsing results:', result);
@@ -1096,7 +1138,7 @@ const generatePrompt = () => {
           }}
         >
           <img
-            src="/assets/form-logo-white-reference.png"
+            src={FD_LOGO_WHITE_SRC}
             alt="Form Department"
             className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 w-[min(42vw,210px)] sm:w-[200px] md:w-[220px] h-auto"
           />

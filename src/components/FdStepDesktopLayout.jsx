@@ -108,7 +108,7 @@ export default function FdStepDesktopLayout({
               paddingBottom: FD_STEP1_SPACING.leftBottom,
             }}
           >
-            <img src="/assets/11.png" alt="Form Department" className="h-7 w-auto" />
+            <img src={FD_LOGO_WHITE_SRC} alt="Form Department" className="h-7 w-auto invert" />
             <p className={`mt-6 ${fdStepLabelClass} text-[#8C7152]`}>
               Step {step} of {total}
             </p>

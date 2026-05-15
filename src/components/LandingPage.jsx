@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Curated_Capsule from './Curated_Capsule';
 import CapsuleOverview from './Capsule_overview';
+import { FD_LOGO_WHITE_SRC } from './fdTypography';
 
 export default function LandingPage({ onNext }) {
   const [selected, setSelected] = useState([]);
@@ -18,7 +19,7 @@ export default function LandingPage({ onNext }) {
     <div className="bg-[#e5e5e5] font-sans text-black min-h-screen leading-[1.2]">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4">
-        <h1 className="text-4xl font-heading font-bold">FORM</h1>
+        <img src={FD_LOGO_WHITE_SRC} alt="Form Department" className="h-10 w-auto invert" />
         <nav className="space-x-4 text-sm">
           <a href="#" className="hover:underline">All The Details</a>
           <a href="#" className="hover:underline">Blogs</a>

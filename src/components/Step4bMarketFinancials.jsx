@@ -4,6 +4,11 @@ import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import emailjs from '@emailjs/browser';
 import { FD_STEP1_COLORS, FD_STEP1_SPACING } from './fdLayout';
+import { FD_LOGO_WHITE_SRC } from "./fdTypography";
+import {
+  extractCapsuleSection,
+  expandComparableMarketItems,
+} from "./capsuleResponseParsers";
 /**
  * Testing only: skips Market Analysis subscription check (same path as localhost).
  * Set to `false` before any production deploy that should enforce Tier 2.
@@ -182,6 +187,8 @@ function parseLeadSummaryLines(text) {
 }
 
 function parseComparableBrandsList(text) {
+  const expanded = expandComparableMarketItems(text);
+  if (expanded.length) return expanded;
   const t = stripMdLight(text);
   const lines = t.split(/\r?\n/).map((l) => l.replace(/^[-*•\d.]+\s*/, "").trim()).filter(Boolean);
   if (lines.length >= 1) return lines;
@@ -294,8 +301,22 @@ function splitFinancialValueAndSub(fullVal) {
 
 /** Models often return all financial rows on one line; split before known labels so `Label: value` parsing works. */
 function injectNewlinesBeforeFinancialLabels(text, kind) {
-  const s = stripMdLight(text || "").trim();
+  let s = stripMdLight(text || "").trim();
   if (!s) return s;
+  // Models often glue labeled rows on one line; split before known labels.
+  s = s.replace(/(\])(\s*)(?=Gross\s+margin)/i, "$1\n");
+  s = s.replace(
+    /(\$[\d,.]+(?:\s*[-–]\s*\$[\d,.]+)?)(\s*)(?=Production\s+cost)/gi,
+    "$1\n"
+  );
+  s = s.replace(
+    /(%|=\s*[\d.]+%)(\s*)(?=Wholesale\s+(?:gross\s+margin|price\s+range))/gi,
+    "$1\n"
+  );
+  s = s.replace(
+    /(%|=\s*[\d.]+%)(\s*)(?=DTC\s+gross\s+margin)/gi,
+    "$1\n"
+  );
   const labelishLines = (s.match(/^\s*[^:\n]{2,96}:\s*\S.*/gm) || []).length;
   if (labelishLines >= 3) return s;
   const re =
@@ -593,7 +614,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
         ? parsedSuggestions
         : {};
 
-    const getSection = (label) => {
+    const getSectionLegacy = (label) => {
       const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const patterns = [
         new RegExp(
@@ -613,7 +634,6 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
           "i"
         ),
       ];
-
       for (const pattern of patterns) {
         const match = rawText.match(pattern);
         if (match && match[1] && match[1].trim()) {
@@ -623,48 +643,71 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
       return "";
     };
 
-    const merge = (parsedKey, ...labels) => {
+    const merge = (parsedKey, boundaryKey, startLabels) => {
       const fromParsed = safeParsed[parsedKey];
       if (typeof fromParsed === "string" && fromParsed.trim()) {
         return sanitizeSectionText(fromParsed);
       }
-      for (const label of labels) {
-        const fromRaw = getSection(label);
-        if (fromRaw && fromRaw.trim()) {
-          return sanitizeSectionText(fromRaw);
-        }
+      const extracted = extractCapsuleSection(
+        rawText || "",
+        startLabels,
+        boundaryKey
+      );
+      if (extracted.trim()) {
+        return sanitizeSectionText(extracted);
+      }
+      for (const lab of startLabels) {
+        const leg = getSectionLegacy(lab);
+        if (leg.trim()) return sanitizeSectionText(leg);
       }
       return "";
     };
 
     return {
-      materials: merge("materials", "Materials"),
-      companionItems: merge("companionItems", "Companion Items"),
-      saleprices: merge("saleprices", "Sales Price"),
+      materials: merge("materials", "Materials", ["Materials"]),
+      companionItems: merge(
+        "companionItems",
+        "Companion Items",
+        ["Companion Items"]
+      ),
+      saleprices: merge("saleprices", "Sales Price", ["Sales Price"]),
       marketExamples: merge(
         "marketExamples",
-        "Comparable Market Examples"
+        "Comparable Market Examples",
+        ["Comparable Market Examples"]
       ),
-      targetInsight: merge("targetInsight", "Target Consumer Insight"),
-      marginAnalysis: merge("marginAnalysis", "Margin Analysis"),
+      targetInsight: merge(
+        "targetInsight",
+        "Target Consumer Insight",
+        ["Target Consumer Insight"]
+      ),
+      marginAnalysis: merge(
+        "marginAnalysis",
+        "Margin Analysis",
+        ["Margin Analysis"]
+      ),
       pricing: merge(
         "pricing",
         "Wholesale vs. DTC Pricing",
-        "Wholesale vs DTC Pricing",
-        "Wholesale vs DTC",
-        "Wholesale vs Direct-to-Consumer Pricing",
-        "Wholesale vs. Direct-to-Consumer (DTC) Pricing",
-        "Wholesale and DTC Pricing",
-        "DTC and Wholesale Pricing"
+        [
+          "Wholesale vs. DTC Pricing",
+          "Wholesale vs DTC Pricing",
+          "Wholesale vs DTC",
+          "Wholesale vs Direct-to-Consumer Pricing",
+          "Wholesale vs. Direct-to-Consumer (DTC) Pricing",
+          "Wholesale and DTC Pricing",
+          "DTC and Wholesale Pricing",
+        ]
       ),
       yieldConsumption: merge(
         "yieldConsumption",
-        "Yield & Consumption Estimates"
+        "Yield & Consumption Estimates",
+        ["Yield & Consumption Estimates"]
       ),
       leadTime: merge(
         "leadTime",
         "Production Lead Time Estimate",
-        "Production Lead Time"
+        ["Production Lead Time Estimate", "Production Lead Time"]
       ),
     };
   }, []);
@@ -1054,7 +1097,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
           }}
         >
           <img
-            src="/assets/form-logo-white-reference.png"
+            src={FD_LOGO_WHITE_SRC}
             alt="Form Department"
             className="absolute top-8 sm:top-10 left-1/2 z-10 w-[min(40vw,200px)] sm:w-[208px] md:w-[220px] h-auto -translate-x-1/2"
           />
