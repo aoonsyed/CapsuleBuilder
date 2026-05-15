@@ -1,15 +1,20 @@
 import React, { useMemo } from "react";
-
-const ACCOUNT_URL = "https://formdepartment.com/account";
-const LOGIN_URL = "https://formdepartment.com/account/login";
+import {
+  buildLoginUrl,
+  buildRegisterUrl,
+  buildLogoutUrl,
+  FD_ACCOUNT_URL,
+  getCustomerIdFromSearch,
+  isSignedIn,
+} from "../utils/fdAuth";
 
 export default function CapsuleSessionBar({ outputSessionKey }) {
-  const customerId = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    return new URLSearchParams(window.location.search).get("customer_id") || "";
-  }, []);
+  const customerId = useMemo(() => getCustomerIdFromSearch(), []);
+  const signedIn = isSignedIn(customerId);
 
-  const isSignedIn = Boolean(customerId);
+  const loginUrl = useMemo(() => buildLoginUrl(), []);
+  const registerUrl = useMemo(() => buildRegisterUrl(), []);
+  const logoutUrl = useMemo(() => buildLogoutUrl(), []);
 
   const saveOutputs = () => {
     try {
@@ -35,25 +40,58 @@ export default function CapsuleSessionBar({ outputSessionKey }) {
     }
   };
 
+  const linkClass =
+    "underline underline-offset-2 hover:opacity-80 focus:outline-none focus-visible:ring-1 focus-visible:ring-black/30 rounded-sm";
+
   return (
     <div className="sticky top-0 z-[90] bg-[#F2EFEA] border-b border-black/10 px-4 py-2.5 flex flex-wrap items-center justify-end gap-3 text-[11px] uppercase tracking-[0.18em] text-[#2B2A25] font-sans">
       {outputSessionKey ? (
         <button
           type="button"
           onClick={saveOutputs}
-          className="underline underline-offset-2 hover:opacity-80"
+          className={linkClass}
         >
           Save project outputs
         </button>
       ) : null}
-      {isSignedIn ? (
-        <a href={ACCOUNT_URL} className="underline underline-offset-2 hover:opacity-80">
-          Sign out
-        </a>
+      {signedIn ? (
+        <>
+          <a
+            href={FD_ACCOUNT_URL}
+            className={linkClass}
+            target="_top"
+            rel="noopener noreferrer"
+          >
+            My account
+          </a>
+          <a
+            href={logoutUrl}
+            className={linkClass}
+            target="_top"
+            rel="noopener noreferrer"
+          >
+            Sign out
+          </a>
+        </>
       ) : (
-        <a href={LOGIN_URL} className="underline underline-offset-2 hover:opacity-80">
-          Sign in
-        </a>
+        <>
+          <a
+            href={loginUrl}
+            className={linkClass}
+            target="_top"
+            rel="noopener noreferrer"
+          >
+            Sign in
+          </a>
+          <a
+            href={registerUrl}
+            className={linkClass}
+            target="_top"
+            rel="noopener noreferrer"
+          >
+            Sign up
+          </a>
+        </>
       )}
     </div>
   );

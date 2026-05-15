@@ -7,6 +7,8 @@ import Step3ProductFocus from "./Step3ProductFocus";
 import Step4Suggestions from "./Step4Suggestions";
 import Step4bMarketFinancials from "./Step4bMarketFinancials";
 import Questionaire from "./Questionnaire";
+import FdAuthBannerLinks from "./FdAuthBannerLinks";
+import { buildLoginUrl, FD_UPGRADE_URL } from "../utils/fdAuth";
 
 export default function CapsuleBuilderFlow() {
   const [step, setStep] = useState(1);
@@ -52,7 +54,7 @@ export default function CapsuleBuilderFlow() {
         // This prevents manual URL access with wrong IDs
         if (!cid) {
           console.error("No customer ID provided. Access denied.");
-          window.location.href = "https://formdepartment.com/account/login";
+          window.location.href = buildLoginUrl();
           return;
         }
         
@@ -61,7 +63,7 @@ export default function CapsuleBuilderFlow() {
 
         if (!isValid) {
           console.error("Invalid customer ID format. Access denied.");
-          window.location.href = "https://formdepartment.com/account/login";
+          window.location.href = buildLoginUrl();
           return;
         }
 
@@ -177,17 +179,27 @@ export default function CapsuleBuilderFlow() {
     <div className="min-h-screen bg-transparent font-sans text-white relative">
       {isTrial ? (
         <div
-          className="sticky top-0 z-[100] bg-[#25221D] text-[#EBDCC5] text-center py-2.5 px-4 font-sans text-[10px] sm:text-[11px] leading-snug tracking-[0.22em] sm:tracking-[0.24em] uppercase border-b border-black/40"
+          className="sticky top-0 z-[100] bg-[#25221D] text-[#EBDCC5] text-center py-2.5 px-4 font-sans text-[10px] sm:text-[11px] leading-snug tracking-[0.2em] sm:tracking-[0.24em] uppercase border-b border-black/40"
           role="status"
         >
-          You are currently using a free trial.{" "}
-          <a
-            href="https://formdepartment.com/pages/about?view=subscription-plans"
-            className="underline underline-offset-2 hover:opacity-90"
-          >
-            Upgrade
-          </a>{" "}
-          to design more capsules
+          <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5">
+            <span>
+              You are currently using a free trial.{" "}
+              <a
+                href={FD_UPGRADE_URL}
+                className="underline underline-offset-2 hover:opacity-90"
+                target="_top"
+                rel="noopener noreferrer"
+              >
+                Upgrade
+              </a>{" "}
+              to design more capsules
+            </span>
+            <span className="hidden sm:inline opacity-40" aria-hidden>
+              |
+            </span>
+            <FdAuthBannerLinks />
+          </span>
         </div>
       ) : null}
       <div className="relative z-10 w-full">
