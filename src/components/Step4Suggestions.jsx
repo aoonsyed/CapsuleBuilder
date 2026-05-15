@@ -7,6 +7,7 @@ import {
   parseMaterialsForDisplay,
   parseSalesPriceForDisplay,
   parseCompanionForDisplay,
+  extractCapsuleSection,
   countComparableMarketExamples,
   colorsLookLikePromptExamples,
   repairParsedCapsule,
