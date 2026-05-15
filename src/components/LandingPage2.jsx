@@ -363,31 +363,33 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
             >
               What you&apos;ll receive
             </h2>
-            <div
-              className="mt-[110px] grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]"
-            >
-              <div className="space-y-8">
+            <div className="mx-auto mt-[72px] max-w-[1180px] lg:mt-[110px]">
+              <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:gap-12">
+              <div className="grid grid-cols-1 gap-x-12 gap-y-10 sm:grid-cols-2">
                 {RECEIVE_ITEMS.map((item) => (
                   <div key={`footer-${item.title}`}>
-                    <h3 className="font-sans text-[20px] font-medium leading-[1.2]">{item.title}</h3>
-                    <p className="mt-1 text-[14px] leading-[1.45] text-white/95">{item.body}</p>
+                    <h3 className="font-sans text-[18px] sm:text-[20px] font-medium leading-[1.2]">{item.title}</h3>
+                    <p className="mt-2 text-[13px] sm:text-[14px] leading-[1.45] text-white/95">{item.body}</p>
                   </div>
                 ))}
               </div>
               <img
                 src="/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg"
                 alt="Creative studio"
-                className="h-[360px] w-full object-cover"
+                className="h-[min(52vw,420px)] w-full object-cover lg:h-[460px] lg:max-w-[360px] lg:justify-self-end"
               />
             </div>
-            <button
-              type="button"
-              onClick={handleGetStarted}
-              className="mx-auto mt-10 flex h-[68px] w-full max-w-[820px] items-center justify-center rounded-full border border-white/90 text-[14px] uppercase tracking-[0.12em]"
-            >
-              Build your capsule
-            </button>
+            <div className="mt-12 flex justify-center lg:mt-16">
+              <button
+                type="button"
+                onClick={handleGetStarted}
+                className="inline-flex h-[56px] w-full max-w-[820px] items-center justify-center rounded-full border border-white/90 px-10 text-[12px] sm:text-[14px] uppercase tracking-[0.12em] hover:bg-white/10 transition-colors"
+              >
+                Start your capsule collection
+              </button>
+            </div>
           </div>
+        </div>
         </div>
       </section>
     </div>

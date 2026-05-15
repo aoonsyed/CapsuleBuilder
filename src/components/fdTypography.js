@@ -1,4 +1,16 @@
+import { FD_STEP1_COLORS } from "./fdLayout";
+
 /** Form Department typography tokens from the brand guide. */
+
+/** Same fill as the left-column note card (FD_STEP1_COLORS.note). */
+export const FD_STEP_FIELD_SURFACE = FD_STEP1_COLORS.note;
+
+/** Borderless field surface — use on inputs/textareas in steps 1–3. */
+export const fdStepFieldSurfaceClass =
+  "border-0 bg-[#E9E7E1] focus:outline-none focus:ring-0 rounded-md";
+
+/** Line Strategy–style text inputs / textareas on cream steps. */
+export const fdStepInputClass = `mt-3 w-full px-4 py-2.5 text-[14px] font-sans text-[#2B2A25] placeholder-black/40 ${fdStepFieldSurfaceClass}`;
 /** White wordmark — hero + dark UI (FORM DEPT lockup). */
 export const FD_LOGO_WHITE_SRC = "/assets/FD-W.png";
 
@@ -23,10 +35,6 @@ export const fdFieldLabelClass =
 /** Line Strategy–style field labels (desktop steps 1–5). */
 export const fdStepFieldLabelClass =
   "block text-[12px] tracking-[0.22em] uppercase font-sans text-[#8C7152] font-medium";
-
-/** Line Strategy–style text inputs / textareas on cream steps. */
-export const fdStepInputClass =
-  "mt-3 w-full border border-[#7C7C7C] bg-[#F5F5F5] px-4 py-2.5 text-[14px] font-sans text-[#2B2A25] placeholder-black/40 focus:outline-none rounded-md";
 
 export const fdFormShellClass =
   "mx-auto w-full max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-6 py-10 sm:px-10 sm:py-12";

@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setBrand2, setSharedPreference, toggleBrandPreference } from "../formSlice";
 import FdStepDesktopLayout from "./FdStepDesktopLayout";
-import { fdStepFieldLabelClass, fdStepInputClass } from "./fdTypography";
+import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass } from "./fdTypography";
 import { FD_STEP1_SPACING } from "./fdLayout";
 
 export default function Step2Inspiration({ email = "demo@example.com", onNext, onBack, embedded = false }) {
@@ -31,7 +31,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
             </label>
             <input
               type="text"
-              className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/50 focus:outline-none rounded-md"
+              className={`w-full px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/50 ${fdStepFieldSurfaceClass}`}
               placeholder="Enter a similar brand here"
               value={brand2}
               onChange={(e) => dispatch(setBrand2(e.target.value))}
@@ -79,8 +79,8 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
             </label>
             <input
               type="text"
-              className="w-full border border-black bg-[#F5F5F5] px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/40 focus:outline-none rounded-md"
-              placeholder="Tell us more about why this brand resonates with you"
+              className={`w-full px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/40 ${fdStepFieldSurfaceClass}`}
+              placeholder="Optional"
               value={sharedPreference}
               onChange={(e) => dispatch(setSharedPreference(e.target.value))}
               required={false}

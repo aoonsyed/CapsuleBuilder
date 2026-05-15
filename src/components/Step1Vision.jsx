@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIdea, setBrand } from "../formSlice";
 import FdStepDesktopLayout from "./FdStepDesktopLayout";
-import { fdStepFieldLabelClass, fdStepInputClass } from "./fdTypography";
+import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass } from "./fdTypography";
 import { FD_STEP1_SPACING } from "./fdLayout";
 
 export default function Step1Vision({
@@ -59,7 +59,7 @@ export default function Step1Vision({
                 name="brandName"
                 type="text"
                 autoComplete="off"
-                className="w-full border border-[#7C7C7C] bg-[#F5F5F5] px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/60 focus:outline-none rounded-md"
+                className={`w-full px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/60 ${fdStepFieldSurfaceClass}`}
                 placeholder="e.g Reformation"
                 value={brandValue}
                 onChange={(e) => dispatch(setBrand(e.target.value))}
@@ -76,7 +76,7 @@ export default function Step1Vision({
                 id="idea"
                 name="idea"
                 rows={4}
-                className="w-full border border-[#7C7C7C] bg-[#F5F5F5] px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/60 focus:outline-none rounded-md"
+                className={`w-full px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/60 ${fdStepFieldSurfaceClass}`}
                 placeholder="Share a quick overview of your idea"
                 value={idea}
                 onChange={(e) => dispatch(setIdea(e.target.value))}

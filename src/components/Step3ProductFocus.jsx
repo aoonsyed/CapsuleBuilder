@@ -11,7 +11,7 @@ import {
   setMaterialError,
 } from "../formSlice";
 import FdStepDesktopLayout from "./FdStepDesktopLayout";
-import { fdStepFieldLabelClass, fdStepInputClass } from "./fdTypography";
+import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass } from "./fdTypography";
 import { FD_STEP1_SPACING } from "./fdLayout";
 
 export default function Step3ProductFocus({ email, onNext, onBack, embedded = false, validating = false }) {
@@ -49,7 +49,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
               What article of clothing would you like to develop first?
             </label>
             <input
-              className="w-full border border-black bg-transparent px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/50 focus:outline-none rounded-md"
+              className={`w-full px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/50 ${fdStepFieldSurfaceClass}`}
               placeholder="Type a clothing item to begin "
               value={productType}
               onChange={(e) => dispatch(setProductType(e.target.value))}
@@ -61,7 +61,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
               At what price would you like to sell this item?
             </label>
             <input
-              className="w-full border border-black bg-transparent px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/40 focus:outline-none rounded-md"
+              className={`w-full px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/40 ${fdStepFieldSurfaceClass}`}
               placeholder="Target sale price ($)"
               type="number"
               value={targetPrice}
@@ -74,7 +74,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
               How many of this product are you looking to produce?
             </label>
             <input
-              className="w-full border border-black bg-transparent px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/40 focus:outline-none rounded-md"
+              className={`w-full px-5 py-3 text-[14px] font-sans font-medium leading-[1.2] text-black placeholder-black/40 ${fdStepFieldSurfaceClass}`}
               placeholder="Number of items"
               type="number"
               value={quantity}
@@ -87,7 +87,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
               Are there any key features of your product?
             </label>
             <textarea
-              className="w-full border border-black bg-transparent px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/40 focus:outline-none rounded-md"
+              className={`w-full px-5 py-3 text-[16px] font-sans font-normal leading-[1.2] text-black placeholder-black/40 ${fdStepFieldSurfaceClass}`}
               placeholder="Color, fit, construction, etc."
               value={keyFeatures}
               onChange={(e) => dispatch(setKeyFeatures(e.target.value))}
