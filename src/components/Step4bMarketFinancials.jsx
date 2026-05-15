@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useLayoutEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback, useLayoutEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
@@ -129,15 +129,6 @@ function extractLeadWeekCue(rawValue) {
   return "";
 }
 
-/** Body copy after the opening week-span fragment (shown above filled bar without repeating cue). */
-function leadDetailSansLeadingCue(fullValue) {
-  const v = stripMdLight(fullValue || "").trim();
-  if (!v) return "";
-  return v
-    .replace(/^(\d+\s*[-–]\s*\d+|\d+)\s*weeks?\b\s*(?:[.,;:]\s*)?/i, "")
-    .replace(/^[\s.:;,\-–]+/, "")
-    .trim();
-}
 
 /** White rounded card (mockup: discrete left-column panels). */
 function MarketWhiteCard({ title, children }) {
