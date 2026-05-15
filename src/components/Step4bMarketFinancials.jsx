@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useLayoutEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
