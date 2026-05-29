@@ -13,9 +13,16 @@ import {
   repairParsedCapsule,
 } from "./capsuleResponseParsers";
 import { FD_LOGO_WHITE_SRC } from "./fdTypography";
+import {
+  buildCapsuleParamsKey,
+  clearProductBreakdown,
+  loadProductBreakdown,
+  loadQuestionnaireAnswers,
+  saveProductBreakdown,
+} from "../utils/capsuleStorage";
 
-// Cache TTL — survives back/forward navigation within a session (7 days)
-const CACHE_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
+// Cache TTL — back/forward within the same run (2 hours); new runs bust via outputSessionKey
+const CACHE_EXPIRATION_MS = 2 * 60 * 60 * 1000;
 
 /** Minimum counts for structured sections (prompt + validation + retries). */
 const MIN_MATERIAL_BLOCKS = 4;
@@ -97,16 +104,12 @@ function validateCapsuleOutput(parsed) {
   return { ok: failures.length === 0, failures };
 }
 
-/** Enough content to show cached breakdown without calling the API again. */
+/** Enough validated content to reuse cache without calling the API again. */
 function cacheHasDisplayableBreakdown(parsed, rawAnswer) {
   const p = parsed && typeof parsed === "object" ? parsed : {};
-  if (rawAnswer && String(rawAnswer).length > 400) return true;
-  return Boolean(
-    p.materials?.trim() ||
-      p.companionItems?.trim() ||
-      p.saleprices?.trim() ||
-      p.colors?.trim()
-  );
+  if (!rawAnswer || String(rawAnswer).length < 400) return false;
+  if (!p.materials?.trim() || !p.companionItems?.trim()) return false;
+  return validateCapsuleOutput(p).ok;
 }
 
 /** e.g. "Materials 50%" or "Materials: 50%" or one line "Materials 50%, Labour 30%" */
@@ -165,16 +168,24 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
   const loadedParamsRef = useRef(null);
 
   const formData = useSelector((state) => state.form);
-  const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
+  const savedAnswers = useMemo(
+    () => loadQuestionnaireAnswers(formData),
+    [
+      formData.productType,
+      formData.keyFeatures,
+      formData.targetPrice,
+      formData.idea,
+      formData.materialPreference,
+    ]
+  );
   const {
     idea,
     brand2,
     localBrand,
-    sharedPrefernce,
+    sharedPreference,
     productType,
     targetPrice,
     quantity,
-    category,
     keyFeatures,
     materialPreferenceOptions,
     manufacturingPreference,
@@ -188,123 +199,25 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
     process.env.REACT_APP_SCHEDULING_URL ||
     "https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137";
 
-  // Create paramsKey based on all inputs that affect AI output
   const paramsKey = useMemo(
-    () =>
-      JSON.stringify({
-        outputSessionKey,
-        idea,
-        brand2,
-        localBrand,
-        sharedPrefernce,
-        productType,
-        targetPrice,
-        quantity,
-        category,
-        keyFeatures,
-        materialPreferenceOptions,
-        manufacturingPreference,
-        savedAnswers,
-      }),
-    [outputSessionKey, idea, brand2, localBrand, sharedPrefernce, productType, targetPrice, quantity, category, keyFeatures, materialPreferenceOptions, manufacturingPreference, savedAnswers]
+    () => buildCapsuleParamsKey(formData, savedAnswers, outputSessionKey),
+    [formData, savedAnswers, outputSessionKey]
   );
 
-  // Hash function to create consistent localStorage keys
-  const hashParamsKey = useCallback((key) => {
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      const char = key.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return Math.abs(hash).toString(36);
-  }, []);
-
-  // Get localStorage keys for current paramsKey
-  const getStorageKeys = useCallback(() => {
-    const hash = hashParamsKey(paramsKey);
-    return {
-      rawAnswer: `productBreakdownRawAnswer_${hash}`,
-      parsedSuggestions: `productBreakdownParsed_${hash}`,
-      marketAnalysisParsed: `marketAnalysisParsed_${hash}`,
-    };
-  }, [paramsKey, hashParamsKey]);
-
-  // Load cached suggestions from localStorage
-  const loadCachedSuggestions = useCallback(() => {
-    try {
-      const { rawAnswer: rawKey, parsedSuggestions: parsedKey } = getStorageKeys();
-      
-      // Check cached raw answer
-      const cachedRaw = localStorage.getItem(rawKey);
-      const cachedParsed = localStorage.getItem(parsedKey);
-      
-      if (cachedRaw && cachedParsed) {
-        const rawData = JSON.parse(cachedRaw);
-        const parsedData = JSON.parse(cachedParsed);
-        
-        // Check if cached data has timestamp and if it's expired
-        if (rawData.timestamp && parsedData.timestamp) {
-          const age = Date.now() - rawData.timestamp;
-          if (age > CACHE_EXPIRATION_MS) {
-            // Cache expired, remove it
-            localStorage.removeItem(rawKey);
-            localStorage.removeItem(parsedKey);
-            return null;
-          }
-        } else {
-          // Old format without timestamp - treat as expired and remove
-          localStorage.removeItem(rawKey);
-          localStorage.removeItem(parsedKey);
-          return null;
-        }
-        
-        // Validate structure
-        if (rawData.answer && parsedData.suggestions && typeof parsedData.suggestions === 'object') {
-          return {
-            rawAnswer: rawData.answer,
-            parsedSuggestions: parsedData.suggestions,
-          };
-        }
+  const saveSuggestionsToCache = useCallback(
+    (rawAnswer, parsedSuggestions) => {
+      try {
+        saveProductBreakdown(paramsKey, rawAnswer, parsedSuggestions);
+      } catch (err) {
+        console.warn("Failed to save suggestions to cache:", err);
       }
-    } catch (err) {
-      console.warn("Failed to load cached suggestions:", err);
-    }
-    return null;
-  }, [getStorageKeys]);
+    },
+    [paramsKey]
+  );
 
-  // Save suggestions to cache
-  const saveSuggestionsToCache = useCallback((rawAnswer, parsedSuggestions) => {
-    try {
-      const {
-        rawAnswer: rawKey,
-        parsedSuggestions: parsedKey,
-        marketAnalysisParsed: marketKey,
-      } = getStorageKeys();
-      const timestamp = Date.now();
-
-      localStorage.setItem(
-        rawKey,
-        JSON.stringify({
-          answer: rawAnswer,
-          timestamp,
-        })
-      );
-
-      localStorage.setItem(
-        parsedKey,
-        JSON.stringify({
-          suggestions: parsedSuggestions,
-          timestamp,
-        })
-      );
-
-      // Force Market Analysis to re-merge from the new breakdown + raw answer
-      localStorage.removeItem(marketKey);
-    } catch (err) {
-      console.warn("Failed to save suggestions to cache:", err);
-    }
-  }, [getStorageKeys]);
+  const loadCachedSuggestions = useCallback(() => {
+    return loadProductBreakdown(paramsKey, CACHE_EXPIRATION_MS);
+  }, [paramsKey]);
 
   // Extract colors from the "Color Palette" markdown/text the AI returns
   const extractHexColors = (rawText) => {
@@ -844,11 +757,10 @@ const generatePrompt = () => {
     Act as a fashion design assistant. Based on the following details:
     - Idea: ${idea}
     - Brand: ${clientBrand || brand2}
-    - Shared Preferences: ${sharedPrefernce}
+    - Shared Preferences: ${sharedPreference}
     - Product Type: ${productType}
     - Target Price: ${targetPrice}
     - Quantity: ${quantity}
-    - Category: ${category}
     - Key Features: ${keyFeatures}
     - Material Preferences: ${JSON.stringify(materialPreferenceOptions)}
     - Manufacturing Preference: ${manufacturingPreference}
@@ -1009,11 +921,7 @@ const generatePrompt = () => {
         );
 
         if (cacheHasDisplayableBreakdown(repairedFromCache, cached.rawAnswer)) {
-          localStorage.setItem("answer", cached.rawAnswer);
-          localStorage.setItem(
-            "parsedSuggestions",
-            JSON.stringify(repairedFromCache)
-          );
+          saveSuggestionsToCache(cached.rawAnswer, repairedFromCache);
           setSuggestions(repairedFromCache);
           loadedParamsRef.current = paramsKey;
           setLoading(false);
@@ -1027,34 +935,7 @@ const generatePrompt = () => {
           "Cached Product Breakdown too thin; refetching.",
           repairedFromCache
         );
-        try {
-          const { rawAnswer: rawKey, parsedSuggestions: parsedKey } =
-            getStorageKeys();
-          localStorage.removeItem(rawKey);
-          localStorage.removeItem(parsedKey);
-        } catch (_) {
-          /* ignore */
-        }
-      }
-
-      // Legacy fallback (same params) — avoids API when navigating back
-      try {
-        const legacyParsed = JSON.parse(
-          localStorage.getItem("parsedSuggestions") || "null"
-        );
-        const legacyRaw = localStorage.getItem("answer") || "";
-        if (legacyParsed && typeof legacyParsed === "object") {
-          const legacyRepaired = repairParsedCapsule(legacyParsed, legacyRaw);
-          if (cacheHasDisplayableBreakdown(legacyRepaired, legacyRaw)) {
-            setSuggestions(legacyRepaired);
-            loadedParamsRef.current = paramsKey;
-            setLoading(false);
-            saveSuggestionsToCache(legacyRaw, legacyRepaired);
-            return;
-          }
-        }
-      } catch (_) {
-        /* ignore */
+        clearProductBreakdown(paramsKey);
       }
 
       // Cache miss or stale/invalid cache — fetch from API (with validation retries)
@@ -1115,14 +996,9 @@ const generatePrompt = () => {
           );
         }
 
-        // Save to legacy keys for backward compatibility
-        localStorage.setItem('answer', answer);
-        console.log('Raw AI Response:', answer);
+        console.log("Raw AI Response:", answer);
         setSuggestions(parsed);
         loadedParamsRef.current = paramsKey;
-
-        localStorage.setItem('parsedSuggestions', JSON.stringify(parsed));
-
         saveSuggestionsToCache(answer, parsed);
 
         if (validateCapsuleOutput(parsed).ok) {
@@ -1199,7 +1075,7 @@ const generatePrompt = () => {
         <section className="relative -mt-8 sm:-mt-12 pb-12 sm:pb-16 px-3 sm:px-5 lg:px-8">
           <div className="mx-auto w-full max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[28px] sm:rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-4 py-8 sm:px-6 sm:py-10 md:px-8 md:py-11">
             <h3 className="mt-3 sm:mt-4 font-heading text-[clamp(1.75rem,5vw,2.75rem)] leading-[1.05] text-[#1E1D1B] break-words">
-              {clientBrand || productType?.trim() || category?.trim() || "Your product"}
+              {clientBrand || productType?.trim() || "Your product"}
             </h3>
 
             {(() => {

@@ -10,6 +10,12 @@ import {
   expandComparableMarketItems,
   repairParsedCapsule,
 } from "./capsuleResponseParsers";
+import {
+  buildCapsuleParamsKey,
+  loadLegacyProductBreakdown,
+  loadProductBreakdown,
+  loadQuestionnaireAnswers,
+} from "../utils/capsuleStorage";
 /**
  * Testing only: skips Market Analysis subscription check (same path as localhost).
  * Set to `false` before any production deploy that should enforce Tier 2.
@@ -507,7 +513,17 @@ function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
 }
 
 export default function Step4bMarketFinancials({ onBack, onRestart, outputSessionKey }) {
-  const savedAnswers = JSON.parse(localStorage.getItem('questionnaireAnswers') || '{}');
+  const formData = useSelector((state) => state.form);
+  const savedAnswers = useMemo(
+    () => loadQuestionnaireAnswers(formData),
+    [
+      formData.productType,
+      formData.keyFeatures,
+      formData.targetPrice,
+      formData.idea,
+      formData.materialPreference,
+    ]
+  );
   const [sendingEmail, setSendingEmail] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
@@ -526,16 +542,14 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     process.env.REACT_APP_BYPASS_MARKET_ANALYSIS_ACCESS === "true";
 
   // All hooks must be called before any early returns
-  const formData = useSelector((state) => state.form);
   const {
     localBrand,
     brand2,
     productType,
     idea,
-    sharedPrefernce,
+    sharedPreference,
     targetPrice,
     quantity,
-    category,
     keyFeatures,
     materialPreferenceOptions,
     manufacturingPreference,
@@ -545,23 +559,9 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     ? `${localBrand.trim()} ${productType?.trim()}`
     : `Your ${productType?.trim()}`;
 
-  // Create paramsKey based on all inputs that affect AI output
   const paramsKey = useMemo(
-    () =>
-      JSON.stringify({
-        idea,
-        brand2,
-        sharedPrefernce,
-        productType,
-        targetPrice,
-        quantity,
-        category,
-        keyFeatures,
-        materialPreferenceOptions,
-        manufacturingPreference,
-        savedAnswers,
-      }),
-    [idea, brand2, sharedPrefernce, productType, targetPrice, quantity, category, keyFeatures, materialPreferenceOptions, manufacturingPreference, savedAnswers]
+    () => buildCapsuleParamsKey(formData, savedAnswers, outputSessionKey),
+    [formData, savedAnswers, outputSessionKey]
   );
 
   // Hash function to create consistent localStorage keys
@@ -732,23 +732,24 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     };
   }, []);
 
-  /** Re-merge financial / analysis sections from canonical LS keys — fixes stale/empty caches. */
+  const readCurrentBreakdown = useCallback(() => {
+    const fromHashed =
+      loadProductBreakdown(paramsKey, null) ||
+      loadLegacyProductBreakdown(paramsKey);
+    if (fromHashed) {
+      return {
+        rawText: fromHashed.rawAnswer,
+        parsed: fromHashed.parsedSuggestions,
+      };
+    }
+    return { rawText: "", parsed: {} };
+  }, [paramsKey]);
+
+  /** Re-merge financial / analysis sections from canonical keys for this run. */
   const lsMergedSections = useMemo(() => {
-    void paramsKey;
-    let raw = "";
-    try {
-      raw = localStorage.getItem("answer") || "";
-    } catch (_) {
-      raw = "";
-    }
-    let parsed = {};
-    try {
-      parsed = JSON.parse(localStorage.getItem("parsedSuggestions") || "{}");
-    } catch (_) {
-      parsed = {};
-    }
-    return buildMarketSections(raw, repairParsedCapsule(parsed, raw));
-  }, [paramsKey, buildMarketSections]);
+    const { rawText, parsed } = readCurrentBreakdown();
+    return buildMarketSections(rawText, repairParsedCapsule(parsed, rawText));
+  }, [paramsKey, buildMarketSections, readCurrentBreakdown]);
 
   // Check page access on mount (no hard redirect — use in-app states)
   useEffect(() => {
@@ -803,23 +804,11 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     checkAccess();
   }, [isLocalhost, bypassMarketPaywall]);
 
-  // Load cached sections or parse fresh from localStorage whenever inputs change
+  // Load sections from the current run's product breakdown
   useEffect(() => {
     if (!hasAccess) return;
 
-    let rawText = "";
-    let parsed = {};
-    try {
-      rawText = localStorage.getItem("answer") || "";
-    } catch {
-      rawText = "";
-    }
-    try {
-      parsed = JSON.parse(localStorage.getItem("parsedSuggestions") || "{}");
-    } catch {
-      parsed = {};
-    }
-
+    const { rawText, parsed } = readCurrentBreakdown();
     const repaired = repairParsedCapsule(parsed, rawText);
     const built = buildMarketSections(rawText, repaired);
     setSections(built);
@@ -836,7 +825,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     ) {
       saveSectionsToCache(built);
     }
-  }, [hasAccess, paramsKey, saveSectionsToCache, buildMarketSections]);
+  }, [hasAccess, paramsKey, saveSectionsToCache, buildMarketSections, readCurrentBreakdown]);
 
   /** Pull cream body up over hero (~30% overlap), same ratio as Line Strategy / input steps. */
   const marketOverlapRef = useRef(null);
@@ -1001,12 +990,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   const orderedConsumerTiles = orderConsumerInsightTiles(consumerTiles);
   const audienceByKey = buildAudienceSlotsByKey(targetInsight, orderedConsumerTiles);
 
-  let rawAnswerLs = "";
-  try {
-    rawAnswerLs = localStorage.getItem("answer") || "";
-  } catch (_) {
-    rawAnswerLs = "";
-  }
+  const { rawText: rawAnswerLs } = readCurrentBreakdown();
 
   let marginForCard = marginAnalysis;
   let marginParsed = parseFinancialDarkCard(
@@ -1037,9 +1021,9 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     }
   }
 
-  const categoryLabel = (category || "Capsule").trim().toUpperCase() + " CATEGORY";
-  const productTitle =
-    productType?.trim() || category?.trim() || "Your product";
+  const categoryLabel =
+    (productType || "Capsule").trim().toUpperCase() + " CATEGORY";
+  const productTitle = productType?.trim() || "Your product";
 
   const marketBlurb =
     "A technical deep-dive into the construction, sourcing and economic blueprint of your performance silhouette.";
@@ -1056,13 +1040,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
       title,
       brand: brand2 || localBrand || '',
       product_type: productType || '',
-      raw_answer: (() => {
-        try {
-          return localStorage.getItem("answer") || "";
-        } catch {
-          return "";
-        }
-      })(),
+      raw_answer: readCurrentBreakdown().rawText,
       scheduling_url:
         process.env.REACT_APP_SCHEDULING_URL ||
         'https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137',

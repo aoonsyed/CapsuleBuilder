@@ -29,7 +29,7 @@ export default async function handler(req, res) {
           { role: "system", content: "You are a helpful fashion designer assistant." },
           { role: "user", content: prompt },
         ],
-        max_tokens: 1000,
+        max_tokens: 4096,
         temperature: 0.7,
       }),
     });
