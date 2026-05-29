@@ -516,13 +516,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   const formData = useSelector((state) => state.form);
   const savedAnswers = useMemo(
     () => loadQuestionnaireAnswers(formData),
-    [
-      formData.productType,
-      formData.keyFeatures,
-      formData.targetPrice,
-      formData.idea,
-      formData.materialPreference,
-    ]
+    [formData]
   );
   const [sendingEmail, setSendingEmail] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
@@ -542,18 +536,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     process.env.REACT_APP_BYPASS_MARKET_ANALYSIS_ACCESS === "true";
 
   // All hooks must be called before any early returns
-  const {
-    localBrand,
-    brand2,
-    productType,
-    idea,
-    sharedPreference,
-    targetPrice,
-    quantity,
-    keyFeatures,
-    materialPreferenceOptions,
-    manufacturingPreference,
-  } = formData;
+  const { localBrand, brand2, productType } = formData;
 
   const title = localBrand?.trim()
     ? `${localBrand.trim()} ${productType?.trim()}`
@@ -749,7 +732,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   const lsMergedSections = useMemo(() => {
     const { rawText, parsed } = readCurrentBreakdown();
     return buildMarketSections(rawText, repairParsedCapsule(parsed, rawText));
-  }, [paramsKey, buildMarketSections, readCurrentBreakdown]);
+  }, [buildMarketSections, readCurrentBreakdown]);
 
   // Check page access on mount (no hard redirect — use in-app states)
   useEffect(() => {

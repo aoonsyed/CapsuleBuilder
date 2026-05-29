@@ -170,13 +170,7 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
   const formData = useSelector((state) => state.form);
   const savedAnswers = useMemo(
     () => loadQuestionnaireAnswers(formData),
-    [
-      formData.productType,
-      formData.keyFeatures,
-      formData.targetPrice,
-      formData.idea,
-      formData.materialPreference,
-    ]
+    [formData]
   );
   const {
     idea,
