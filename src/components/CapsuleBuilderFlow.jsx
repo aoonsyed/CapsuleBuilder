@@ -53,22 +53,27 @@ export default function CapsuleBuilderFlow() {
 
       try {
         const params = new URLSearchParams(window.location.search);
-        const cid = params.get("customer_id");
-        
-        // Frontend validation: Check if customer_id exists and has correct format (13 digits)
-        // This prevents manual URL access with wrong IDs
-        if (!cid) {
+        const cid = (
+          params.get("customer_id") ||
+          params.get("logged_in_customer_id") ||
+          ""
+        ).trim();
+
+        if (!cid || !/^\d{13}$/.test(cid)) {
           console.error("No customer ID provided. Access denied.");
           window.location.href = buildLoginUrl();
           return;
         }
-        
-        // Validate format: must be exactly 13 numeric digits
-        const isValid = /^\d{13}$/.test(cid);
 
-        if (!isValid) {
-          console.error("Invalid customer ID format. Access denied.");
-          window.location.href = buildLoginUrl();
+        // Logged-in user: land on the capsule builder homepage with customer_id in the URL
+        if (
+          !params.get("customer_id") ||
+          (window.location.pathname !== "/" &&
+            window.location.pathname !== "/capsule-builder")
+        ) {
+          window.location.replace(
+            `/?customer_id=${encodeURIComponent(cid)}`
+          );
           return;
         }
 

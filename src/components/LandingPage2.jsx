@@ -4,6 +4,7 @@ import Step2Inspiration from "./Step2Inspiration";
 import Step3ProductFocus from "./Step3ProductFocus";
 import { FD_LOGO_WHITE_SRC, fdHeaderClass, fdSubheaderClass } from "./fdTypography";
 import { FD_HOME_SPACING, FD_PAGE_GUTTER } from "./fdLayout";
+import { getCustomerIdFromSearch } from "../utils/fdAuth";
 
 const ADMIN_DASHBOARD_TOKEN =
   process.env.REACT_APP_ADMIN_DASHBOARD_TOKEN ||
@@ -72,7 +73,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
       return;
     }
     const currentParams = new URLSearchParams(window.location.search);
-    const customerId = currentParams.get("customer_id");
+    const customerId = getCustomerIdFromSearch(currentParams.toString());
     const nextParams = new URLSearchParams();
     if (customerId) nextParams.set("customer_id", customerId);
     nextParams.set("token", ADMIN_DASHBOARD_TOKEN);
@@ -89,8 +90,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
       return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    const customerId = params.get("customer_id");
+    const customerId = getCustomerIdFromSearch();
     if (!customerId) {
       alert("Customer ID not found. Please try again.");
       return;
