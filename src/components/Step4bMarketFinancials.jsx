@@ -171,49 +171,6 @@ function resolveLeadSummaryRows(aiSummaryText) {
   return LEAD_TIME_NOTES;
 }
 
-function parseLeadTimelineRows(text) {
-  const lines = stripMdLight(text)
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
-  const temp = [];
-  for (const line of lines) {
-    const cleaned = line.replace(/^[-*•\d.]+\s*/, "");
-    let label;
-    let value;
-    const mColon = cleaned.match(/^([^:]{2,100}):\s*(.+)$/);
-    if (mColon) {
-      label = mColon[1].trim();
-      value = mColon[2].trim();
-    } else {
-      const mDash = cleaned.match(/^(.{2,92}?)\s*[\u2013\u2014]\s*(.+)$/);
-      if (mDash && /\d/.test(mDash[2]) && /weeks?|month/i.test(mDash[2])) {
-        label = mDash[1].trim().replace(/[.:]+$/, "");
-        value = mDash[2].trim();
-      } else continue;
-    }
-    if (!value) continue;
-    const w = leadRowWeekWeight(value);
-    temp.push({ label, value, w });
-  }
-  return finalizeLeadRowsWithPct(temp);
-}
-
-/** Same shape as parseLeadTimelineRows — used when colon/dash timeline lines were not detected. */
-function leadRowsFromLabelValuePairs(rows) {
-  const temp = [];
-  for (const r of rows) {
-    if (!r.value?.trim()) continue;
-    if (!/\d/.test(r.value) || !/weeks?|month/i.test(r.value)) continue;
-    temp.push({
-      label: r.label,
-      value: r.value,
-      w: leadRowWeekWeight(r.value),
-    });
-  }
-  return finalizeLeadRowsWithPct(temp);
-}
-
 /** Short cue for timeline row header (week range sits above filled bar). */
 function extractLeadWeekCue(rawValue) {
   const v = stripMdLight(rawValue || "");
