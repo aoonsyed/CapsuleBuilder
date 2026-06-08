@@ -76,7 +76,7 @@ export default function FdStepDesktopLayout({
           className="mx-auto h-auto w-[min(64vw,240px)]"
         />
         <h2
-          className="mx-auto max-w-[16ch] font-heading font-normal normal-case text-[#E7D4BF] text-[30px] sm:text-[38px] md:text-[46px] leading-[1.08] tracking-[0.01em]"
+          className="mx-auto max-w-[16ch] font-heading font-normal normal-case text-white text-[30px] sm:text-[38px] md:text-[46px] leading-[1.08] tracking-[0.01em]"
           style={{ marginTop: FD_STEP1_SPACING.heroLogoToTitle }}
         >
           Curate Your Capsule
@@ -84,23 +84,21 @@ export default function FdStepDesktopLayout({
       </section>
 
       <div
-        className="relative z-20 w-full shrink-0"
+        className="relative z-20 mx-auto w-full shrink-0 px-4 sm:px-6 md:px-8 lg:px-12"
         style={{
-          paddingLeft: FD_STEP1_SPACING.cardSideInset,
-          paddingRight: FD_STEP1_SPACING.cardSideInset,
           paddingBottom: FD_STEP1_SPACING.cardBottom,
           marginTop: cardOverlapPx ? -cardOverlapPx : undefined,
         }}
       >
         <div
           ref={cardRef}
-          className="mx-auto grid w-full max-w-[1240px] gap-6 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.12)] lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)] lg:items-stretch lg:gap-8"
+          className="mx-auto grid w-full min-w-0 max-w-[1240px] gap-6 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.12)] lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)] lg:items-stretch lg:gap-8"
           style={{
             backgroundColor: FD_STEP1_COLORS.card,
           }}
         >
           <div
-            className="text-left text-[#2B2A25]"
+            className="min-w-0 text-left text-[#2B2A25]"
             style={{
               paddingTop: FD_STEP1_SPACING.leftLogoTop,
               paddingLeft: FD_STEP1_SPACING.leftLogoSide,
@@ -109,7 +107,7 @@ export default function FdStepDesktopLayout({
             }}
           >
             <img src={FD_LOGO_WHITE_SRC} alt="Form Department" className="h-7 w-auto invert" />
-            <p className={`mt-6 ${fdStepLabelClass} text-[#8C7152]`}>
+            <p className={`mt-6 ${fdStepLabelClass}`}>
               Step {step} of {total}
             </p>
             <StepProgressBar step={step} total={total} />
@@ -134,12 +132,9 @@ export default function FdStepDesktopLayout({
           </div>
 
           <div
-            className={`rounded-[28px] shadow-[0_12px_40px_rgba(0,0,0,0.08)] ${formPanelClassName}`.trim()}
+            className={`min-w-0 rounded-[28px] shadow-[0_12px_40px_rgba(0,0,0,0.08)] mx-7 mt-8 mb-11 lg:mx-0 lg:mr-7 lg:ml-0 ${formPanelClassName}`.trim()}
             style={{
               backgroundColor: FD_STEP1_COLORS.form,
-              marginTop: FD_STEP1_SPACING.formCardTopInset,
-              marginRight: FD_STEP1_SPACING.formCardRightInset,
-              marginBottom: FD_STEP1_SPACING.formCardBottomInset,
               paddingTop: FD_STEP1_SPACING.formInnerTop,
               paddingLeft: FD_STEP1_SPACING.formInnerSide,
               paddingRight: FD_STEP1_SPACING.formInnerSide,

@@ -11,7 +11,7 @@ import {
   setMaterialError,
 } from "../formSlice";
 import FdStepDesktopLayout from "./FdStepDesktopLayout";
-import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass } from "./fdTypography";
+import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass, fdStepLabelClass } from "./fdTypography";
 import { FD_STEP1_SPACING } from "./fdLayout";
 
 export default function Step3ProductFocus({ email, onNext, onBack, embedded = false, validating = false }) {
@@ -36,12 +36,18 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
     if (!embedded && onNext) onNext();
   };
 
+  const productFocusNote = {
+    title: "A note from Form Department",
+    body:
+      "Great products are rarely the result of a single idea. They emerge from balancing design, materials, construction, pricing, and manufacturing realities. Every decision influences the final product.",
+  };
+
   if (embedded) {
     return (
       <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-sans">
         <form onSubmit={handleSubmit} className="space-y-8 text-black">
           <div className="mb-8">
-            <p className="ml-5 text-sm font-sans text-[14px] font-medium leading-[1.2] mb-2">Step 3 of 5</p>
+            <p className={`ml-5 mb-2 ${fdStepLabelClass}`}>Step 3 of 5</p>
             <h2 className="text-[32px] font-heading font-semibold leading-[1.2]">Product Focus</h2>
           </div>
           <div>
@@ -104,7 +110,7 @@ export default function Step3ProductFocus({ email, onNext, onBack, embedded = fa
   const gap = { marginTop: FD_STEP1_SPACING.fieldGap };
 
   return (
-    <FdStepDesktopLayout step={3} total={5} title="Product Focus" intro={intro}>
+    <FdStepDesktopLayout step={3} total={5} title="Product Focus" intro={intro} note={productFocusNote}>
       <form onSubmit={handleSubmit} className="text-[#2B2A25]" noValidate>
         <label htmlFor="productType" className={fdStepFieldLabelClass}>
           WHAT ARTICLE OF CLOTHING WOULD YOU LIKE TO DEVELOP FIRST?

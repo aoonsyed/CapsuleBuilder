@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIdea, setBrand } from "../formSlice";
 import FdStepDesktopLayout from "./FdStepDesktopLayout";
-import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass } from "./fdTypography";
+import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass, fdStepLabelClass } from "./fdTypography";
 import { FD_STEP1_SPACING } from "./fdLayout";
 
 export default function Step1Vision({
@@ -25,12 +25,18 @@ export default function Step1Vision({
     if (!embedded && onNext) onNext();
   };
 
+  const lineStrategyNote = {
+    title: "A note from Form Department",
+    body:
+      "In a crowded market, clarity is a competitive advantage. A well-defined brand identity helps guide product development, marketing decisions, and long-term growth.",
+  };
+
   if (embedded) {
     return (
       <div className="bg-[#F1EEE8] w-full max-w-[380px] p-8 pb-6 rounded-[34px] shadow-[0_20px_60px_rgba(0,0,0,0.10)] font-sans flex flex-col overflow-hidden">
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col text-black" noValidate>
           <div className="mb-6">
-            <p className="ml-2 text-sm mb-2 font-sans text-[14px] font-medium leading-[1.2]">Step 1 of 5</p>
+            <p className={`ml-2 mb-2 ${fdStepLabelClass}`}>Step 1 of 5</p>
             <h1 className="text-[34px] font-heading font-semibold leading-[1.1]">Line Strategy</h1>
             <p className="mt-4 ml-2 text-[13px] leading-[1.35] text-[#8C7152]">
               In this phase, we define the core architecture of your brand&apos;s presence. We are looking for
@@ -41,8 +47,8 @@ export default function Step1Vision({
                 A note from Form Department
               </div>
               <div className="mt-2 font-sans text-[12px] leading-[1.25] text-[#8C7152] italic">
-                &apos;Design is not just what it looks and feels like. Design is how it works&apos;
-                &nbsp;Focus on the &apos;why&apos; before the &apos;what&apos;.
+                In a crowded market, clarity is a competitive advantage. A well-defined brand identity helps guide
+                product development, marketing decisions, and long-term growth.
               </div>
             </div>
           </div>
@@ -97,7 +103,7 @@ export default function Step1Vision({
   );
 
   return (
-    <FdStepDesktopLayout step={1} total={5} title="Line Strategy" intro={intro}>
+    <FdStepDesktopLayout step={1} total={5} title="Line Strategy" intro={intro} note={lineStrategyNote}>
       <form onSubmit={handleSubmit} className="text-[#2B2A25]" noValidate>
         <label htmlFor="brandName" className={fdStepFieldLabelClass}>
           DO YOU HAVE A NAME FOR YOUR BRAND?

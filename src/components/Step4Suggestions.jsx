@@ -169,8 +169,8 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
 
   const formData = useSelector((state) => state.form);
   const savedAnswers = useMemo(
-    () => loadQuestionnaireAnswers(formData),
-    [formData]
+    () => loadQuestionnaireAnswers(formData, outputSessionKey),
+    [formData, outputSessionKey]
   );
   const {
     idea,
@@ -210,8 +210,22 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
   );
 
   const loadCachedSuggestions = useCallback(() => {
-    return loadProductBreakdown(paramsKey, CACHE_EXPIRATION_MS);
-  }, [paramsKey]);
+    const maxAge = outputSessionKey ? null : CACHE_EXPIRATION_MS;
+    return loadProductBreakdown(paramsKey, maxAge);
+  }, [paramsKey, outputSessionKey]);
+
+  const hydratedFromCache = useMemo(() => {
+    const cached = loadCachedSuggestions();
+    if (!cached) return null;
+    const repaired = repairParsedCapsule(
+      cached.parsedSuggestions,
+      cached.rawAnswer
+    );
+    if (!cacheHasDisplayableBreakdown(repaired, cached.rawAnswer)) {
+      return null;
+    }
+    return repaired;
+  }, [loadCachedSuggestions]);
 
   // Extract colors from the "Color Palette" markdown/text the AI returns
   const extractHexColors = (rawText) => {
@@ -872,6 +886,13 @@ const generatePrompt = () => {
         return;
       }
 
+      if (hydratedFromCache) {
+        setSuggestions(hydratedFromCache);
+        loadedParamsRef.current = paramsKey;
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       
       // First, try to load from cache
@@ -919,9 +940,6 @@ const generatePrompt = () => {
           setSuggestions(repairedFromCache);
           loadedParamsRef.current = paramsKey;
           setLoading(false);
-          toast.success("Product Breakdown loaded from cache", {
-            style: { backgroundColor: "#3A3A3D", color: "#fff" },
-          });
           return;
         }
 
@@ -948,16 +966,6 @@ const generatePrompt = () => {
                   )}\nOutput the COMPLETE response again from **Materials** through **Wholesale vs. DTC Pricing**. Every section must be present. Do not truncate **Business & Financial Tools**. Use real numbers (not bracket placeholders). Do not merge multiple fabrics or companion pieces into one block.\n---\n`
               : "";
           const prompt = generatePrompt() + retryNote;
-
-          if (attempt > 0) {
-            toast.message(
-              `Regenerating Product Breakdown (attempt ${attempt + 1}/${CAPSULE_FETCH_MAX_ATTEMPTS})…`,
-              {
-                duration: 4500,
-                style: { backgroundColor: '#3A3A3D', color: '#fff' },
-              }
-            );
-          }
 
           const response = await axios.post('/api/openai', { prompt });
 
@@ -994,17 +1002,6 @@ const generatePrompt = () => {
         setSuggestions(parsed);
         loadedParamsRef.current = paramsKey;
         saveSuggestionsToCache(answer, parsed);
-
-        if (validateCapsuleOutput(parsed).ok) {
-          toast.success('Product Breakdown generated successfully!', {
-            style: { backgroundColor: '#3A3A3D', color: '#fff' },
-          });
-        } else {
-          toast.warning(
-            `Product Breakdown finished after ${CAPSULE_FETCH_MAX_ATTEMPTS} attempts; some sections may still be incomplete.`,
-            { style: { backgroundColor: '#3A3A3D', color: '#fff' } }
-          );
-        }
       } catch (err) {
         console.error('OpenAI error:', err);
         toast.error('Something went wrong while fetching suggestions.', {
@@ -1016,17 +1013,19 @@ const generatePrompt = () => {
     };
 
     fetchSuggestions();
-  }, [paramsKey, loadCachedSuggestions, saveSuggestionsToCache]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [paramsKey, loadCachedSuggestions, saveSuggestionsToCache, hydratedFromCache]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const displaySuggestions = suggestions ?? hydratedFromCache;
 
   return (
   <>
     <Toaster position="top-right" richColors />
-    {loading ? (
+    {loading && !displaySuggestions ? (
       <div className="fixed inset-0 flex flex-col items-center justify-center h-screen text-black/70 font-sans">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black/70 mb-4"></div>
         In progress...
       </div>
-    ) : !suggestions ? (
+    ) : !displaySuggestions ? (
       <div className="flex flex-col items-center justify-center min-h-screen text-[#3A3A3D] font-sans text-lg leading-[1.2]">
         <p className="mb-4">No Suggestions For Now</p>
         {userPlan === 'tier2' && (
@@ -1046,7 +1045,7 @@ const generatePrompt = () => {
         data-capsule-step="your-results"
       >
         <section
-          className="relative flex flex-col items-center justify-end min-h-[min(28vw,180px)] sm:min-h-[195px] pt-5 pb-6 sm:pb-8 px-4 text-white"
+          className="relative flex flex-col items-center justify-end min-h-[min(42vw,260px)] sm:min-h-[280px] pt-10 pb-10 sm:pb-12 px-4 text-white"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.58) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
@@ -1057,22 +1056,23 @@ const generatePrompt = () => {
           <img
             src={FD_LOGO_WHITE_SRC}
             alt="Form Department"
-            className="absolute top-5 sm:top-6 left-1/2 -translate-x-1/2 w-[min(36vw,170px)] sm:w-[160px] md:w-[180px] h-auto"
+            className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 w-[min(42vw,210px)] sm:w-[200px] md:w-[220px] h-auto"
           />
-          <div className="mt-12 sm:mt-14 text-center max-w-xl">
+          <div className="mt-24 sm:mt-28 md:mt-24 text-center max-w-xl">
             <h2 className="font-heading text-[clamp(1.65rem,4.5vw,2.625rem)] leading-tight tracking-tight">
-              Your Results
+              Product Breakdown
             </h2>
           </div>
         </section>
 
-        <section className="relative -mt-8 sm:-mt-12 pb-12 sm:pb-16 px-3 sm:px-5 lg:px-8">
-          <div className="mx-auto w-full max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[28px] sm:rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-4 py-8 sm:px-6 sm:py-10 md:px-8 md:py-11">
+        <section className="relative -mt-6 sm:-mt-10 pb-12 sm:pb-16 px-4 sm:px-6 md:px-8 lg:px-12">
+          <div className="mx-auto w-full min-w-0 max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[28px] sm:rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-4 py-8 sm:px-6 sm:py-10 md:px-8 md:py-11">
             <h3 className="mt-3 sm:mt-4 font-heading text-[clamp(1.75rem,5vw,2.75rem)] leading-[1.05] text-[#1E1D1B] break-words">
               {clientBrand || productType?.trim() || "Your product"}
             </h3>
 
             {(() => {
+              const suggestions = displaySuggestions;
               const titleSerif =
                 "font-heading text-2xl sm:text-3xl md:text-[2rem] text-[#1E1D1B] tracking-tight";
               const titleSerifOnDark =

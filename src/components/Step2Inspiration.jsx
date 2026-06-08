@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setBrand2, setSharedPreference, toggleBrandPreference } from "../formSlice";
 import FdStepDesktopLayout from "./FdStepDesktopLayout";
-import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass } from "./fdTypography";
+import { fdStepFieldLabelClass, fdStepFieldSurfaceClass, fdStepInputClass, fdStepLabelClass } from "./fdTypography";
 import { FD_STEP1_SPACING } from "./fdLayout";
 
 export default function Step2Inspiration({ email = "demo@example.com", onNext, onBack, embedded = false }) {
@@ -16,12 +16,18 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
     if (!embedded && onNext) onNext();
   };
 
+  const referenceBrandNote = {
+    title: "A note from Form Department",
+    body:
+      "Reference brands are not templates. They are clues. Look beyond the logo and ask what the brand consistently delivers through product, quality, pricing, and customer experience.",
+  };
+
   if (embedded) {
     return (
       <div className="max-w-2xl mx-auto p-8 border border-white bg-white/60 backdrop-blur-md rounded-lg shadow-lg font-sans">
         <form onSubmit={handleSubmit} className="space-y-8 text-black">
           <div className="mb-8">
-            <p className="ml-2 text-sm mb-2 font-sans text-[14px] font-medium leading-[1.2]">Step 2 of 5</p>
+            <p className={`ml-2 mb-2 ${fdStepLabelClass}`}>Step 2 of 5</p>
             <h1 className="text-[32px] font-heading font-semibold leading-[1.2]">Reference Brand</h1>
           </div>
 
@@ -96,7 +102,7 @@ export default function Step2Inspiration({ email = "demo@example.com", onNext, o
     "Share a reference brand that captures the direction you want so we can align aesthetic, positioning, and craft.";
 
   return (
-    <FdStepDesktopLayout step={2} total={5} title="Reference Brand" intro={intro}>
+    <FdStepDesktopLayout step={2} total={5} title="Reference Brand" intro={intro} note={referenceBrandNote}>
       <form onSubmit={handleSubmit} className="text-[#2B2A25]" noValidate>
         <label htmlFor="brand2" className={fdStepFieldLabelClass}>
           WHAT CURRENT BRAND MOST CLOSELY ALIGNS WITH WHAT YOU ARE TRYING TO CREATE?

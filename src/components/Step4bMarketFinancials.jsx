@@ -15,12 +15,30 @@ import {
   loadLegacyProductBreakdown,
   loadProductBreakdown,
   loadQuestionnaireAnswers,
+  loadMarketAnalysisSections,
+  saveMarketAnalysisSections,
 } from "../utils/capsuleStorage";
 /**
  * Testing only: skips Market Analysis subscription check (same path as localhost).
  * Set to `false` before any production deploy that should enforce Tier 2.
  */
 const TEMP_BYPASS_MARKET_ACCESS_FOR_TESTING = true;
+
+function toTitleCaseWords(value) {
+  return (value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function formatBrandProductTitle(brand, productType) {
+  const productLabel = toTitleCaseWords(productType || "Product");
+  const brandName = (brand || "").trim();
+  if (brandName) return `${toTitleCaseWords(brandName)} ${productLabel}`.trim();
+  return productLabel;
+}
 
 function stripMdLight(s) {
   if (!s || typeof s !== "string") return "";
@@ -515,8 +533,8 @@ function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
 export default function Step4bMarketFinancials({ onBack, onRestart, outputSessionKey }) {
   const formData = useSelector((state) => state.form);
   const savedAnswers = useMemo(
-    () => loadQuestionnaireAnswers(formData),
-    [formData]
+    () => loadQuestionnaireAnswers(formData, outputSessionKey),
+    [formData, outputSessionKey]
   );
   const [sendingEmail, setSendingEmail] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
@@ -535,53 +553,28 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   const bypassMarketPaywall =
     process.env.REACT_APP_BYPASS_MARKET_ANALYSIS_ACCESS === "true";
 
-  // All hooks must be called before any early returns
   const { localBrand, brand2, productType } = formData;
 
-  const title = localBrand?.trim()
-    ? `${localBrand.trim()} ${productType?.trim()}`
-    : `Your ${productType?.trim()}`;
+  const title = formatBrandProductTitle(localBrand || brand2, productType);
 
   const paramsKey = useMemo(
     () => buildCapsuleParamsKey(formData, savedAnswers, outputSessionKey),
     [formData, savedAnswers, outputSessionKey]
   );
 
-  // Hash function to create consistent localStorage keys
-  const hashParamsKey = useCallback((key) => {
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      const char = key.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return Math.abs(hash).toString(36);
-  }, []);
+  const cachedSections = useMemo(
+    () => loadMarketAnalysisSections(paramsKey),
+    [paramsKey]
+  );
 
-  // Get localStorage keys for current paramsKey
-  // Note: We use the same raw answer cache key as Step4Suggestions since they share the same paramsKey
-  const getStorageKeys = useCallback(() => {
-    const hash = hashParamsKey(paramsKey);
-    return {
-      rawAnswer: `productBreakdownRawAnswer_${hash}`, // Same as Step4Suggestions
-      parsedSections: `marketAnalysisParsed_v4_${hash}`, // bump when section shape changes
-    };
-  }, [paramsKey, hashParamsKey]);
+  const saveSectionsToCache = useCallback(
+    (nextSections) => {
+      saveMarketAnalysisSections(paramsKey, nextSections);
+    },
+    [paramsKey]
+  );
 
-  // Save sections to cache (only cache parsed sections, raw answer is cached by Step4Suggestions)
-  const saveSectionsToCache = useCallback((sections) => {
-    try {
-      const { parsedSections: parsedKey } = getStorageKeys();
-      const timestamp = Date.now();
-      
-      localStorage.setItem(parsedKey, JSON.stringify({
-        sections: sections,
-        timestamp,
-      }));
-    } catch (err) {
-      console.warn("Failed to save sections to cache:", err);
-    }
-  }, [getStorageKeys]);
+  const displaySections = sections ?? cachedSections;
 
   // Remove trailing dashes and similar AI artifacts from section text
   const sanitizeSectionText = (text) => {
@@ -791,6 +784,11 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   useEffect(() => {
     if (!hasAccess) return;
 
+    if (cachedSections) {
+      setSections((prev) => prev ?? cachedSections);
+      return;
+    }
+
     const { rawText, parsed } = readCurrentBreakdown();
     const repaired = repairParsedCapsule(parsed, rawText);
     const built = buildMarketSections(rawText, repaired);
@@ -808,7 +806,14 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     ) {
       saveSectionsToCache(built);
     }
-  }, [hasAccess, paramsKey, saveSectionsToCache, buildMarketSections, readCurrentBreakdown]);
+  }, [
+    hasAccess,
+    paramsKey,
+    cachedSections,
+    saveSectionsToCache,
+    buildMarketSections,
+    readCurrentBreakdown,
+  ]);
 
   /** Pull cream body up over hero (~30% overlap), same ratio as Line Strategy / input steps. */
   const marketOverlapRef = useRef(null);
@@ -817,7 +822,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   );
 
   useLayoutEffect(() => {
-    if (!hasAccess || !sections) return undefined;
+    if (!hasAccess || !displaySections) return undefined;
     const el = marketOverlapRef.current;
     if (!el) return undefined;
     const update = () => {
@@ -833,7 +838,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
       ro.disconnect();
       window.removeEventListener("resize", update);
     };
-  }, [hasAccess, sections]);
+  }, [hasAccess, displaySections]);
 
   // Show loading while checking access
   if (!accessChecked) {
@@ -926,7 +931,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   }
 
   // Show loading while loading sections
-  if (!hasAccess || !sections) {
+  if (!hasAccess || !displaySections) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -940,25 +945,25 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   }
 
   const marketExamples =
-    sections?.marketExamples?.trim() ||
+    displaySections?.marketExamples?.trim() ||
     lsMergedSections.marketExamples?.trim() ||
     "";
   const targetInsight =
-    sections?.targetInsight?.trim() ||
+    displaySections?.targetInsight?.trim() ||
     lsMergedSections.targetInsight?.trim() ||
     "";
   const marginAnalysis =
-    sections?.marginAnalysis?.trim() ||
+    displaySections?.marginAnalysis?.trim() ||
     lsMergedSections.marginAnalysis?.trim() ||
     "";
   const pricingBase =
-    sections?.pricing?.trim() || lsMergedSections.pricing?.trim() || "";
+    displaySections?.pricing?.trim() || lsMergedSections.pricing?.trim() || "";
   const yieldConsumption =
-    sections?.yieldConsumption?.trim() ||
+    displaySections?.yieldConsumption?.trim() ||
     lsMergedSections.yieldConsumption?.trim() ||
     "";
   const leadTime =
-    sections?.leadTime?.trim() || lsMergedSections.leadTime?.trim() || "";
+    displaySections?.leadTime?.trim() || lsMergedSections.leadTime?.trim() || "";
 
   const yieldRows = parseLabelValueLines(yieldConsumption);
   const leadParts = splitLeadTimeSections(leadTime);
@@ -1003,10 +1008,6 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
       );
     }
   }
-
-  const categoryLabel =
-    (productType || "Capsule").trim().toUpperCase() + " CATEGORY";
-  const productTitle = productType?.trim() || "Your product";
 
   const marketBlurb =
     "A technical deep-dive into the construction, sourcing and economic blueprint of your performance silhouette.";
@@ -1095,7 +1096,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
 
         <div
           ref={marketOverlapRef}
-          className="relative z-20 px-3 sm:px-5 lg:px-8"
+          className="relative z-20 px-4 sm:px-6 md:px-8 lg:px-12"
           style={{
             marginTop: marketOverlapPx ? -marketOverlapPx : undefined,
             backgroundColor: "#f5f4f1",
@@ -1104,13 +1105,10 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
             paddingTop: "1.25rem",
           }}
         >
-        <div className="relative z-10 mx-auto max-w-[1100px] px-0 sm:px-0 lg:px-0">
+        <div className="relative z-10 mx-auto w-full min-w-0 max-w-[1100px]">
           <section className="pb-8 sm:pb-10">
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-[#6B665E] font-sans">
-              {categoryLabel}
-            </p>
-            <h2 className="mt-4 font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
-              {productTitle}
+            <h2 className="font-heading text-[clamp(1.9rem,5.2vw,2.85rem)] text-[#161514] leading-[1.04] tracking-tight">
+              {title}
             </h2>
             <p className="mt-5 max-w-xl text-[14px] sm:text-[15px] leading-relaxed text-[#2a2825] font-sans font-normal">
               {marketBlurb}

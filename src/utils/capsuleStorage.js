@@ -20,16 +20,115 @@ export function getQuestionnaireParamsKey(form) {
   });
 }
 
-/** Load questionnaire answers for the current product (hashed key, then legacy fallback). */
-export function loadQuestionnaireAnswers(form) {
+/** Storage keys scoped to a build run so questions/answers stay stable until a new run. */
+export function buildQuestionnaireStorageKey(form, runKey) {
+  return JSON.stringify({
+    runKey: runKey || "",
+    ...JSON.parse(getQuestionnaireParamsKey(form)),
+  });
+}
+
+export function getQuestionnaireStorageKeys(form, runKey) {
+  const hash = hashParamsKey(buildQuestionnaireStorageKey(form, runKey));
+  return {
+    questions: `questionnaireQuestions_${hash}`,
+    answers: `questionnaireAnswers_${hash}`,
+  };
+}
+
+function readTimestampedEntry(raw, maxAgeMs) {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.timestamp) return null;
+    if (maxAgeMs != null && Date.now() - parsed.timestamp > maxAgeMs) {
+      return null;
+    }
+    return parsed;
+  } catch (_) {
+    return null;
+  }
+}
+
+/** Load cached clarifying questions for this run (null maxAge = no expiry within run). */
+export function loadQuestionnaireQuestions(form, runKey, maxAgeMs = null) {
+  if (!runKey) return null;
+  try {
+    const { questions: key } = getQuestionnaireStorageKeys(form, runKey);
+    const parsed = readTimestampedEntry(localStorage.getItem(key), maxAgeMs);
+    const questions = parsed?.questions;
+    if (!Array.isArray(questions) || questions.length === 0) return null;
+    const isValid = questions.every(
+      (cat) =>
+        cat &&
+        typeof cat === "object" &&
+        cat.title &&
+        Array.isArray(cat.questions)
+    );
+    return isValid ? questions : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+export function saveQuestionnaireQuestions(form, runKey, questions) {
+  if (!runKey) return;
+  try {
+    const { questions: key } = getQuestionnaireStorageKeys(form, runKey);
+    localStorage.setItem(
+      key,
+      JSON.stringify({ questions, timestamp: Date.now() })
+    );
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+export function saveQuestionnaireAnswers(form, runKey, answers) {
+  if (!runKey) return;
+  try {
+    const { answers: key } = getQuestionnaireStorageKeys(form, runKey);
+    localStorage.setItem(
+      key,
+      JSON.stringify({ answers, timestamp: Date.now() })
+    );
+    localStorage.setItem("questionnaireAnswers", JSON.stringify(answers));
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+export function clearQuestionnaireCache(form, runKey) {
+  if (!runKey) return;
+  try {
+    const { questions, answers } = getQuestionnaireStorageKeys(form, runKey);
+    localStorage.removeItem(questions);
+    localStorage.removeItem(answers);
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+/** Load questionnaire answers for the current product run (hashed key, then legacy fallback). */
+export function loadQuestionnaireAnswers(form, runKey = null) {
+  if (runKey) {
+    try {
+      const { answers: key } = getQuestionnaireStorageKeys(form, runKey);
+      const parsed = readTimestampedEntry(localStorage.getItem(key), null);
+      if (parsed?.answers && typeof parsed.answers === "object") {
+        return parsed.answers;
+      }
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
   const hash = hashParamsKey(getQuestionnaireParamsKey(form));
   try {
     const cached = localStorage.getItem(`questionnaireAnswers_${hash}`);
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (parsed.answers && typeof parsed.answers === "object") {
-        return parsed.answers;
-      }
+    const parsed = readTimestampedEntry(cached, null);
+    if (parsed?.answers && typeof parsed.answers === "object") {
+      return parsed.answers;
     }
   } catch (_) {
     /* ignore */
@@ -39,6 +138,34 @@ export function loadQuestionnaireAnswers(form) {
     return typeof legacy === "object" && legacy !== null ? legacy : {};
   } catch (_) {
     return {};
+  }
+}
+
+/** Load cached market-analysis sections derived from product breakdown. */
+export function loadMarketAnalysisSections(paramsKey) {
+  const hash = hashParamsKey(paramsKey);
+  const key = `marketAnalysisParsed_v4_${hash}`;
+  try {
+    const parsed = readTimestampedEntry(localStorage.getItem(key), null);
+    if (parsed?.sections && typeof parsed.sections === "object") {
+      return parsed.sections;
+    }
+  } catch (_) {
+    /* ignore */
+  }
+  return null;
+}
+
+export function saveMarketAnalysisSections(paramsKey, sections) {
+  const hash = hashParamsKey(paramsKey);
+  const key = `marketAnalysisParsed_v4_${hash}`;
+  try {
+    localStorage.setItem(
+      key,
+      JSON.stringify({ sections, timestamp: Date.now() })
+    );
+  } catch (_) {
+    /* ignore */
   }
 }
 

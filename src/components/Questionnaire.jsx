@@ -4,185 +4,106 @@ import { FD_STEP1_SPACING } from "./fdLayout";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import {
+  clearQuestionnaireCache,
+  loadQuestionnaireAnswers,
+  loadQuestionnaireQuestions,
+  saveQuestionnaireAnswers,
+  saveQuestionnaireQuestions,
+} from "../utils/capsuleStorage";
 
-// Cache expiration time in milliseconds (5 minutes)
-const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
+const CLARIFYING_QUESTIONS_NOTE = {
+  title: "A note from Form Department",
+  body:
+    "The difference between a good idea and a great product often lives in the details. Small decisions around fit, comfort, and functionality have a significant impact on how a garment is experienced and remembered.",
+};
 
-export default function Questionaire({ onNext, onBack }) {
+function matchAnswersToQuestions(cachedAnswers, questions) {
+  if (!cachedAnswers || !questions) return {};
+
+  const matched = {};
+  const allQuestions = questions.flatMap((cat) =>
+    cat.questions.map((q) => q.question)
+  );
+
+  Object.keys(cachedAnswers).forEach((questionText) => {
+    if (allQuestions.includes(questionText)) {
+      matched[questionText] = cachedAnswers[questionText];
+    }
+  });
+
+  return matched;
+}
+
+function readRunCache(form, runKey) {
+  if (!runKey) {
+    return { questions: [], answers: {}, hasQuestions: false };
+  }
+  const questions = loadQuestionnaireQuestions(form, runKey) || [];
+  const rawAnswers = loadQuestionnaireAnswers(form, runKey) || {};
+  const answers =
+    questions.length > 0
+      ? matchAnswersToQuestions(rawAnswers, questions)
+      : rawAnswers;
+  return {
+    questions,
+    answers,
+    hasQuestions: questions.length > 0,
+  };
+}
+
+export default function Questionaire({ onNext, onBack, runKey }) {
+  const form = useSelector((state) => state.form);
   const {
     productType,
     keyFeatures,
     targetPrice,
     idea,
     materialPreference,
-  } = useSelector((state) => state.form);
+  } = form;
 
-  const [questionsData, setQuestionsData] = useState([]);
-  const [answers, setAnswers] = useState({});
-  const [loading, setLoading] = useState(true);
+  const initialCache = useMemo(
+    () => readRunCache(form, runKey),
+    // Only hydrate from storage once per mount + runKey
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [runKey]
+  );
+
+  const [questionsData, setQuestionsData] = useState(
+    () => initialCache.questions
+  );
+  const [answers, setAnswers] = useState(() => initialCache.answers);
+  const [loading, setLoading] = useState(() => !initialCache.hasQuestions);
   const [error, setError] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
 
-  const paramsKey = useMemo(
-    () =>
-      JSON.stringify({
-        productType,
-        keyFeatures,
-        targetPrice,
-        idea,
-        materialPreference,
-      }),
-    [productType, keyFeatures, targetPrice, idea, materialPreference]
-  );
-
-  const lastKeyRef = useRef(null);
+  const fetchStartedRef = useRef(false);
   const saveTimeoutRef = useRef(null);
-  const questionsDataRef = useRef(questionsData);
-  questionsDataRef.current = questionsData;
-
-  const hashParamsKey = useCallback((key) => {
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      const char = key.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash).toString(36);
-  }, []);
-
-  const getStorageKeys = useCallback(() => {
-    const hash = hashParamsKey(paramsKey);
-    return {
-      questions: `questionnaireQuestions_${hash}`,
-      answers: `questionnaireAnswers_${hash}`,
-    };
-  }, [paramsKey, hashParamsKey]);
-
-  const loadCachedQuestions = useCallback(() => {
-    try {
-      const { questions: questionsKey } = getStorageKeys();
-      const cached = localStorage.getItem(questionsKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-
-        if (parsed.timestamp) {
-          const age = Date.now() - parsed.timestamp;
-          if (age > CACHE_EXPIRATION_MS) {
-            localStorage.removeItem(questionsKey);
-            return null;
-          }
-        } else {
-          localStorage.removeItem(questionsKey);
-          return null;
-        }
-
-        const questions = parsed.questions;
-        if (Array.isArray(questions) && questions.length > 0) {
-          const isValid = questions.every(
-            (cat) =>
-              cat &&
-              typeof cat === "object" &&
-              cat.title &&
-              Array.isArray(cat.questions)
-          );
-          if (isValid) {
-            return questions;
-          }
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to load cached questions:", err);
-    }
-    return null;
-  }, [getStorageKeys]);
-
-  const loadCachedAnswers = useCallback(() => {
-    try {
-      const { answers: answersKey } = getStorageKeys();
-      const cached = localStorage.getItem(answersKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-
-        if (parsed.timestamp) {
-          const age = Date.now() - parsed.timestamp;
-          if (age > CACHE_EXPIRATION_MS) {
-            localStorage.removeItem(answersKey);
-            return null;
-          }
-        } else {
-          localStorage.removeItem(answersKey);
-          return null;
-        }
-
-        const ans = parsed.answers;
-        if (typeof ans === "object" && ans !== null) {
-          return ans;
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to load cached answers:", err);
-    }
-    return null;
-  }, [getStorageKeys]);
-
-  const matchAnswersToQuestions = useCallback((cachedAnswers, questions) => {
-    if (!cachedAnswers || !questions) return {};
-
-    const matched = {};
-    const allQuestions = questions.flatMap((cat) =>
-      cat.questions.map((q) => q.question)
-    );
-
-    Object.keys(cachedAnswers).forEach((questionText) => {
-      if (allQuestions.includes(questionText)) {
-        matched[questionText] = cachedAnswers[questionText];
-      }
-    });
-
-    return matched;
-  }, []);
 
   const saveAnswersToStorage = useCallback(
     (answersToSave) => {
+      if (!runKey) return;
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
 
       saveTimeoutRef.current = setTimeout(() => {
-        try {
-          const { answers: answersKey } = getStorageKeys();
-          const dataToSave = {
-            answers: answersToSave,
-            timestamp: Date.now(),
-          };
-          localStorage.setItem(answersKey, JSON.stringify(dataToSave));
-        } catch (err) {
-          console.warn("Failed to save answers to localStorage:", err);
-        }
+        saveQuestionnaireAnswers(form, runKey, answersToSave);
       }, 400);
     },
-    [getStorageKeys]
+    [form, runKey]
   );
 
   const saveAnswersImmediately = useCallback(
     (answersToSave) => {
+      if (!runKey) return;
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = null;
       }
-
-      try {
-        const { answers: answersKey } = getStorageKeys();
-        const dataToSave = {
-          answers: answersToSave,
-          timestamp: Date.now(),
-        };
-        localStorage.setItem(answersKey, JSON.stringify(dataToSave));
-      } catch (err) {
-        console.warn("Failed to save answers to localStorage:", err);
-      }
+      saveQuestionnaireAnswers(form, runKey, answersToSave);
     },
-    [getStorageKeys]
+    [form, runKey]
   );
 
   const handleAnswerChange = (question, value) => {
@@ -193,10 +114,14 @@ export default function Questionaire({ onNext, onBack }) {
     });
   };
 
+  const handleBack = () => {
+    saveAnswersImmediately(answers);
+    if (onBack) onBack();
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     saveAnswersImmediately(answers);
-    localStorage.setItem("questionnaireAnswers", JSON.stringify(answers));
     if (onNext) onNext();
   };
 
@@ -258,73 +183,41 @@ Only return the JSON. No markdown. No explanation.
   };
 
   useEffect(() => {
-    const cachedAnswers = loadCachedAnswers();
-    if (cachedAnswers && Object.keys(cachedAnswers).length > 0) {
-      if (questionsData.length > 0) {
-        const matched = matchAnswersToQuestions(cachedAnswers, questionsData);
-        if (Object.keys(matched).length > 0) {
-          setAnswers(matched);
-        }
-      } else {
-        setAnswers(cachedAnswers);
-      }
-    }
-  }, [loadCachedAnswers, matchAnswersToQuestions, questionsData]);
+    if (!runKey) return;
 
-  useEffect(() => {
     const shouldForceRefresh = reloadTick > 0;
 
-    if (
-      lastKeyRef.current === paramsKey &&
-      questionsDataRef.current.length > 0 &&
-      !shouldForceRefresh
-    ) {
-      setLoading(false);
-      const cachedAnswers = loadCachedAnswers();
-      if (cachedAnswers) {
-        const matched = matchAnswersToQuestions(cachedAnswers, questionsDataRef.current);
-        if (Object.keys(matched).length > 0) {
-          setAnswers(matched);
+    if (!shouldForceRefresh) {
+      const cachedQuestions = loadQuestionnaireQuestions(form, runKey);
+      if (cachedQuestions) {
+        setQuestionsData(cachedQuestions);
+        setLoading(false);
+        setError(null);
+
+        const cachedAnswers = loadQuestionnaireAnswers(form, runKey);
+        if (cachedAnswers) {
+          const matched = matchAnswersToQuestions(
+            cachedAnswers,
+            cachedQuestions
+          );
+          if (Object.keys(matched).length > 0) {
+            setAnswers(matched);
+          }
         }
+        return;
       }
-      return;
+    } else {
+      clearQuestionnaireCache(form, runKey);
     }
 
-    if (lastKeyRef.current !== null && lastKeyRef.current !== paramsKey) {
-      setAnswers({});
+    if (fetchStartedRef.current && !shouldForceRefresh) {
+      return;
     }
-    lastKeyRef.current = paramsKey;
+    fetchStartedRef.current = true;
 
     const fetchQuestions = async () => {
       setLoading(true);
       setError(null);
-
-      if (!shouldForceRefresh) {
-        const cachedQuestions = loadCachedQuestions();
-        if (cachedQuestions) {
-          setQuestionsData(cachedQuestions);
-          setLoading(false);
-
-          const cachedAnswers = loadCachedAnswers();
-          if (cachedAnswers) {
-            const matched = matchAnswersToQuestions(
-              cachedAnswers,
-              cachedQuestions
-            );
-            if (Object.keys(matched).length > 0) {
-              setAnswers(matched);
-            }
-          }
-          return;
-        }
-      } else {
-        try {
-          const { questions: questionsKey } = getStorageKeys();
-          localStorage.removeItem(questionsKey);
-        } catch (err) {
-          console.warn("Failed to clear cache:", err);
-        }
-      }
 
       try {
         const res = await axios.post("/api/openai", { prompt });
@@ -372,20 +265,10 @@ Only return the JSON. No markdown. No explanation.
           }),
         }));
 
-        try {
-          const { questions: questionsKey } = getStorageKeys();
-          const dataToSave = {
-            questions: cleaned,
-            timestamp: Date.now(),
-          };
-          localStorage.setItem(questionsKey, JSON.stringify(dataToSave));
-        } catch (err) {
-          console.warn("Failed to cache questions:", err);
-        }
-
+        saveQuestionnaireQuestions(form, runKey, cleaned);
         setQuestionsData(cleaned);
 
-        const cachedAnswers = loadCachedAnswers();
+        const cachedAnswers = loadQuestionnaireAnswers(form, runKey);
         if (cachedAnswers) {
           const matched = matchAnswersToQuestions(cachedAnswers, cleaned);
           if (Object.keys(matched).length > 0) {
@@ -398,19 +281,12 @@ Only return the JSON. No markdown. No explanation.
         setError("Failed to load clarifying questions from AI.");
       } finally {
         setLoading(false);
+        fetchStartedRef.current = false;
       }
     };
 
     fetchQuestions();
-  }, [
-    paramsKey,
-    prompt,
-    reloadTick,
-    loadCachedQuestions,
-    loadCachedAnswers,
-    matchAnswersToQuestions,
-    getStorageKeys,
-  ]);
+  }, [form, runKey, prompt, reloadTick]);
 
   useEffect(() => {
     return () => {
@@ -420,6 +296,23 @@ Only return the JSON. No markdown. No explanation.
     };
   }, []);
 
+  if (!runKey) {
+    return (
+      <FdStepDesktopLayout
+        step={4}
+        total={5}
+        title="Clarifying Questions"
+        intro="Preparing your session…"
+        note={CLARIFYING_QUESTIONS_NOTE}
+        formPanelClassName="lg:max-h-[min(85vh,960px)] lg:overflow-y-auto"
+      >
+        <div className="flex flex-col items-center justify-center py-10 text-[#2B2A25]">
+          <div className="mb-6 h-10 w-10 animate-spin rounded-full border-2 border-[#7B6B55] border-t-transparent" />
+        </div>
+      </FdStepDesktopLayout>
+    );
+  }
+
   if (loading) {
     return (
       <FdStepDesktopLayout
@@ -427,6 +320,7 @@ Only return the JSON. No markdown. No explanation.
         total={5}
         title="Clarifying Questions"
         intro="We are preparing a short set of questions on fit, fabric, and comfort from what you shared."
+        note={CLARIFYING_QUESTIONS_NOTE}
         formPanelClassName="lg:max-h-[min(85vh,960px)] lg:overflow-y-auto"
       >
         <div className="flex flex-col items-center justify-center py-10 text-[#2B2A25]">
@@ -446,6 +340,7 @@ Only return the JSON. No markdown. No explanation.
         total={5}
         title="Clarifying Questions"
         intro="We could not load your questions this time."
+        note={CLARIFYING_QUESTIONS_NOTE}
         formPanelClassName="lg:max-h-[min(85vh,960px)] lg:overflow-y-auto"
       >
         <form className="text-[#2B2A25]" onSubmit={(e) => e.preventDefault()}>
@@ -459,7 +354,7 @@ Only return the JSON. No markdown. No explanation.
           >
             <button
               type="button"
-              onClick={onBack}
+              onClick={handleBack}
               className="flex min-w-0 shrink-0 items-center gap-2 hover:opacity-90"
               aria-label="Back"
             >
@@ -493,6 +388,7 @@ Only return the JSON. No markdown. No explanation.
       total={5}
       title="Clarifying Questions"
       intro={questionIntro}
+      note={CLARIFYING_QUESTIONS_NOTE}
       formPanelClassName="lg:max-h-[min(85vh,960px)] lg:overflow-y-auto"
     >
       <form onSubmit={handleSubmit} className="text-[#2B2A25]">
@@ -555,7 +451,7 @@ Only return the JSON. No markdown. No explanation.
         >
           <button
             type="button"
-            onClick={onBack}
+            onClick={handleBack}
             className="flex min-w-0 shrink-0 items-center gap-2 hover:opacity-90"
             aria-label="Back"
           >

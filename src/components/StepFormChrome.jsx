@@ -52,13 +52,13 @@ export default function StepFormChrome({
             className="w-[210px] h-auto"
           />
         </div>
-        <h2 className={`mt-10 text-[#C7A15E] ${fdHeaderClass} normal-case`}>
+        <h2 className={`mt-10 text-white ${fdHeaderClass} normal-case`}>
           {heroTitle}
         </h2>
       </section>
 
-      <section className="relative -mt-[110px] px-6 pb-10">
-        <div className="mx-auto w-full max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-6 py-10 sm:px-10 sm:py-12 text-[#2B2A25]">
+      <section className="relative -mt-[110px] px-4 sm:px-6 pb-10">
+        <div className="mx-auto w-full min-w-0 max-w-[560px] rounded-[34px] bg-[#F2EFEA] shadow-[0_20px_60px_rgba(0,0,0,0.10)] px-6 py-10 sm:px-10 sm:py-12 text-[#2B2A25]">
           <div className="text-left">
             <p className={fdStepLabelClass}>
               Step {step} of {total}

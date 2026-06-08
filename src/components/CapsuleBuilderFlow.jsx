@@ -25,10 +25,17 @@ export default function CapsuleBuilderFlow() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userPlan, setUserPlan] = useState(null); // 'tier1', 'tier2', 'admin', or null
 
-  // Track if the user began via the 3-form grid on Landing
-  const [startedWithGrid, setStartedWithGrid] = useState(false);
   const [outputSessionKey, setOutputSessionKey] = useState(null);
   const outputSessionKeyRef = useRef(null);
+
+  const ensureRunKey = () => {
+    if (!outputSessionKeyRef.current) {
+      const key = `run_${Date.now()}`;
+      outputSessionKeyRef.current = key;
+      setOutputSessionKey(key);
+    }
+    return outputSessionKeyRef.current;
+  };
 
   // Control whether Landing should immediately open in the 3-form grid view
   const [startLandingInGrid, setStartLandingInGrid] = useState(false);
@@ -212,16 +219,16 @@ export default function CapsuleBuilderFlow() {
                 isAdmin={isAdmin}
                 startInGrid={startLandingInGrid} // tells Landing to open directly in 3-form grid (when coming back)
                 onContinue={() => {
-                  setStartedWithGrid(true);
                   setStartLandingInGrid(false);
                   outputSessionKeyRef.current = null;
                   setOutputSessionKey(null);
+                  ensureRunKey();
                   setStep(5);
                 }}
                 onNext={() => {
                   // Fallback: treat like continue to questionnaire
-                  setStartedWithGrid(false);
                   setStartLandingInGrid(false);
+                  ensureRunKey();
                   setStep(5);
                 }}
               />
@@ -246,7 +253,10 @@ export default function CapsuleBuilderFlow() {
             {step === 4 && (
               <Step3ProductFocus
                 email={email}
-                onNext={() => setStep(5)}
+                onNext={() => {
+                  ensureRunKey();
+                  setStep(5);
+                }}
                 onBack={() => setStep(3)}
               />
             )}
@@ -254,23 +264,12 @@ export default function CapsuleBuilderFlow() {
             {/* Step 5 — Questionnaire */}
             {step === 5 && (
               <Questionaire
+                runKey={outputSessionKeyRef.current || outputSessionKey}
                 onNext={() => {
-                  if (!outputSessionKeyRef.current) {
-                    const key = `run_${Date.now()}`;
-                    outputSessionKeyRef.current = key;
-                    setOutputSessionKey(key);
-                  }
+                  ensureRunKey();
                   setStep(6);
                 }}
-                onBack={() => {
-                  if (startedWithGrid) {
-                    // Return to Landing and auto-open the 3-form grid
-                    setStartLandingInGrid(true);
-                    setStep(1);
-                  } else {
-                    setStep(4);
-                  }
-                }}
+                onBack={() => setStep(4)}
               />
             )}
 

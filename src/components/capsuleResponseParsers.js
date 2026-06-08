@@ -90,6 +90,114 @@ function mergeBlocksUnique(blocks) {
   return Array.from(m.values());
 }
 
+function tokenizeForTitleMatch(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 3);
+}
+
+/** "Fabric A (140 GSM)Fabric B (130 GSM)" → separate material titles. */
+function splitMergedGsmTitleParts(title) {
+  const t = (title || "").replace(/\*\*/g, "").trim();
+  if (!t) return [];
+
+  const gsmMatches = [...t.matchAll(/\(\s*\d{2,4}\s*gsm\s*\)/gi)];
+  if (gsmMatches.length < 2) return [t];
+
+  const parts = [];
+  let lastStart = 0;
+  for (const match of gsmMatches) {
+    const gsmEnd = match.index + match[0].length;
+    const part = t.slice(lastStart, gsmEnd).trim();
+    if (part) parts.push(part);
+    lastStart = gsmEnd;
+  }
+  return parts.length >= 2 ? parts : [t];
+}
+
+/** Pick the title segment that best matches the paragraph below it. */
+function pickTitleMatchingBody(title, body) {
+  const materialParts = splitMergedGsmTitleParts(title);
+  if (materialParts.length > 1) {
+    const bodyLower = (body || "").toLowerCase();
+    let best = materialParts[materialParts.length - 1];
+    let bestScore = -1;
+    for (const part of materialParts) {
+      const name = part.replace(/\(\s*\d{2,4}\s*gsm\s*\)/i, "").trim();
+      const score = tokenizeForTitleMatch(name).filter((w) => bodyLower.includes(w)).length;
+      if (score > bestScore) {
+        bestScore = score;
+        best = part;
+      }
+    }
+    return bestScore > 0 ? best : materialParts[materialParts.length - 1];
+  }
+
+  const companionParts = title
+    .split(/(?<=[a-z])(?=[A-Z])/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (companionParts.length > 1) {
+    const bodyLower = (body || "").toLowerCase();
+    let best = companionParts[companionParts.length - 1];
+    let bestScore = -1;
+    for (const part of companionParts) {
+      const score = tokenizeForTitleMatch(part).filter((w) => bodyLower.includes(w)).length;
+      if (score > bestScore) {
+        bestScore = score;
+        best = part;
+      }
+    }
+    return bestScore > 0 ? best : companionParts[companionParts.length - 1];
+  }
+
+  return title;
+}
+
+function normalizeDisplayBlocks(blocks) {
+  return (blocks || []).map((block) => {
+    if (!block?.title) return block;
+    const title = pickTitleMatchingBody(block.title, block.body || "");
+    return title === block.title ? block : { ...block, title };
+  });
+}
+
+function splitOnMultipleGsmSpecs(text) {
+  const t = (text || "")
+    .replace(/\*\*/g, "")
+    .replace(/\uFEFF|[\u200B-\u200D\u2060]/g, "")
+    .trim();
+  if (!t) return [];
+
+  const gsmRe =
+    /\b([A-Za-z0-9][A-Za-z0-9%/,.\-'’\s]{0,86}?\(\s*\d{2,4}\s*gsm\s*\))/gi;
+  const matches = [...t.matchAll(gsmRe)];
+  if (matches.length < 2) return [];
+
+  const blocks = [];
+  for (let i = 0; i < matches.length; i++) {
+    const title = matches[i][1].replace(/\s+/g, " ").trim();
+    const start = matches[i].index + matches[i][0].length;
+    const end = i + 1 < matches.length ? matches[i + 1].index : t.length;
+    let body = t.slice(start, end).trim().replace(/\s+/g, " ");
+    body = body
+      .replace(/^[:;\u2014\u2013\-–\s]+/, "")
+      .replace(/\*\*\s*\d{1,2}\s*\*\*/g, "")
+      .replace(/\[\d+\]/g, "")
+      .trim();
+    if (title.length >= 3 && body.length >= 8) blocks.push({ title, body });
+  }
+
+  if (matches[0].index > 15) {
+    const lead = t.slice(0, matches[0].index).trim();
+    if (lead && blocks[0]) blocks[0].body = `${lead} ${blocks[0].body}`.trim();
+  }
+
+  return blocks.length >= 2 ? normalizeDisplayBlocks(blocks) : [];
+}
+
 /**
  * "Organic Cotton (180 GSM): blend... Brushed Fleece (240 GSM): ..." → titled blocks.
  * Also accepts en dash/em dash after the weight: "... (220 GSM) — text".
@@ -100,6 +208,9 @@ export function splitInlineFabricSpecBlocks(text) {
     .replace(/\uFEFF|[\u200B-\u200D\u2060]/g, "")
     .trim();
   if (!t) return [];
+
+  const fromGsmHeadings = splitOnMultipleGsmSpecs(t);
+  if (fromGsmHeadings.length >= 2) return fromGsmHeadings;
 
   const headRe =
     /\b(([A-Za-z0-9][A-Za-z0-9%/,.\-'’\s]{0,86}?)\(\s*\d{2,4}\s*gsm\s*\))\s*[:\u2014\u2013\-–]\s*/gi;
@@ -126,10 +237,13 @@ export function splitInlineFabricSpecBlocks(text) {
     if (lead && blocks[0]) blocks[0].body = `${lead} ${blocks[0].body}`.trim();
   }
 
-  return blocks.length >= 2 ||
+  const normalized =
+    blocks.length >= 2 ||
     (blocks.length === 1 && blocks[0].body.length >= 100)
-    ? blocks
-    : [];
+      ? normalizeDisplayBlocks(blocks)
+      : [];
+
+  return normalized;
 }
 
 export function parseMaterialsForDisplay(md) {
@@ -170,7 +284,7 @@ export function parseMaterialsForDisplay(md) {
   }
 
   if (merged.length >= 1) {
-    return { mode: "blocks", blocks: merged };
+    return { mode: "blocks", blocks: normalizeDisplayBlocks(merged) };
   }
 
   const colonBlocks = [];
@@ -187,7 +301,9 @@ export function parseMaterialsForDisplay(md) {
       });
     }
   }
-  if (colonBlocks.length >= 1) return { mode: "blocks", blocks: colonBlocks };
+  if (colonBlocks.length >= 1) {
+    return { mode: "blocks", blocks: normalizeDisplayBlocks(colonBlocks) };
+  }
   return {
     mode: "markdown",
     text: normalizeListMarkdownToParagraphs(md),
@@ -289,7 +405,9 @@ export function parseCompanionForDisplay(text) {
     blocks.push(b);
   }
 
-  if (blocks.length >= 1) return { mode: "blocks", blocks };
+  if (blocks.length >= 1) {
+    return { mode: "blocks", blocks: normalizeDisplayBlocks(blocks) };
+  }
 
   const out = [];
   for (const block of text.split(/\n\n+/)) {
@@ -309,7 +427,9 @@ export function parseCompanionForDisplay(text) {
       });
     }
   }
-  if (out.length > 0) return { mode: "blocks", blocks: out };
+  if (out.length > 0) {
+    return { mode: "blocks", blocks: normalizeDisplayBlocks(out) };
+  }
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   for (const line of lines) {
     const plain = line.replace(/\*\*/g, "");
@@ -321,7 +441,9 @@ export function parseCompanionForDisplay(text) {
       });
     }
   }
-  if (out.length > 0) return { mode: "blocks", blocks: out };
+  if (out.length > 0) {
+    return { mode: "blocks", blocks: normalizeDisplayBlocks(out) };
+  }
   return {
     mode: "markdown",
     text: normalizeListMarkdownToParagraphs(text),
