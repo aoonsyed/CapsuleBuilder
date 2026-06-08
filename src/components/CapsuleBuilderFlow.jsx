@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
 import LandingPage2 from "./LandingPage2";
 import Step1Vision from "./Step1Vision";
@@ -13,9 +14,12 @@ import {
   buildLoginUrl,
   getCustomerIdFromSearch,
   isSignedIn,
+  openFreshCapsuleRun,
 } from "../utils/fdAuth";
+import { clearForm } from "../formSlice";
 
 export default function CapsuleBuilderFlow() {
+  const dispatch = useDispatch();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState();
   const [brand, setBrand] = useState("");
@@ -27,6 +31,23 @@ export default function CapsuleBuilderFlow() {
 
   const [outputSessionKey, setOutputSessionKey] = useState(null);
   const outputSessionKeyRef = useRef(null);
+
+  const resetCapsuleRun = () => {
+    dispatch(clearForm());
+    outputSessionKeyRef.current = null;
+    setOutputSessionKey(null);
+    setEmail(undefined);
+    setBrand("");
+    setStartLandingInGrid(false);
+    setStep(1);
+  };
+
+  const handleBuildNewItem = () => {
+    const openedInNewTab = openFreshCapsuleRun();
+    if (!openedInNewTab) {
+      resetCapsuleRun();
+    }
+  };
 
   const ensureRunKey = () => {
     if (!outputSessionKeyRef.current) {
@@ -290,12 +311,7 @@ export default function CapsuleBuilderFlow() {
                 email={email}
                 brand={brand}
                 outputSessionKey={outputSessionKey}
-                onRestart={() => {
-                  outputSessionKeyRef.current = null;
-                  setOutputSessionKey(null);
-                  setStartLandingInGrid(true);
-                  setStep(1);
-                }}
+                onRestart={handleBuildNewItem}
                 onBack={() => setStep(6)}
               />
             )}

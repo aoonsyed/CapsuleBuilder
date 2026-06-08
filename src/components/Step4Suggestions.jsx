@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
@@ -13,6 +13,7 @@ import {
   repairParsedCapsule,
 } from "./capsuleResponseParsers";
 import { FD_LOGO_WHITE_SRC } from "./fdTypography";
+import { FD_STEP1_SPACING } from "./fdLayout";
 import {
   buildCapsuleParamsKey,
   clearProductBreakdown,
@@ -166,6 +167,10 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
   const loadedParamsRef = useRef(null);
+  const breakdownOverlapRef = useRef(null);
+  const [breakdownOverlapPx, setBreakdownOverlapPx] = useState(() =>
+    Math.round(520 * FD_STEP1_SPACING.cardOverlapRatio)
+  );
 
   const formData = useSelector((state) => state.form);
   const savedAnswers = useMemo(
@@ -1017,6 +1022,25 @@ const generatePrompt = () => {
 
   const displaySuggestions = suggestions ?? hydratedFromCache;
 
+  useLayoutEffect(() => {
+    if (!displaySuggestions) return undefined;
+    const el = breakdownOverlapRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const h = el.offsetHeight;
+      const next = Math.round(h * FD_STEP1_SPACING.cardOverlapRatio);
+      if (next > 0) setBreakdownOverlapPx((p) => (p === next ? p : next));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [displaySuggestions]);
+
   return (
   <>
     <Toaster position="top-right" richColors />
@@ -1045,27 +1069,34 @@ const generatePrompt = () => {
         data-capsule-step="your-results"
       >
         <section
-          className="relative flex flex-col items-center justify-end min-h-[min(42vw,260px)] sm:min-h-[280px] pt-10 pb-10 sm:pb-12 px-4 text-white"
+          className="relative z-0 flex w-full min-h-[min(52vh,420px)] flex-col items-center justify-end px-4 pt-14 text-center text-white sm:min-h-[min(52vh,480px)] sm:pt-16"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.58) 100%), url("/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg")',
             backgroundSize: 'cover',
             backgroundPosition: 'center 32%',
+            paddingBottom: FD_STEP1_SPACING.heroTitleToCard + breakdownOverlapPx,
           }}
         >
           <img
             src={FD_LOGO_WHITE_SRC}
             alt="Form Department"
-            className="absolute top-6 sm:top-8 left-1/2 -translate-x-1/2 w-[min(42vw,210px)] sm:w-[200px] md:w-[220px] h-auto"
+            className="absolute top-8 sm:top-10 left-1/2 z-10 w-[min(40vw,200px)] sm:w-[208px] md:w-[220px] h-auto -translate-x-1/2"
           />
-          <div className="mt-24 sm:mt-28 md:mt-24 text-center max-w-xl">
-            <h2 className="font-heading text-[clamp(1.65rem,4.5vw,2.625rem)] leading-tight tracking-tight">
-              Product Breakdown
-            </h2>
-          </div>
+          <h2 className="relative z-10 mt-28 sm:mt-32 mb-0 pb-2 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)] sm:pb-4">
+            Product Breakdown
+          </h2>
         </section>
 
-        <section className="relative -mt-6 sm:-mt-10 pb-12 sm:pb-16 px-4 sm:px-6 md:px-8 lg:px-12">
+        <div
+          ref={breakdownOverlapRef}
+          className="relative z-20 px-4 sm:px-6 md:px-8 lg:px-12 pb-12 sm:pb-16"
+          style={{
+            marginTop: breakdownOverlapPx ? -breakdownOverlapPx : undefined,
+            backgroundColor: "#E8E8E8",
+            paddingTop: "1.25rem",
+          }}
+        >
           <div className="mx-auto w-full min-w-0 max-w-xl sm:max-w-2xl lg:max-w-3xl rounded-[28px] sm:rounded-[34px] bg-[#ECEAE7] shadow-[0_14px_42px_rgba(0,0,0,0.08)] px-4 py-8 sm:px-6 sm:py-10 md:px-8 md:py-11">
             <h3 className="mt-3 sm:mt-4 font-heading text-[clamp(1.75rem,5vw,2.75rem)] leading-[1.05] text-[#1E1D1B] break-words">
               {clientBrand || productType?.trim() || "Your product"}
@@ -1320,7 +1351,7 @@ const generatePrompt = () => {
             })()}
           </div>
 
-        </section>
+        </div>
       </div>
     )}
   </>

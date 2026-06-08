@@ -63,6 +63,26 @@ export function buildStoreUrlWithCustomer(customerId) {
   return u.toString();
 }
 
+/** URL for a blank capsule run (preserves customer_id only). */
+export function buildFreshCapsuleRunUrl() {
+  if (typeof window === "undefined") return "/";
+  const cid = getCustomerIdFromSearch();
+  const path =
+    window.location.pathname === "/capsule-builder"
+      ? "/capsule-builder"
+      : "/";
+  const url = new URL(path, window.location.origin);
+  if (cid) url.searchParams.set("customer_id", cid);
+  return url.toString();
+}
+
+/** Open a new capsule run in a fresh tab. Returns false if the popup was blocked. */
+export function openFreshCapsuleRun() {
+  const url = buildFreshCapsuleRunUrl();
+  const opened = window.open(url, "_blank", "noopener,noreferrer");
+  return Boolean(opened);
+}
+
 export function signOut() {
   if (typeof window !== "undefined") {
     window.location.href = buildLogoutUrl();
