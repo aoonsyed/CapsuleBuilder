@@ -88,16 +88,87 @@ function leadRowWeekWeight(value) {
   return 12;
 }
 
+const LEAD_TIME_NOTES = [
+  {
+    label: "Key factors",
+    value: "Complexity of style detail, quality checks.",
+  },
+  {
+    label: "Rush production",
+    value: "Possible with increased costs.",
+  },
+  {
+    label: "Seasonal considerations",
+    value: "Avoid Chinese New Year, plan around holiday rushes.",
+  },
+];
+
+const LEAD_TIME_DOMESTIC = {
+  header: { label: "Domestic Timeline", value: "12–16 weeks" },
+  steps: [
+    { label: "Sourcing", value: "1–2 weeks" },
+    { label: "Patterns", value: "2 weeks" },
+    { label: "Samples", value: "2–3 weeks" },
+    { label: "Pre-Production", value: "1 week" },
+    { label: "Production", value: "6–8 weeks" },
+  ],
+};
+
+const LEAD_TIME_OVERSEAS = {
+  header: { label: "Overseas Timeline", value: "10–17 weeks" },
+  steps: [
+    { label: "Sourcing", value: "1–2 weeks" },
+    { label: "Patterns", value: "2 weeks" },
+    { label: "Samples", value: "2–3 weeks" },
+    { label: "Overseas Samples", value: "1–2 weeks" },
+    { label: "Production", value: "4–8 weeks" },
+  ],
+};
+
+function getLeadTimeRegion(manufacturingPreference = {}) {
+  const usa = !!manufacturingPreference.usa;
+  const intl = !!manufacturingPreference.international;
+  if (intl && !usa) return "overseas";
+  if (usa && !intl) return "domestic";
+  if (intl) return "overseas";
+  return "domestic";
+}
+
 function finalizeLeadRowsWithPct(temp) {
-  const domesticTotal = temp.reduce((sum, row) => sum + row.w, 0) || 1;
+  if (!temp.length) return [];
+  const subRows = temp.slice(1);
+  const subTotal = subRows.reduce((sum, row) => sum + row.w, 0) || 1;
   return temp.map((r, index) => ({
     label: r.label,
     value: r.value,
     pct:
       index === 0
         ? 100
-        : Math.min(100, Math.round((r.w / domesticTotal) * 100)),
+        : Math.min(100, Math.max(8, Math.round((r.w / subTotal) * 100))),
   }));
+}
+
+function buildLeadTimelineRows(region) {
+  const template = region === "overseas" ? LEAD_TIME_OVERSEAS : LEAD_TIME_DOMESTIC;
+  const temp = [
+    {
+      label: template.header.label,
+      value: template.header.value,
+      w: leadRowWeekWeight(template.header.value),
+    },
+    ...template.steps.map((step) => ({
+      label: step.label,
+      value: step.value,
+      w: leadRowWeekWeight(step.value),
+    })),
+  ];
+  return finalizeLeadRowsWithPct(temp);
+}
+
+function resolveLeadSummaryRows(aiSummaryText) {
+  const parsed = parseLeadSummaryLines(aiSummaryText || "");
+  if (parsed.length >= 2) return parsed;
+  return LEAD_TIME_NOTES;
 }
 
 function parseLeadTimelineRows(text) {
@@ -553,7 +624,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   const bypassMarketPaywall =
     process.env.REACT_APP_BYPASS_MARKET_ANALYSIS_ACCESS === "true";
 
-  const { localBrand, brand2, productType } = formData;
+  const { localBrand, brand2, productType, manufacturingPreference } = formData;
 
   const title = formatBrandProductTitle(localBrand || brand2, productType);
 
@@ -967,12 +1038,9 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
 
   const yieldRows = parseLabelValueLines(yieldConsumption);
   const leadParts = splitLeadTimeSections(leadTime);
-  const mainLead = (leadParts.main || leadTime || "").trim();
-  let leadRows = parseLeadTimelineRows(mainLead);
-  if (!leadRows.length) {
-    leadRows = leadRowsFromLabelValuePairs(parseLabelValueLines(mainLead));
-  }
-  const leadSummaryRows = parseLeadSummaryLines(leadParts.summary || "");
+  const leadRegion = getLeadTimeRegion(manufacturingPreference);
+  const leadRows = buildLeadTimelineRows(leadRegion);
+  const leadSummaryRows = resolveLeadSummaryRows(leadParts.summary || "");
   const comparableBrands = parseComparableBrandsList(marketExamples);
   const consumerTiles = parseConsumerInsightTiles(targetInsight);
   const orderedConsumerTiles = orderConsumerInsightTiles(consumerTiles);
@@ -1166,52 +1234,48 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
                   </h3>
                   {leadRows.length ? (
                     <div className="space-y-0">
-                      {(() => {
-                        let samplingSeen = 0;
-                        return leadRows.map((r, i) => {
-                          const cue = extractLeadWeekCue(r.value);
-                          if (!cue) return null;
-                          const isSampling = /^sampling/i.test(r.label.trim());
-                          if (isSampling) samplingSeen += 1;
-                          const showSamplingDot = isSampling && samplingSeen === 2;
-                          return (
-                            <div
-                              key={`${r.label}-${i}`}
-                              className="pb-5 sm:pb-6 last:pb-2"
-                            >
-                              <div className="flex items-baseline justify-between gap-2">
-                                <p className="m-0 text-[13px] sm:text-[14px] font-sans font-semibold text-[#1a1816] min-w-0 truncate">
-                                  {r.label.replace(/:+\s*$/, "")}
-                                </p>
+                      {leadRows.map((r, i) => {
+                        const cue = extractLeadWeekCue(r.value);
+                        const isHeader = i === 0;
+                        return (
+                          <div
+                            key={`${r.label}-${i}`}
+                            className={
+                              isHeader
+                                ? "pb-6 sm:pb-7 border-b border-[#C4BDB4]/60 mb-1"
+                                : "pb-5 sm:pb-6 last:pb-2"
+                            }
+                          >
+                            <div className="flex items-baseline justify-between gap-2">
+                              <p
+                                className={`m-0 font-sans text-[#1a1816] min-w-0 truncate ${
+                                  isHeader
+                                    ? "text-[14px] sm:text-[15px] font-semibold"
+                                    : "text-[13px] sm:text-[14px] font-semibold"
+                                }`}
+                              >
+                                {r.label.replace(/:+\s*$/, "")}
+                              </p>
+                              {cue ? (
                                 <p className="m-0 text-[12px] sm:text-[13px] font-sans font-normal text-[#4a463e] tabular-nums shrink-0">
                                   {cue}
                                 </p>
-                              </div>
-                              <div className="relative mt-2">
-                                {showSamplingDot ? (
-                                  <span
-                                    className="absolute left-[42%] -top-3 z-[1] inline-block h-2 w-2 rounded-full bg-emerald-600 shadow-sm ring-2 ring-emerald-500/35"
-                                    aria-hidden
-                                  />
-                                ) : null}
-                                <LeadDurationBar pct={r.pct} />
-                              </div>
+                              ) : null}
                             </div>
-                          );
-                        });
-                      })()}
+                            <LeadDurationBar pct={r.pct} />
+                          </div>
+                        );
+                      })}
                       {leadSummaryRows.length > 0 ? (
                         <div className="mt-6 sm:mt-8 rounded-[16px] sm:rounded-[18px] bg-[#DAD6D0] px-5 py-6 sm:px-7 sm:py-7 font-sans text-[13px] sm:text-[14px] leading-relaxed text-[#292724] space-y-3 border border-black/[0.06]">
                           {leadSummaryRows.map((row) => (
                             <p key={row.label} className="m-0">
-                              <span className="font-bold text-[#1a1816]">{row.label}: </span>
+                              <span className="font-bold text-[#1a1816]">
+                                {row.label}:{" "}
+                              </span>
                               <span className="font-normal">{row.value}</span>
                             </p>
                           ))}
-                        </div>
-                      ) : leadParts.summary?.trim() ? (
-                        <div className="mt-6 sm:mt-8 rounded-[16px] sm:rounded-[18px] bg-[#DAD6D0] px-5 py-6 sm:px-7 sm:py-7 border border-black/[0.06] text-[#292724]">
-                          <MarketMdBody>{leadParts.summary}</MarketMdBody>
                         </div>
                       ) : null}
                     </div>
