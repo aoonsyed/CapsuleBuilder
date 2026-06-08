@@ -67,6 +67,24 @@ const COST_ROWS = [
 
 const PALETTE = ["#151515", "#F1EFEA", "#D9D5CE", "#6F6E6A"];
 
+const FABRIC_SELECTION_ITEMS = [
+  {
+    name: "Organic Cotton",
+    uppercase: false,
+    description: "Share a quick overview of your ideal",
+  },
+  {
+    name: "Recycled Poly",
+    uppercase: true,
+    description: "Share a quick overview of your ideal",
+  },
+  {
+    name: "Recycled Poly",
+    uppercase: true,
+    description: "Share a quick overview of your ideal",
+  },
+];
+
 export default function LandingPage2({ onNext, onContinue, startInGrid = false, isAdmin = false }) {
   const heroImage = "/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg";
   const previewImage = "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg";
@@ -351,9 +369,28 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
             <div className="overflow-hidden rounded-[18px] bg-[#F1EFEB]">
               <img src={previewImage} alt="Curated capsule preview" className="h-[220px] w-full object-cover" />
             </div>
-            <p className="mt-6 font-sans text-[16px] font-semibold">Organic Cotton</p>
-            <p className="mt-1 font-sans text-[12px] text-[#6B645C]">100% Cotton</p>
-            <p className="mt-8 text-[11px] uppercase tracking-[0.24em] text-[#6B645C]">Color palette</p>
+            <p className="mt-8 text-[11px] uppercase tracking-[0.24em] text-[#6B645C] font-sans">
+              Fabric selection
+            </p>
+            <div className="mt-5 space-y-6">
+              {FABRIC_SELECTION_ITEMS.map((item, index) => (
+                <div key={`${item.name}-${index}`}>
+                  <p
+                    className={`font-sans text-[16px] leading-[1.2] text-[#2B2B2B] ${
+                      item.uppercase ? "font-semibold uppercase" : "font-semibold"
+                    }`}
+                  >
+                    {item.name}
+                  </p>
+                  <p className="mt-1 font-sans text-[12px] leading-[1.35] text-[#6B645C]">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-8 text-[11px] uppercase tracking-[0.24em] text-[#6B645C] font-sans">
+              Color palette
+            </p>
             <div className="mt-4 flex items-center gap-4">
               {PALETTE.map((color) => (
                 <div
