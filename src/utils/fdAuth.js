@@ -79,8 +79,13 @@ export function buildFreshCapsuleRunUrl() {
 /** Open a new capsule run in a fresh tab. Returns false if the popup was blocked. */
 export function openFreshCapsuleRun() {
   const url = buildFreshCapsuleRunUrl();
-  const opened = window.open(url, "_blank", "noopener,noreferrer");
-  return Boolean(opened);
+  // Avoid "noopener" in windowFeatures — it makes window.open return null even on success.
+  const opened = window.open(url, "_blank");
+  if (opened) {
+    opened.opener = null;
+    return true;
+  }
+  return false;
 }
 
 export function signOut() {

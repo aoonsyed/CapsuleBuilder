@@ -420,14 +420,6 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
               <span className="text-[12px] uppercase tracking-[0.08em]">Total est. production</span>
               <span className="font-heading text-[44px] leading-none tabular-nums">$54</span>
             </div>
-            <a
-              href={ACUITY_SCHEDULE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-8 flex w-full min-h-[52px] items-center justify-center rounded-full bg-white px-5 py-3.5 text-center font-sans text-[12px] font-semibold uppercase leading-tight tracking-[0.1em] text-[#1B1B1B] hover:bg-white/90 transition-colors sm:min-h-[60px] sm:text-[15px]"
-            >
-              Schedule call
-            </a>
           </div>
         </div>
       </section>
@@ -477,14 +469,53 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
                 />
               </div>
             </div>
-            <div className="mt-12 flex justify-center lg:mt-16">
-              <button
-                type="button"
-                onClick={handleGetStarted}
-                className="inline-flex h-[56px] w-full max-w-[820px] items-center justify-center rounded-full border border-white/90 px-10 text-[12px] sm:text-[14px] uppercase tracking-[0.12em] hover:bg-white/10 transition-colors"
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="bg-white"
+        style={{
+          ...pageGutter,
+          paddingTop: FD_HOME_SPACING.sectionTop,
+          paddingBottom: FD_HOME_SPACING.footerBottom,
+        }}
+      >
+        <h2
+          className={`text-center ${fdHeaderClass} normal-case`}
+          style={{ minHeight: FD_HOME_SPACING.headingBlock }}
+        >
+          Your results
+        </h2>
+        <div
+          className="relative mx-auto max-w-[1180px] overflow-hidden rounded-[42px] px-8 py-16 text-center text-white sm:px-12 sm:py-20"
+          style={{ marginTop: FD_HOME_SPACING.headingToContent }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: 'url("/assets/pesce-huang-k7DQy4YaVXk-unsplash_DARK.jpg")',
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="relative z-10">
+            <p
+              className={`mx-auto max-w-[18ch] ${fdHeaderClass} normal-case`}
+              style={{ minHeight: FD_HOME_SPACING.headingBlock }}
+            >
+              Refine your ideas and move forward with purpose
+            </p>
+            <div className="mt-10 flex justify-center sm:mt-12">
+              <a
+                href={ACUITY_SCHEDULE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-[56px] w-full max-w-[820px] items-center justify-center rounded-full border border-white/90 px-10 text-[12px] uppercase tracking-[0.12em] hover:bg-white/10 transition-colors sm:text-[14px]"
               >
-                Start your capsule collection
-              </button>
+                Schedule call
+              </a>
             </div>
           </div>
         </div>
