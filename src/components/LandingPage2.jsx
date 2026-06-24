@@ -463,8 +463,8 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
                   ))}
                 </div>
                 <img
-                  src="/assets/dashboard.png"
-                  alt="Capsule builder dashboard"
+                  src="/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg"
+                  alt="Creative studio"
                   className="h-[min(52vw,420px)] w-full object-cover lg:h-[460px] lg:max-w-[360px] lg:justify-self-end"
                 />
               </div>
