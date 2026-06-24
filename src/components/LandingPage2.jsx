@@ -30,10 +30,10 @@ function getCarouselMaxSlide(visibleCount, itemCount = CAROUSEL_ITEMS.length) {
 }
 
 const CAROUSEL_ITEMS = [
-  { label: "Outerwear", image: "/assets/laura-chouette-9_KGtIF-hUk-unsplash.jpg" },
-  { label: "Tops", image: "/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg" },
-  { label: "Bottoms", image: "/assets/armin-rastgar-06jxXFyuJhc-unsplash.jpg" },
-  { label: "Dresses", image: "/assets/eve-maier-u1OuYQa0WtQ-unsplash.jpg" },
+  { label: "Outerwear", image: "/assets/ChatGPT Image Jun 2, 2026, 04_31_34 PM.png" },
+  { label: "Tops", image: "/assets/ChatGPT Image Jun 2, 2026, 04_36_16 PM.png" },
+  { label: "Dresses", image: "assets/ChatGPT Image Jun 2, 2026, 04_30_16 PM.png" },
+  { label: "Bottoms", image: "assets/ChatGPT Image Jun 2, 2026, 04_29_29 PM.png" },
 ];
 
 const RECEIVE_ITEMS = [
@@ -87,7 +87,7 @@ const FABRIC_SELECTION_ITEMS = [
 
 export default function LandingPage2({ onNext, onContinue, startInGrid = false, isAdmin = false }) {
   const heroImage = "/assets/ayo-ogunseinde-UqT55tGBqzI-unsplash_dark_clean.jpg";
-  const previewImage = "/assets/navid-abedi-G6OkUIS24_g-unsplash.jpg";
+  const previewImage = "/assets/dashboard.png";
 
   const [activeFormStep, setActiveFormStep] = useState(startInGrid ? 1 : 0);
   const [validating, setValidating] = useState(false);
