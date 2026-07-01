@@ -558,11 +558,12 @@ function DarkFinancialCard({ title, parsed, fallbackText, showHighlight }) {
   );
 }
 
-export default function Step4bMarketFinancials({ onBack, onRestart, outputSessionKey }) {
+export default function Step4bMarketFinancials({ onBack, onRestart, outputSessionKey, runKey: runKeyProp }) {
+  const activeRunKey = runKeyProp || outputSessionKey;
   const formData = useSelector((state) => state.form);
   const savedAnswers = useMemo(
-    () => loadQuestionnaireAnswers(formData, outputSessionKey),
-    [formData, outputSessionKey]
+    () => loadQuestionnaireAnswers(formData, activeRunKey),
+    [formData, activeRunKey]
   );
   const [sendingEmail, setSendingEmail] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
@@ -586,8 +587,8 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   const title = formatBrandProductTitle(localBrand || brand2, productType);
 
   const paramsKey = useMemo(
-    () => buildCapsuleParamsKey(formData, savedAnswers, outputSessionKey),
-    [formData, savedAnswers, outputSessionKey]
+    () => buildCapsuleParamsKey(formData, savedAnswers, activeRunKey),
+    [formData, savedAnswers, activeRunKey]
   );
 
   const cachedSections = useMemo(
@@ -808,12 +809,15 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     checkAccess();
   }, [isLocalhost, bypassMarketPaywall]);
 
-  // Load sections from the current run's product breakdown
+  // Load sections from the current run's product breakdown (once per paramsKey)
+  const loadedParamsRef = useRef(null);
   useEffect(() => {
     if (!hasAccess) return;
+    if (loadedParamsRef.current === paramsKey && sections) return;
 
     if (cachedSections) {
-      setSections((prev) => prev ?? cachedSections);
+      setSections(cachedSections);
+      loadedParamsRef.current = paramsKey;
       return;
     }
 
@@ -821,6 +825,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     const repaired = repairParsedCapsule(parsed, rawText);
     const built = buildMarketSections(rawText, repaired);
     setSections(built);
+    loadedParamsRef.current = paramsKey;
     if (
       built.materials ||
       built.companionItems ||
@@ -841,6 +846,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     saveSectionsToCache,
     buildMarketSections,
     readCurrentBreakdown,
+    sections,
   ]);
 
   /** Pull cream body up over hero (~30% overlap), same ratio as Line Strategy / input steps. */

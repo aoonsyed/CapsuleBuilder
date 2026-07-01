@@ -16,7 +16,6 @@ import { FD_LOGO_WHITE_SRC } from "./fdTypography";
 import { FD_STEP1_SPACING } from "./fdLayout";
 import {
   buildCapsuleParamsKey,
-  clearProductBreakdown,
   loadProductBreakdown,
   loadQuestionnaireAnswers,
   saveProductBreakdown,
@@ -105,12 +104,20 @@ function validateCapsuleOutput(parsed) {
   return { ok: failures.length === 0, failures };
 }
 
-/** Enough validated content to reuse cache without calling the API again. */
+/** Enough content to reuse cache without calling the API again (looser than fetch validation). */
 function cacheHasDisplayableBreakdown(parsed, rawAnswer) {
   const p = parsed && typeof parsed === "object" ? parsed : {};
-  if (!rawAnswer || String(rawAnswer).length < 400) return false;
-  if (!p.materials?.trim() || !p.companionItems?.trim()) return false;
-  return validateCapsuleOutput(p).ok;
+  if (!rawAnswer || String(rawAnswer).length < 200) return false;
+  const coreKeys = [
+    "materials",
+    "companionItems",
+    "saleprices",
+    "productionCosts",
+    "colors",
+    "marginAnalysis",
+    "pricing",
+  ];
+  return coreKeys.some((key) => typeof p[key] === "string" && p[key].trim().length > 0);
 }
 
 /** e.g. "Materials 50%" or "Materials: 50%" or one line "Materials 50%, Labour 30%" */
@@ -163,7 +170,8 @@ function normalizeCostRows(rows) {
   }));
 }
 
-export default function Step4Suggestions({ onNext, userPlan, outputSessionKey }) {
+export default function Step4Suggestions({ onNext, userPlan, outputSessionKey, runKey: runKeyProp }) {
+  const activeRunKey = runKeyProp || outputSessionKey;
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
   const loadedParamsRef = useRef(null);
@@ -174,8 +182,8 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
 
   const formData = useSelector((state) => state.form);
   const savedAnswers = useMemo(
-    () => loadQuestionnaireAnswers(formData, outputSessionKey),
-    [formData, outputSessionKey]
+    () => loadQuestionnaireAnswers(formData, activeRunKey),
+    [formData, activeRunKey]
   );
   const {
     idea,
@@ -199,8 +207,8 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
     "https://app.acuityscheduling.com/schedule/c38a96dc/appointment/32120137/calendar/3784845?appointmentTypeIds[]=32120137";
 
   const paramsKey = useMemo(
-    () => buildCapsuleParamsKey(formData, savedAnswers, outputSessionKey),
-    [formData, savedAnswers, outputSessionKey]
+    () => buildCapsuleParamsKey(formData, savedAnswers, activeRunKey),
+    [formData, savedAnswers, activeRunKey]
   );
 
   const saveSuggestionsToCache = useCallback(
@@ -215,9 +223,9 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey })
   );
 
   const loadCachedSuggestions = useCallback(() => {
-    const maxAge = outputSessionKey ? null : CACHE_EXPIRATION_MS;
+    const maxAge = activeRunKey ? null : CACHE_EXPIRATION_MS;
     return loadProductBreakdown(paramsKey, maxAge);
-  }, [paramsKey, outputSessionKey]);
+  }, [paramsKey, activeRunKey]);
 
   const hydratedFromCache = useMemo(() => {
     const cached = loadCachedSuggestions();
@@ -898,18 +906,13 @@ const generatePrompt = () => {
         return;
       }
 
-      setLoading(true);
-      
-      // First, try to load from cache
       const cached = loadCachedSuggestions();
       if (cached) {
         console.log("Loading Product Breakdown from cache");
-        
-        // Clean cached parsed suggestions to remove any prompt instructions
-        // (handles old cached data that might contain instructions)
+
         const cleanedSuggestions = {};
         if (cached.parsedSuggestions) {
-          Object.keys(cached.parsedSuggestions).forEach(key => {
+          Object.keys(cached.parsedSuggestions).forEach((key) => {
             const sectionLabel = {
               materials: 'Materials',
               saleprices: 'Sales Price',
@@ -923,7 +926,7 @@ const generatePrompt = () => {
               marginAnalysis: 'Margin Analysis',
               pricing: 'Wholesale vs. DTC Pricing',
             }[key] || key;
-            
+
             const sectionContent = cached.parsedSuggestions[key];
             if (sectionContent) {
               cleanedSuggestions[key] = sanitizeSectionText(
@@ -934,28 +937,23 @@ const generatePrompt = () => {
             }
           });
         }
-        
+
         const repairedFromCache = repairParsedCapsule(
           cleanedSuggestions,
           cached.rawAnswer
         );
 
         if (cacheHasDisplayableBreakdown(repairedFromCache, cached.rawAnswer)) {
-          saveSuggestionsToCache(cached.rawAnswer, repairedFromCache);
           setSuggestions(repairedFromCache);
           loadedParamsRef.current = paramsKey;
           setLoading(false);
           return;
         }
-
-        console.warn(
-          "Cached Product Breakdown too thin; refetching.",
-          repairedFromCache
-        );
-        clearProductBreakdown(paramsKey);
       }
 
-      // Cache miss or stale/invalid cache — fetch from API (with validation retries)
+      setLoading(true);
+
+      // Cache miss — fetch from API (with validation retries)
       try {
         let lastFailures = [];
         let answer = '';

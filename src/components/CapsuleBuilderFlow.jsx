@@ -28,6 +28,9 @@ export default function CapsuleBuilderFlow() {
 
   const [outputSessionKey, setOutputSessionKey] = useState(null);
   const outputSessionKeyRef = useRef(null);
+  const [outputUnlocked, setOutputUnlocked] = useState(false);
+
+  const runKey = outputSessionKeyRef.current || outputSessionKey;
 
   const handleBuildNewItem = () => {
     if (!openFreshCapsuleRun()) {
@@ -42,6 +45,12 @@ export default function CapsuleBuilderFlow() {
       setOutputSessionKey(key);
     }
     return outputSessionKeyRef.current;
+  };
+
+  const goToOutputStep = (nextStep) => {
+    ensureRunKey();
+    setOutputUnlocked(true);
+    setStep(nextStep);
   };
 
   // Control whether Landing should immediately open in the 3-form grid view
@@ -211,98 +220,98 @@ export default function CapsuleBuilderFlow() {
         </div>
       ) : null}
       <div className="relative z-10 w-full">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="w-full overflow-visible"
-          >
-            {/* Step 1 — Landing */}
-            {step === 1 && (
-              <LandingPage2
-                isAdmin={isAdmin}
-                startInGrid={startLandingInGrid} // tells Landing to open directly in 3-form grid (when coming back)
-                onContinue={() => {
-                  setStartLandingInGrid(false);
-                  outputSessionKeyRef.current = null;
-                  setOutputSessionKey(null);
-                  ensureRunKey();
-                  setStep(5);
-                }}
-                onNext={() => {
-                  // Fallback: treat like continue to questionnaire
-                  setStartLandingInGrid(false);
-                  ensureRunKey();
-                  setStep(5);
-                }}
-              />
-            )}
+        {step <= 5 ? (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="w-full overflow-visible"
+            >
+              {/* Step 1 — Landing */}
+              {step === 1 && (
+                <LandingPage2
+                  isAdmin={isAdmin}
+                  startInGrid={startLandingInGrid}
+                  onContinue={() => {
+                    setStartLandingInGrid(false);
+                    outputSessionKeyRef.current = null;
+                    setOutputSessionKey(null);
+                    setOutputUnlocked(false);
+                    ensureRunKey();
+                    setStep(5);
+                  }}
+                  onNext={() => {
+                    setStartLandingInGrid(false);
+                    ensureRunKey();
+                    setStep(5);
+                  }}
+                />
+              )}
 
-            {/* Linear steps (if not coming from the landing grid) */}
-            {step === 2 && (
-              <Step1Vision
-                onNext={() => setStep(3)}
-                onBack={() => setStep(1)}
-                setEmail={setEmail}
-                setBrand={setBrand}
-              />
-            )}
-            {step === 3 && (
-              <Step2Inspiration
-                email={email}
-                onNext={() => setStep(4)}
-                onBack={() => setStep(2)}
-              />
-            )}
-            {step === 4 && (
-              <Step3ProductFocus
-                email={email}
-                onNext={() => {
-                  ensureRunKey();
-                  setStep(5);
-                }}
-                onBack={() => setStep(3)}
-              />
-            )}
+              {step === 2 && (
+                <Step1Vision
+                  onNext={() => setStep(3)}
+                  onBack={() => setStep(1)}
+                  setEmail={setEmail}
+                  setBrand={setBrand}
+                />
+              )}
+              {step === 3 && (
+                <Step2Inspiration
+                  email={email}
+                  onNext={() => setStep(4)}
+                  onBack={() => setStep(2)}
+                />
+              )}
+              {step === 4 && (
+                <Step3ProductFocus
+                  email={email}
+                  onNext={() => {
+                    ensureRunKey();
+                    setStep(5);
+                  }}
+                  onBack={() => setStep(3)}
+                />
+              )}
 
-            {/* Step 5 — Questionnaire */}
-            {step === 5 && (
-              <Questionaire
-                runKey={outputSessionKeyRef.current || outputSessionKey}
-                onNext={() => {
-                  ensureRunKey();
-                  setStep(6);
-                }}
-                onBack={() => setStep(4)}
-              />
-            )}
+              {step === 5 && (
+                <Questionaire
+                  runKey={runKey}
+                  onNext={() => goToOutputStep(6)}
+                  onBack={() => setStep(4)}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        ) : null}
 
-            {/* Step 6 — Product Suggestions */}
-            {step === 6 && (
+        {outputUnlocked ? (
+          <>
+            <div className={step === 6 ? "block" : "hidden"} aria-hidden={step !== 6}>
               <Step4Suggestions
                 email={email}
                 brand={brand}
                 userPlan={userPlan}
-                outputSessionKey={outputSessionKey}
+                runKey={runKey}
+                outputSessionKey={runKey}
                 onNext={() => setStep(7)}
               />
-            )}
-
-            {/* Step 7 — Market & Financial Analysis */}
-            {step === 7 && (
+            </div>
+            <div className={step === 7 ? "block" : "hidden"} aria-hidden={step !== 7}>
               <Step4bMarketFinancials
                 email={email}
                 brand={brand}
-                outputSessionKey={outputSessionKey}
+                runKey={runKey}
+                outputSessionKey={runKey}
                 onRestart={handleBuildNewItem}
                 onBack={() => setStep(6)}
               />
-            )}
-          </motion.div>
-        </AnimatePresence>
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );

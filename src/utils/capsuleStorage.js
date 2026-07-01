@@ -169,6 +169,17 @@ export function saveMarketAnalysisSections(paramsKey, sections) {
   }
 }
 
+function sortObjectKeys(value) {
+  if (value === null || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map(sortObjectKeys);
+  return Object.keys(value)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = sortObjectKeys(value[key]);
+      return acc;
+    }, {});
+}
+
 /** Params that affect the Product Breakdown AI output (must match Step4Suggestions). */
 export function buildCapsuleParamsKey(form, savedAnswers, outputSessionKey) {
   return JSON.stringify({
@@ -181,9 +192,9 @@ export function buildCapsuleParamsKey(form, savedAnswers, outputSessionKey) {
     targetPrice: form.targetPrice || "",
     quantity: form.quantity || "",
     keyFeatures: form.keyFeatures || "",
-    materialPreferenceOptions: form.materialPreferenceOptions || {},
-    manufacturingPreference: form.manufacturingPreference || {},
-    savedAnswers: savedAnswers || {},
+    materialPreferenceOptions: sortObjectKeys(form.materialPreferenceOptions || {}),
+    manufacturingPreference: sortObjectKeys(form.manufacturingPreference || {}),
+    savedAnswers: sortObjectKeys(savedAnswers || {}),
   });
 }
 
