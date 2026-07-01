@@ -71,17 +71,17 @@ const FABRIC_SELECTION_ITEMS = [
   {
     name: "Organic Cotton",
     uppercase: false,
-    description: "Share a quick overview of your ideal",
+    description: "A soft, breathable natural fiber grown without synthetic pesticides, making it gentle on skin and the environment.l",
   },
   {
     name: "Recycled Poly",
     uppercase: true,
-    description: "Share a quick overview of your ideal",
+    description: "A durable, moisture-wicking synthetic made from repurposed plastic bottles, reducing landfill waste.",
   },
   {
-    name: "Recycled Poly",
+    name: "Linen",
     uppercase: true,
-    description: "Share a quick overview of your ideal",
+    description: "A natural, plant-based fabric with a crisp texture and breathable quality that softens with each wash.",
   },
 ];
 
@@ -209,11 +209,11 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
           paddingBottom: FD_HOME_SPACING.heroBottom,
         }}
       >
-        <img
-          src={FD_HOME_LOGO_SRC}
-          alt="Form Department logo"
-          className="mx-auto h-auto w-[min(72vw,300px)]"
-        />
+ <img
+  src={FD_HOME_LOGO_SRC}
+  alt="Form Department logo"
+  className="mx-auto h-[160px] w-auto object-contain sm:h-[320px] md:h-[360px]"
+/>
         <h1
           className={`mx-auto max-w-[18ch] text-white ${fdHeaderClass} normal-case`}
           style={{ marginTop: FD_HOME_SPACING.heroLogoToHeading, minHeight: FD_HOME_SPACING.headingBlock }}
@@ -312,25 +312,26 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
                 transform: `translateX(-${(activeSlide * 100) / CAROUSEL_ITEMS.length}%)`,
               }}
             >
-              {CAROUSEL_ITEMS.map((item, index) => (
-                <div
-                  key={item.label}
-                  className={`relative h-full shrink-0 ${index < CAROUSEL_ITEMS.length - 1 ? "pr-4" : ""}`}
-                  style={{ width: `${100 / CAROUSEL_ITEMS.length}%` }}
-                >
-                  <div className="relative h-full overflow-hidden rounded-[22px] border border-[#E2DFDA] bg-[#F5F3EF]">
-                    <div
-                      className="h-full w-full bg-cover bg-center"
-                      style={{ backgroundImage: `url("${item.image}")` }}
-                    />
-                    <div className="absolute inset-x-0 bottom-5 flex justify-center">
-                      <span className="inline-flex h-[42px] items-center justify-center rounded-full border border-[#1B1B1B] bg-[#1B1B1B] px-8 text-[11px] uppercase tracking-[0.2em] text-white">
-                        {item.label}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+  {CAROUSEL_ITEMS.map((item, index) => (
+  <div
+    key={item.label}
+    className={`relative h-full shrink-0 ${index < CAROUSEL_ITEMS.length - 1 ? "pr-4" : ""}`}
+    style={{ width: `${100 / CAROUSEL_ITEMS.length}%` }}
+  >
+    <div className="relative h-full overflow-hidden rounded-[22px] border border-[#E2DFDA] bg-[#F5F3EF]">
+      <img
+        src={item.image}
+        alt={item.label}
+        className="absolute inset-0 h-full w-full object-fill"
+      />
+      <div className="absolute inset-x-0 bottom-5 flex justify-center">
+        <span className="inline-flex h-[42px] items-center justify-center rounded-full border border-[#1B1B1B] bg-[#1B1B1B] px-8 text-[11px] uppercase tracking-[0.2em] text-white">
+          {item.label}
+        </span>
+      </div>
+    </div>
+  </div>
+))}
             </div>
           </div>
           <button
@@ -463,7 +464,7 @@ export default function LandingPage2({ onNext, onContinue, startInGrid = false, 
                   ))}
                 </div>
                 <img
-                  src="/assets/marcus-santos-xw5cQNbky5A-unsplash.jpg"
+                  src="/assets/new.jpg"
                   alt="Creative studio"
                   className="h-[min(52vw,420px)] w-full object-cover lg:h-[460px] lg:max-w-[360px] lg:justify-self-end"
                 />

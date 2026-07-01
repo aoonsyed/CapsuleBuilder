@@ -15,7 +15,7 @@ export const fdStepInputClass = `mt-3 w-full px-4 py-2.5 text-[14px] font-sans t
 export const FD_LOGO_WHITE_SRC = "/assets/FD-W.png";
 
 /** Capsule Builder lockup — homepage hero only. */
-export const FD_HOME_LOGO_SRC = "/assets/logon_new.png";
+export const FD_HOME_LOGO_SRC = "/assets/update.png";
 
 export const fdSubheaderClass =
   "font-sans font-light uppercase text-[18px] sm:text-[22px] md:text-[25px] tracking-[0.23em] leading-[1.2]";
