@@ -12,10 +12,18 @@ export const fdStepFieldSurfaceClass =
 /** Line Strategy–style text inputs / textareas on cream steps. */
 export const fdStepInputClass = `mt-3 w-full px-4 py-2.5 text-[14px] font-sans text-[#2B2A25] placeholder-black/40 ${fdStepFieldSurfaceClass}`;
 /** White wordmark — step flows, market analysis, and dark UI heroes. */
-export const FD_LOGO_WHITE_SRC = "/assets/update.png";
+export const FD_LOGO_WHITE_SRC = "/assets/FD-W.png";
 
 /** Capsule Builder lockup — homepage hero only. */
 export const FD_HOME_LOGO_SRC = "/assets/update.png";
+
+/** Hero logo sizing on step/input pages (desktop + mobile chrome). */
+export const fdStepHeroLogoClass =
+  "mx-auto h-[120px] w-auto object-contain sm:h-[200px] md:h-[280px]";
+
+/** Left-column logo on cream step cards (inverted wordmark). */
+export const fdStepPanelLogoClass =
+  "h-14 w-auto object-contain invert sm:h-16 md:h-[72px]";
 
 export const fdSubheaderClass =
   "font-sans font-light uppercase text-[18px] sm:text-[22px] md:text-[25px] tracking-[0.23em] leading-[1.2]";

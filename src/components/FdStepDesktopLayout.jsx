@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
-import { FD_LOGO_WHITE_SRC, fdStepLabelClass } from "./fdTypography";
+import { FD_HOME_LOGO_SRC, FD_LOGO_WHITE_SRC, fdStepLabelClass, fdStepHeroLogoClass, fdStepPanelLogoClass } from "./fdTypography";
 import { FD_STEP1_COLORS, FD_STEP1_SPACING } from "./fdLayout";
 import { StepProgressBar } from "./StepFormChrome";
 
@@ -71,9 +71,9 @@ export default function FdStepDesktopLayout({
         }}
       >
         <img
-          src={FD_LOGO_WHITE_SRC}
+          src={FD_HOME_LOGO_SRC}
           alt="Form Department logo"
-          className="mx-auto h-auto w-[min(64vw,240px)]"
+          className={fdStepHeroLogoClass}
         />
         <h2
           className="mx-auto max-w-[16ch] font-heading font-normal normal-case text-white text-[30px] sm:text-[38px] md:text-[46px] leading-[1.08] tracking-[0.01em]"
@@ -106,7 +106,7 @@ export default function FdStepDesktopLayout({
               paddingBottom: FD_STEP1_SPACING.leftBottom,
             }}
           >
-            <img src={FD_LOGO_WHITE_SRC} alt="Form Department" className="h-7 w-auto invert" />
+            <img src={FD_LOGO_WHITE_SRC} alt="Form Department" className={fdStepPanelLogoClass} />
             <p className={`mt-6 ${fdStepLabelClass}`}>
               Step {step} of {total}
             </p>
