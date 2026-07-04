@@ -343,16 +343,16 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey, r
         /\d+\s*(GSM|yards?|lbs?|weeks?|months?|inches?)/i,  // Measurements
         /[A-Z][a-z]+\s+(Blend|Cotton|Wool|Leather|Silk|Polyester|Twill|Denim|Linen|Cashmere|Nylon|Spandex)/i,  // Material names
         /#[0-9A-Fa-f]{6}/,  // Hex colors
-        /^\s*[-*•]\s+[A-Z][a-z]+/,  // Bullet points with capitalized items
-        /\d+-\d+/,  // Ranges (e.g., 10-14, $80-$100)
-        /[A-Z][a-z]+\s+[A-Z][a-z]+.*\$\d+/,  // Product names with prices
+        /^\s*[-*•]\s+[A-Z][a-z]+/i,  // Bullet points with capitalized items
+        /\d+\s*[-–—]\s*\d+/,  // Ranges (e.g., 10-14, $80-$100)
+        /[A-Z][a-z]+\s+[A-Z][a-z]+.*\$\d+/i,  // Product names with prices
         /\d+\s*(weeks?|days?|months?)\s*(for|to|of|with)/i,  // Timeframes
-        /[A-Z][a-z]+.*\$\d+.*\$\d+/,  // Multiple prices mentioned
+        /[A-Z][a-z]+.*\$\d+.*\$\d+/i,  // Multiple prices mentioned
         /(Fabric|Material|Weight|Texture|Property|Cost|Price|Production|Lead time|Timeline|Yardage|Consumption|Waste|Factor)/i,  // Content keywords
         /[A-Z][a-z]+\s+(Blazer|Turtleneck|Boots|Overcoat|Belt|Bag|Jacket|Pants|Shirt|Dress)/i,  // Product names
         /(domestic|overseas|production|manufacturing|wholesale|retail|DTC|margin|gross|net)/i,  // Business terms
         /\d+\s*(units?|pieces?|items?)/i,  // Quantities
-        /[A-Z][a-z]+.*:\s*[A-Z]/,  // Colon followed by capitalized text (structured content)
+        /[A-Za-z\s]+.*:\s*[A-Za-z0-9]/,  // Colon followed by any alphanumeric character
         /(approximately|about|around|roughly|typically|usually|generally)\s+\d+/i,  // Approximations with numbers
       ];
       

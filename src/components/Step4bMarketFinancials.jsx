@@ -53,7 +53,10 @@ function parseLabelValueLines(text) {
     .filter(Boolean)) {
     const cleaned = line.replace(/^[-*•\d.]+\s*/, "");
     const m = cleaned.match(/^([^:]{2,92}):\s*(.+)$/);
-    if (m) rows.push({ label: m[1].trim(), value: m[2].trim() });
+    if (m) {
+      const val = m[2].replace(/^:\s*/, "").trim();
+      rows.push({ label: m[1].trim(), value: val });
+    }
   }
   return rows;
 }
@@ -245,7 +248,8 @@ function parseLeadSummaryLines(text) {
 
     if (mInline) {
       flush();
-      rows.push({ label: mInline[1].trim(), value: mInline[2].trim() });
+      const val = mInline[2].replace(/^:\s*/, "").trim();
+      rows.push({ label: mInline[1].trim(), value: val });
     } else if (mHeading) {
       flush();
       pendingLabel = mHeading[1].trim();
@@ -288,7 +292,8 @@ function parseConsumerInsightTiles(text) {
           : /^lifestyle|^psychographics/i.test(label)
             ? "Lifestyle"
             : "Values";
-    tiles.push({ key: normalized, value: m[2].trim() });
+    const val = m[2].replace(/^:\s*/, "").trim();
+    tiles.push({ key: normalized, value: val });
   }
   return tiles;
 }

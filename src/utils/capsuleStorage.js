@@ -144,7 +144,7 @@ export function loadQuestionnaireAnswers(form, runKey = null) {
 /** Load cached market-analysis sections derived from product breakdown. */
 export function loadMarketAnalysisSections(paramsKey) {
   const hash = hashParamsKey(paramsKey);
-  const key = `marketAnalysisParsed_v4_${hash}`;
+  const key = `marketAnalysisParsed_v5_${hash}`;
   try {
     const parsed = readTimestampedEntry(localStorage.getItem(key), null);
     if (parsed?.sections && typeof parsed.sections === "object") {
@@ -158,7 +158,7 @@ export function loadMarketAnalysisSections(paramsKey) {
 
 export function saveMarketAnalysisSections(paramsKey, sections) {
   const hash = hashParamsKey(paramsKey);
-  const key = `marketAnalysisParsed_v4_${hash}`;
+  const key = `marketAnalysisParsed_v5_${hash}`;
   try {
     localStorage.setItem(
       key,
