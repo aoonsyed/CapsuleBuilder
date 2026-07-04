@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { FD_LOGO_WHITE_SRC } from "./fdTypography";
+import { FD_LOGO_WHITE_SRC, fdLogoWhiteClass } from "./fdTypography";
 import FdAuthBannerLinks from "./FdAuthBannerLinks";
 import FdTrialBanner from "./FdTrialBanner";
 import {
@@ -30,10 +30,10 @@ export default function Navbar({ showTrialBanner = false }) {
               aria-label="Form Department – go to store homepage"
             >
               <img
-                src={FD_LOGO_WHITE_SRC}
-                alt="Form Department Logo"
-                className="h-16 md:h-20 lg:h-24 w-auto invert hover:opacity-90 transition-opacity"
-              />
+            src={FD_LOGO_WHITE_SRC}
+            alt="Form Department"
+            className={`absolute top-6 sm:top-8 left-1/2 z-10 -translate-x-1/2 ${fdLogoWhiteClass}`}
+          />
             </a>
             {!showTrialBanner ? (
               <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden sm:block">

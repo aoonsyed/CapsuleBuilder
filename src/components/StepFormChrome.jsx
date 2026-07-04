@@ -3,6 +3,7 @@ import {
   FD_LOGO_WHITE_SRC,
   fdHeaderClass,
   fdStepLabelClass,
+  fdLogoWhiteClass,
 } from "./fdTypography";
 
 const HERO_STYLE = {
@@ -46,10 +47,10 @@ export default function StepFormChrome({
         style={HERO_STYLE}
       >
         <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
-          <img
+        <img
             src={FD_LOGO_WHITE_SRC}
-            alt="Form Department logo"
-            className="w-[210px] h-auto"
+            alt="Form Department"
+            className={`absolute top-6 sm:top-8 left-1/2 z-10 -translate-x-1/2 ${fdLogoWhiteClass}`}
           />
         </div>
         <h2 className={`mt-10 text-white ${fdHeaderClass} normal-case`}>

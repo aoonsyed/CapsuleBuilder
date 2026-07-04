@@ -19,7 +19,7 @@ export default function LandingPage({ onNext }) {
     <div className="bg-[#e5e5e5] font-sans text-black min-h-screen leading-[1.2]">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4">
-        <img src={FD_LOGO_WHITE_SRC} alt="Form Department" className="h-10 w-auto invert" />
+        <img src={FD_LOGO_WHITE_SRC} alt="Form Department" className={`${fdLogoWhiteClass} h-10 w-auto invert`} />
         <nav className="space-x-4 text-sm">
           <a href="#" className="hover:underline">All The Details</a>
           <a href="#" className="hover:underline">Blogs</a>

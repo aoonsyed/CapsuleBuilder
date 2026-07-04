@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
-import { FD_LOGO_WHITE_SRC, fdStepLabelClass } from "./fdTypography";
+import { FD_LOGO_WHITE_SRC, fdStepLabelClass, fdLogoWhiteClass } from "./fdTypography";
 import { FD_STEP1_COLORS, FD_STEP1_SPACING } from "./fdLayout";
 import { StepProgressBar } from "./StepFormChrome";
 
@@ -71,13 +71,13 @@ export default function FdStepDesktopLayout({
         }}
       >
         <img
-          src={FD_LOGO_WHITE_SRC}
-          alt="Form Department logo"
-          className="mx-auto h-auto w-[min(64vw,240px)]"
-        />
+            src={FD_LOGO_WHITE_SRC}
+            alt="Form Department"
+            className={`absolute top-6 sm:top-8 left-1/2 z-10 -translate-x-1/2 ${fdLogoWhiteClass}`}
+          />
         <h2
           className="mx-auto max-w-[16ch] font-heading font-normal normal-case text-white text-[30px] sm:text-[38px] md:text-[46px] leading-[1.08] tracking-[0.01em]"
-          style={{ marginTop: FD_STEP1_SPACING.heroLogoToTitle }}
+          style={{ marginTop: (FD_STEP1_SPACING.heroLogoToTitle || 0) + 56 }}
         >
           Curate Your Capsule
         </h2>
@@ -106,8 +106,12 @@ export default function FdStepDesktopLayout({
               paddingBottom: FD_STEP1_SPACING.leftBottom,
             }}
           >
-            <img src={FD_LOGO_WHITE_SRC} alt="Form Department" className="h-7 w-auto invert" />
-            <p className={`mt-6 ${fdStepLabelClass}`}>
+            <img
+              src={FD_LOGO_WHITE_SRC}
+              alt="Form Department"
+              className="h-44 sm:h-48 md:h-52 w-auto invert -ml-10"
+            />
+            <p className={`mt-1 ${fdStepLabelClass}`}>
               Step {step} of {total}
             </p>
             <StepProgressBar step={step} total={total} />

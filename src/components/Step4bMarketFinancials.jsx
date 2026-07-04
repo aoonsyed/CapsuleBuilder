@@ -4,7 +4,7 @@ import { Toaster, toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import emailjs from '@emailjs/browser';
 import { FD_STEP1_COLORS, FD_STEP1_SPACING } from './fdLayout';
-import { FD_LOGO_WHITE_SRC } from "./fdTypography";
+import { FD_LOGO_WHITE_SRC,fdLogoWhiteClass } from "./fdTypography";
 import {
   extractCapsuleSection,
   expandComparableMarketItems,
@@ -1162,7 +1162,7 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
           <img
             src={FD_LOGO_WHITE_SRC}
             alt="Form Department"
-            className="absolute top-8 sm:top-10 left-1/2 z-10 w-[min(40vw,200px)] sm:w-[208px] md:w-[220px] h-auto -translate-x-1/2"
+            className={`absolute top-6 sm:top-8 left-1/2 z-10 -translate-x-1/2 ${fdLogoWhiteClass}`}
           />
 
           <h1 className="relative z-10 mt-28 sm:mt-32 mb-0 pb-2 font-heading text-[clamp(1.85rem,5vw,2.75rem)] text-white tracking-tight leading-[1.1] drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)] sm:pb-4">

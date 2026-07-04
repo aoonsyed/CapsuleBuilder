@@ -17,6 +17,16 @@ export const FD_LOGO_WHITE_SRC = "/assets/update.png";
 /** Capsule Builder lockup — homepage hero only. */
 export const FD_HOME_LOGO_SRC = "/assets/update.png";
 
+/**
+ * Shared size for the white wordmark wherever it sits over a dark hero
+ * (Product Breakdown, Market Analysis, etc). Centralized here so bumping the
+ * logo size is a one-line change instead of hunting down every <img> that
+ * imports FD_LOGO_WHITE_SRC. Positioning (top offset, centering) still lives
+ * with each usage since that can vary slightly by layout.
+ */
+export const fdLogoWhiteClass =
+  "w-[min(65vw,360px)] sm:w-[400px] md:w-[440px] h-auto";
+
 export const fdSubheaderClass =
   "font-sans font-light uppercase text-[18px] sm:text-[22px] md:text-[25px] tracking-[0.23em] leading-[1.2]";
 
