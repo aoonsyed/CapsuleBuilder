@@ -1,9 +1,8 @@
 import React from "react";
 import {
-  FD_HOME_LOGO_SRC,
+  FD_LOGO_WHITE_SRC,
   fdHeaderClass,
   fdStepLabelClass,
-  fdStepHeroLogoClass,
 } from "./fdTypography";
 
 const HERO_STYLE = {
@@ -46,11 +45,11 @@ export default function StepFormChrome({
         className="relative w-full min-h-[420px] h-[min(52vh,500px)] sm:min-h-[460px] sm:h-[min(56vh,560px)] flex flex-col items-center justify-end pb-10 sm:pb-12 px-6 text-center"
         style={HERO_STYLE}
       >
-        <div className="absolute top-8 left-0 right-0 flex items-center justify-center sm:top-10">
+        <div className="absolute top-8 left-0 right-0 flex items-center justify-center">
           <img
-            src={FD_HOME_LOGO_SRC}
+            src={FD_LOGO_WHITE_SRC}
             alt="Form Department logo"
-            className={fdStepHeroLogoClass}
+            className="w-[210px] h-auto"
           />
         </div>
         <h2 className={`mt-10 text-white ${fdHeaderClass} normal-case`}>
