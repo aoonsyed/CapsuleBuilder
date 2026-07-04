@@ -13,6 +13,7 @@ import {
 import {
   buildCapsuleParamsKey,
   loadLegacyProductBreakdown,
+  loadLatestProductBreakdown,
   loadProductBreakdown,
   loadQuestionnaireAnswers,
   loadMarketAnalysisSections,
@@ -770,6 +771,31 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
         parsed: fromHashed.parsedSuggestions,
       };
     }
+
+    // Fallback: the hashed/legacy lookups both key off `paramsKey`, which is a
+    // hash of formData + savedAnswers + runKey. If that key doesn't exactly
+    // match what Step4Suggestions used when it saved the breakdown (e.g. a
+    // different runKey/outputSessionKey was passed in for this step, or
+    // formData shifted between steps), we'd otherwise render every AI section
+    // on this page as "No data available" even though a breakdown was just
+    // generated. Fall back to the most recently generated breakdown instead
+    // of showing a blank page, and log so the root-cause mismatch is still
+    // discoverable.
+    const latest = loadLatestProductBreakdown();
+    if (latest) {
+      console.warn(
+        "[Step4bMarketFinancials] No product breakdown found for the current paramsKey — " +
+          "falling back to the most recently generated breakdown. This usually means " +
+          "runKey/outputSessionKey (or formData) differs between Step4Suggestions and " +
+          "Step4bMarketFinancials. paramsKey:",
+        paramsKey
+      );
+      return {
+        rawText: latest.rawAnswer,
+        parsed: latest.parsedSuggestions,
+      };
+    }
+
     return { rawText: "", parsed: {} };
   }, [paramsKey]);
 
@@ -1342,4 +1368,3 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     </>
   );
 }
-

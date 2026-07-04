@@ -308,3 +308,34 @@ export function loadLegacyProductBreakdown(paramsKey) {
     return null;
   }
 }
+
+/**
+ * Last-resort fallback: returns whatever product breakdown was most recently
+ * generated, WITHOUT checking that it matches the current paramsKey.
+ *
+ * Why this exists: paramsKey is a hash of (formData + savedAnswers + runKey).
+ * If the run/session key (or any piece of formData) differs even slightly
+ * between the step that generates the breakdown (Step4Suggestions) and the
+ * step that displays it (Step4bMarketFinancials) — e.g. because the parent
+ * component passes a different `runKey`/`outputSessionKey` prop into each,
+ * or formData mutates in Redux between steps — the hashed lookup and the
+ * strict legacy lookup will both miss, and every AI-derived field on the
+ * Market Financials page silently renders "No data available" even though
+ * a perfectly good breakdown was just generated a moment ago.
+ *
+ * In this wizard, the breakdown step always runs immediately before the
+ * market-financials step for the same product, so it's safe to fall back to
+ * "most recently saved breakdown" rather than showing nothing. This does NOT
+ * replace fixing the underlying paramsKey mismatch (see console.warn callers)
+ * — it just prevents a silent blank page while that's tracked down.
+ */
+export function loadLatestProductBreakdown() {
+  try {
+    const rawAnswer = localStorage.getItem("answer") || "";
+    const parsed = JSON.parse(localStorage.getItem("parsedSuggestions") || "null");
+    if (!rawAnswer || !parsed || typeof parsed !== "object") return null;
+    return { rawAnswer, parsedSuggestions: parsed };
+  } catch (_) {
+    return null;
+  }
+}

@@ -813,7 +813,7 @@ const generatePrompt = () => {
     - Quantity: ${quantity}
     - Key Features: ${keyFeatures}
     - Material Preferences: ${JSON.stringify(materialPreferenceOptions)}
-    - Manufacturing Preference: ${manufacturingPreference}
+    - Manufacturing Preference: ${JSON.stringify(manufacturingPreference)}
     - Questionnaire Answers: ${JSON.stringify(savedAnswers, null, 2)}
 
     Please provide your response in EXACTLY this format with these exact headings:
