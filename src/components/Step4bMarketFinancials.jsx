@@ -704,7 +704,18 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
       targetInsight: merge(
         "targetInsight",
         "Target Consumer Insight",
-        ["Target Consumer Insight"]
+        [
+          "Target Consumer Insight",
+          "Target Consumer Insights",
+          "Target Consumer",
+          "Target Audience",
+          "Target Audience Insight",
+          "Target Audience Insights",
+          "Consumer Insight",
+          "Consumer Insights",
+          "Target Consumer Profile",
+          "Target Consumer Profiles",
+        ]
       ),
       marginAnalysis: merge(
         "marginAnalysis",
@@ -727,12 +738,19 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
       yieldConsumption: merge(
         "yieldConsumption",
         "Yield & Consumption Estimates",
-        ["Yield & Consumption Estimates"]
+        [
+          "Yield & Consumption Estimates",
+          "Yield and Consumption Estimates",
+          "Yield & Consumption",
+          "Yield and Consumption",
+          "Fabric Yield & Consumption Estimates",
+          "Fabric Yield and Consumption Estimates",
+        ]
       ),
       leadTime: merge(
         "leadTime",
         "Production Lead Time Estimate",
-        ["Production Lead Time Estimate", "Production Lead Time"]
+        ["Production Lead Time Estimate", "Production Lead Time", "Lead Time Estimate", "Lead Time"]
       ),
     };
   }, []);

@@ -101,6 +101,17 @@ function validateCapsuleOutput(parsed) {
     );
   }
 
+  if (!safe.yieldConsumption || safe.yieldConsumption.trim().length < 20) {
+    failures.push(
+      "Yield & Consumption Estimates: section is missing or too short."
+    );
+  }
+  if (!safe.targetInsight || safe.targetInsight.trim().length < 25) {
+    failures.push(
+      "Target Consumer Insight: section is missing or too short."
+    );
+  }
+
   return { ok: failures.length === 0, failures };
 }
 
@@ -730,12 +741,19 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey, r
       ),
       yieldConsumption: getSection(
         "Yield & Consumption Estimates",
-        ["Yield & Consumption Estimates"],
+        [
+          "Yield & Consumption Estimates",
+          "Yield and Consumption Estimates",
+          "Yield & Consumption",
+          "Yield and Consumption",
+          "Fabric Yield & Consumption Estimates",
+          "Fabric Yield and Consumption Estimates",
+        ],
         "Yield & Consumption Estimates"
       ),
       leadTime: getSection(
         "Production Lead Time Estimate",
-        ["Production Lead Time Estimate", "Production Lead Time"],
+        ["Production Lead Time Estimate", "Production Lead Time", "Lead Time Estimate", "Lead Time"],
         "Production Lead Time Estimate"
       ),
       marketExamples: getSection(
@@ -745,7 +763,18 @@ export default function Step4Suggestions({ onNext, userPlan, outputSessionKey, r
       ),
       targetInsight: getSection(
         "Target Consumer Insight",
-        ["Target Consumer Insight"],
+        [
+          "Target Consumer Insight",
+          "Target Consumer Insights",
+          "Target Consumer",
+          "Target Audience",
+          "Target Audience Insight",
+          "Target Audience Insights",
+          "Consumer Insight",
+          "Consumer Insights",
+          "Target Consumer Profile",
+          "Target Consumer Profiles",
+        ],
         "Target Consumer Insight"
       ),
       marginAnalysis: getSection(

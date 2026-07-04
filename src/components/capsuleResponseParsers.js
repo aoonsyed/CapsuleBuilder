@@ -501,7 +501,7 @@ export function extractCapsuleSection(text, startLabels, boundaryOrderKey) {
   let headerLen = 0;
   for (const lab of variants) {
     const esc = escapeCapsuleRe(lab);
-    const re = new RegExp(`\\*\\*${esc}\\*\\*\\s*:?\\s*`, "i");
+    const re = new RegExp(`(?:^|\\n)\\s*(?:#{1,6}\\s+)?(?:\\*\\*)?${esc}(?:\\*\\*)?\\s*:?\\s*`, "i");
     const m = text.match(re);
     if (m && typeof m.index === "number" && (bestIdx < 0 || m.index < bestIdx)) {
       bestIdx = m.index;
@@ -514,7 +514,7 @@ export function extractCapsuleSection(text, startLabels, boundaryOrderKey) {
   let end = text.length;
   if (following.length) {
     const inner = following.map((h) => escapeCapsuleRe(h)).join("|");
-    const endRe = new RegExp(`\\n\\s*\\*\\*(?:${inner})\\*\\*`, "i");
+    const endRe = new RegExp(`(?:^|\\n)\\s*(?:#{1,6}\\s+)?(?:\\*\\*)?(?:${inner})(?:\\*\\*)?\\s*:?\\s*(?:\\n|$)`, "i");
     const sub = text.slice(bodyStart);
     const hit = sub.search(endRe);
     if (hit >= 0) end = bodyStart + hit;
@@ -640,5 +640,38 @@ export function repairParsedCapsule(parsed, rawText) {
     "Comparable Market Examples"
   );
   fill("colors", ["Color Palette", "Color Palette with HEX Codes", "Colours", "Colors"], "Color Palette");
+  fill(
+    "yieldConsumption",
+    [
+      "Yield & Consumption Estimates",
+      "Yield and Consumption Estimates",
+      "Yield & Consumption",
+      "Yield and Consumption",
+      "Fabric Yield & Consumption Estimates",
+      "Fabric Yield and Consumption Estimates",
+    ],
+    "Yield & Consumption Estimates"
+  );
+  fill(
+    "targetInsight",
+    [
+      "Target Consumer Insight",
+      "Target Consumer Insights",
+      "Target Consumer",
+      "Target Audience",
+      "Target Audience Insight",
+      "Target Audience Insights",
+      "Consumer Insight",
+      "Consumer Insights",
+      "Target Consumer Profile",
+      "Target Consumer Profiles",
+    ],
+    "Target Consumer Insight"
+  );
+  fill(
+    "leadTime",
+    ["Production Lead Time Estimate", "Production Lead Time", "Lead Time Estimate", "Lead Time"],
+    "Production Lead Time Estimate"
+  );
   return out;
 }
