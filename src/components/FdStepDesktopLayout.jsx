@@ -100,18 +100,13 @@ export default function FdStepDesktopLayout({
           <div
             className="min-w-0 text-left text-[#2B2A25]"
             style={{
-              paddingTop: FD_STEP1_SPACING.leftLogoTop,
+              paddingTop: 40,
               paddingLeft: FD_STEP1_SPACING.leftLogoSide,
               paddingRight: FD_STEP1_SPACING.leftLogoSide,
               paddingBottom: FD_STEP1_SPACING.leftBottom,
             }}
           >
-            <img
-              src={FD_LOGO_WHITE_SRC}
-              alt="Form Department"
-              className="h-44 sm:h-48 md:h-52 w-auto invert -ml-10"
-            />
-            <p className={`mt-1 ${fdStepLabelClass}`}>
+            <p className={fdStepLabelClass}>
               Step {step} of {total}
             </p>
             <StepProgressBar step={step} total={total} />
