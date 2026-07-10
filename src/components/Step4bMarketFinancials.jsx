@@ -13,7 +13,6 @@ import {
 import {
   buildCapsuleParamsKey,
   loadLegacyProductBreakdown,
-  loadLatestProductBreakdown,
   loadProductBreakdown,
   loadQuestionnaireAnswers,
   loadMarketAnalysisSections,
@@ -609,6 +608,16 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     [paramsKey]
   );
 
+  // Reset sections whenever the run key changes so stale data from a previous
+  // run is never displayed while waiting for the new run's breakdown.
+  const prevParamsKeyRef = useRef(null);
+  useLayoutEffect(() => {
+    if (prevParamsKeyRef.current !== null && prevParamsKeyRef.current !== paramsKey) {
+      setSections(null);
+    }
+    prevParamsKeyRef.current = paramsKey;
+  }, [paramsKey]);
+
   const displaySections = sections ?? cachedSections;
 
   // Remove trailing dashes and similar AI artifacts from section text
@@ -762,6 +771,10 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
   }, []);
 
   const readCurrentBreakdown = useCallback(() => {
+    // Only load breakdowns that are keyed to the current paramsKey.
+    // The legacy fallback (loadLatestProductBreakdown) is intentionally
+    // omitted here — it reads unscoped localStorage keys and would return
+    // data from the previous run, causing the stale-output bug.
     const fromHashed =
       loadProductBreakdown(paramsKey, null) ||
       loadLegacyProductBreakdown(paramsKey);
@@ -771,38 +784,14 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
         parsed: fromHashed.parsedSuggestions,
       };
     }
-
-    // Fallback: the hashed/legacy lookups both key off `paramsKey`, which is a
-    // hash of formData + savedAnswers + runKey. If that key doesn't exactly
-    // match what Step4Suggestions used when it saved the breakdown (e.g. a
-    // different runKey/outputSessionKey was passed in for this step, or
-    // formData shifted between steps), we'd otherwise render every AI section
-    // on this page as "No data available" even though a breakdown was just
-    // generated. Fall back to the most recently generated breakdown instead
-    // of showing a blank page, and log so the root-cause mismatch is still
-    // discoverable.
-    const latest = loadLatestProductBreakdown();
-    if (latest) {
-      console.warn(
-        "[Step4bMarketFinancials] No product breakdown found for the current paramsKey — " +
-          "falling back to the most recently generated breakdown. This usually means " +
-          "runKey/outputSessionKey (or formData) differs between Step4Suggestions and " +
-          "Step4bMarketFinancials. paramsKey:",
-        paramsKey
-      );
-      return {
-        rawText: latest.rawAnswer,
-        parsed: latest.parsedSuggestions,
-      };
-    }
-
-    return { rawText: "", parsed: {} };
+    return null;
   }, [paramsKey]);
 
   /** Re-merge financial / analysis sections from canonical keys for this run. */
   const lsMergedSections = useMemo(() => {
-    const { rawText, parsed } = readCurrentBreakdown();
-    return buildMarketSections(rawText, repairParsedCapsule(parsed, rawText));
+    const breakdown = readCurrentBreakdown();
+    if (!breakdown) return null;
+    return buildMarketSections(breakdown.rawText, repairParsedCapsule(breakdown.parsed, breakdown.rawText));
   }, [buildMarketSections, readCurrentBreakdown]);
 
   // Check page access on mount (no hard redirect — use in-app states)
@@ -858,36 +847,58 @@ export default function Step4bMarketFinancials({ onBack, onRestart, outputSessio
     checkAccess();
   }, [isLocalhost, bypassMarketPaywall]);
 
-  // Load sections from the current run's product breakdown (once per paramsKey)
+  // Load sections from the current run's product breakdown (once per paramsKey).
+  // If the breakdown isn't saved yet (Step4Suggestions is still fetching),
+  // retry every 800 ms until it appears rather than falling back to stale data.
   const loadedParamsRef = useRef(null);
   useEffect(() => {
     if (!hasAccess) return;
     if (loadedParamsRef.current === paramsKey && sections) return;
 
+    // Use cached market-analysis sections when available for this exact key.
     if (cachedSections) {
       setSections(cachedSections);
       loadedParamsRef.current = paramsKey;
       return;
     }
 
-    const { rawText, parsed } = readCurrentBreakdown();
-    const repaired = repairParsedCapsule(parsed, rawText);
-    const built = buildMarketSections(rawText, repaired);
-    setSections(built);
-    loadedParamsRef.current = paramsKey;
-    if (
-      built.materials ||
-      built.companionItems ||
-      built.saleprices ||
-      built.marketExamples ||
-      built.targetInsight ||
-      built.marginAnalysis ||
-      built.pricing ||
-      built.yieldConsumption ||
-      built.leadTime
-    ) {
-      saveSectionsToCache(built);
-    }
+    const tryLoad = () => {
+      const breakdown = readCurrentBreakdown();
+      if (!breakdown) {
+        // The current run's breakdown hasn't been saved yet by Step4Suggestions.
+        // Return null and let the polling interval retry.
+        return false;
+      }
+      const repaired = repairParsedCapsule(breakdown.parsed, breakdown.rawText);
+      const built = buildMarketSections(breakdown.rawText, repaired);
+      setSections(built);
+      loadedParamsRef.current = paramsKey;
+      if (
+        built.materials ||
+        built.companionItems ||
+        built.saleprices ||
+        built.marketExamples ||
+        built.targetInsight ||
+        built.marginAnalysis ||
+        built.pricing ||
+        built.yieldConsumption ||
+        built.leadTime
+      ) {
+        saveSectionsToCache(built);
+      }
+      return true;
+    };
+
+    // Attempt immediately; if Step4 hasn't saved the breakdown yet, poll.
+    if (tryLoad()) return;
+
+    const intervalId = setInterval(() => {
+      if (tryLoad()) {
+        clearInterval(intervalId);
+      }
+    }, 800);
+
+    return () => clearInterval(intervalId);
   }, [
     hasAccess,
     paramsKey,
